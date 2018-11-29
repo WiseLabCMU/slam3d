@@ -1,38 +1,24 @@
 //
 //  particleFilter.h
 //
-//  Created by John Miller on 3/23/18.
+//  Created by John Miller on 11/1/18.
 //  Copyright © 2018 CMU. All rights reserved.
 //
 
-#define N_TAG		(100)
-#define N_BEACON	(1000)
+#ifndef _PARTICLEFILTER_H
+#define _PARTICLEFILTER_H
 
-typedef struct
-{
-	float w;
-	float x;
-	float y;
-	float z;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-} beaconParticle_t;
+	typedef _beacon_t beacon_t;
+	typedef _particleFilter_t particleFilter_t;
 
-typedef struct
-{
-	float w;
-	float x;
-	float y;
-	float z;
-	float theta;
+	void particleFilter_init(particleFilter_t* pf);
 
-} tagParticle_t;
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
-typedef beaconParticle_t beacon_t[N_TAG][N_BEACON];
-
-typedef struct
-{
-	tagParticle_t pTag[N_TAG];
-	beacon_t* pBeacon;
-
-} particleFilter_t;
-
+#endif

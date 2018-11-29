@@ -11,6 +11,11 @@
 
 int main()
 {
+	beacon_t beacons[10];
+	particleFilter_t particleFilter;
+
+	particleFilter_init(particleFilter);
+
 	printf("Hello, World!\n");
 
 	return 0;

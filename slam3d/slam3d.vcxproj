@@ -84,11 +84,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="particlefilter\Particle.m" />
     <None Include="particlefilter\ParticleFilter.m" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="particlefilter\particleFilter.h" />
+    <ClInclude Include="particlefilter\particleFilterInternal.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="slam3d.c" />

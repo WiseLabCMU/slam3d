@@ -21,15 +21,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="particlefilter\Particle.m">
-      <Filter>Source Files\particlefilter</Filter>
-    </None>
     <None Include="particlefilter\ParticleFilter.m">
       <Filter>Source Files\particlefilter</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="particlefilter\particleFilter.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="particlefilter\particleFilterInternal.h">
       <Filter>Header Files\particlefilter</Filter>
     </ClInclude>
   </ItemGroup>
