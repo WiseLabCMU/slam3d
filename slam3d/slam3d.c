@@ -1,9 +1,17 @@
-// slam3d.cpp
+//
+//  slam3d.c
+//
+//  Created by John Miller on 11/1/18.
+//  Copyright © 2018 CMU. All rights reserved.
+//
 
-#include <iostream>
+#include <stdio.h>
+
 #include "particlefilter/particleFilter.h"
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	printf("Hello, World!\n");
+
+	return 0;
 }

@@ -21,27 +21,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="slam3d.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="particlefilter\Beacon.m">
-      <Filter>Source Files\particlefilter</Filter>
-    </None>
-    <None Include="particlefilter\OutputLocation.m">
-      <Filter>Source Files\particlefilter</Filter>
-    </None>
     <None Include="particlefilter\Particle.m">
       <Filter>Source Files\particlefilter</Filter>
     </None>
     <None Include="particlefilter\ParticleFilter.m">
-      <Filter>Source Files\particlefilter</Filter>
-    </None>
-    <None Include="particlefilter\UwbMeasurement.m">
-      <Filter>Source Files\particlefilter</Filter>
-    </None>
-    <None Include="particlefilter\VioMeasurement.m">
       <Filter>Source Files\particlefilter</Filter>
     </None>
   </ItemGroup>
@@ -49,5 +32,10 @@
     <ClInclude Include="particlefilter\particleFilter.h">
       <Filter>Header Files\particlefilter</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="slam3d.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

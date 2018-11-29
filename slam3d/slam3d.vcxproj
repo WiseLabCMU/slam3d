@@ -84,18 +84,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="slam3d.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="particlefilter\Beacon.m" />
-    <None Include="particlefilter\OutputLocation.m" />
     <None Include="particlefilter\Particle.m" />
     <None Include="particlefilter\ParticleFilter.m" />
-    <None Include="particlefilter\UwbMeasurement.m" />
-    <None Include="particlefilter\VioMeasurement.m" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="particlefilter\particleFilter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="slam3d.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
