@@ -13,10 +13,56 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\particlefilter">
+      <UniqueIdentifier>{fd753e6b-a6b0-4577-8c7c-6b986a5a6ff2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\particlefilter">
+      <UniqueIdentifier>{d47999b9-31e6-418d-b08f-2cff71b90956}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="slam3d.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="particlefilter\Beacon.m">
+      <Filter>Source Files\particlefilter</Filter>
+    </None>
+    <None Include="particlefilter\OutputLocation.m">
+      <Filter>Source Files\particlefilter</Filter>
+    </None>
+    <None Include="particlefilter\Particle.m">
+      <Filter>Source Files\particlefilter</Filter>
+    </None>
+    <None Include="particlefilter\ParticleFilter.m">
+      <Filter>Source Files\particlefilter</Filter>
+    </None>
+    <None Include="particlefilter\UwbMeasurement.m">
+      <Filter>Source Files\particlefilter</Filter>
+    </None>
+    <None Include="particlefilter\VioMeasurement.m">
+      <Filter>Source Files\particlefilter</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="particlefilter\Beacon.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="particlefilter\OutputLocation.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="particlefilter\Particle.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="particlefilter\ParticleFilter.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="particlefilter\UwbMeasurement.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="particlefilter\VioMeasurement.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

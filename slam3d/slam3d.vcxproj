@@ -86,6 +86,22 @@
   <ItemGroup>
     <ClCompile Include="slam3d.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="particlefilter\Beacon.m" />
+    <None Include="particlefilter\OutputLocation.m" />
+    <None Include="particlefilter\Particle.m" />
+    <None Include="particlefilter\ParticleFilter.m" />
+    <None Include="particlefilter\UwbMeasurement.m" />
+    <None Include="particlefilter\VioMeasurement.m" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="particlefilter\Beacon.h" />
+    <ClInclude Include="particlefilter\OutputLocation.h" />
+    <ClInclude Include="particlefilter\Particle.h" />
+    <ClInclude Include="particlefilter\ParticleFilter.h" />
+    <ClInclude Include="particlefilter\UwbMeasurement.h" />
+    <ClInclude Include="particlefilter\VioMeasurement.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
