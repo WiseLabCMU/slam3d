@@ -8,14 +8,42 @@
 #ifndef _PARTICLEFILTER_H
 #define _PARTICLEFILTER_H
 
+#include "particleFilter.h"
+
+#define N_TAG		(100)
+#define N_BEACON	(1000)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-	typedef _beacon_t beacon_t;
-	typedef _particleFilter_t particleFilter_t;
+	typedef struct
+	{
+		float w;
+		float x;
+		float y;
+		float z;
 
-	void particleFilter_init(particleFilter_t* pf);
+	} beaconParticle_t;
+
+	typedef struct
+	{
+		float w;
+		float x;
+		float y;
+		float z;
+		float theta;
+
+	} tagParticle_t;
+
+	typedef beaconParticle_t _beacon_t[N_TAG][N_BEACON];
+
+	typedef struct
+	{
+		tagParticle_t pTag[N_TAG];
+		beacon_t* pBeacon;
+
+	} _particleFilter_t;
 
 #ifdef __cplusplus
 } // extern "C"

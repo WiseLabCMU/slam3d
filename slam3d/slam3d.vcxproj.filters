@@ -21,11 +21,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="particlefilter\ParticleFilter.m">
-      <Filter>Source Files\particlefilter</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="particlefilter\particleFilter.h">
       <Filter>Header Files\particlefilter</Filter>
     </ClInclude>
@@ -36,6 +31,9 @@
   <ItemGroup>
     <ClCompile Include="slam3d.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="particlefilter\particleFilter.c">
+      <Filter>Source Files\particlefilter</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

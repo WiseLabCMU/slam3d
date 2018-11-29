@@ -1,24 +1,18 @@
 //
-//  ParticleFilter.m
-//  ParticleFilter
+//  particleFilter.c
 //
-//  Created by John Miller on 3/23/18.
+//  Created by John Miller on 11/1/18.
 //  Copyright © 2018 CMU. All rights reserved.
 //
 
-//
-//  Particle.m
-//  ParticleFilter
-//
-//  Created by John Miller on 3/23/18.
-//  Copyright © 2018 CMU. All rights reserved.
-//
-
-#import "Particle.h"
+#include "particleFilterInternal.h"
 
 #define SCALE_STD (0.05)
 
-@implementation Particle
+void particleFilter_init(particleFilter_t* pf)
+{
+
+}
 
 - (void)initFromUwb:(UwbMeasurement*)uwb beacon:(Beacon*)beacon
 {
