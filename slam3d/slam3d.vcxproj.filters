@@ -46,22 +46,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="particlefilter\Beacon.h">
-      <Filter>Header Files\particlefilter</Filter>
-    </ClInclude>
-    <ClInclude Include="particlefilter\OutputLocation.h">
-      <Filter>Header Files\particlefilter</Filter>
-    </ClInclude>
-    <ClInclude Include="particlefilter\Particle.h">
-      <Filter>Header Files\particlefilter</Filter>
-    </ClInclude>
-    <ClInclude Include="particlefilter\ParticleFilter.h">
-      <Filter>Header Files\particlefilter</Filter>
-    </ClInclude>
-    <ClInclude Include="particlefilter\UwbMeasurement.h">
-      <Filter>Header Files\particlefilter</Filter>
-    </ClInclude>
-    <ClInclude Include="particlefilter\VioMeasurement.h">
+    <ClInclude Include="particlefilter\particleFilter.h">
       <Filter>Header Files\particlefilter</Filter>
     </ClInclude>
   </ItemGroup>
