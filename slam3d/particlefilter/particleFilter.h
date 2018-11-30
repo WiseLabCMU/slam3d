@@ -48,7 +48,7 @@ extern "C" {
 
 	void particleFilter_init(particleFilter_t* pf);
 	void particleFilter_applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta);
-	void particleFilter_addBeacon(particleFilter_t*pf, beacon_t* b);
+	void particleFilter_addBeacon(particleFilter_t*pf, beacon_t* b, float range, float std);
 
 #ifdef __cplusplus
 } // extern "C"
