@@ -13,6 +13,8 @@
 
 #include "particleFilter.h"
 
+static void _randomNormal2(float* x, float* y);
+
 void particleFilter_init(particleFilter_t* pf)
 {
 	int i;
@@ -20,7 +22,7 @@ void particleFilter_init(particleFilter_t* pf)
 
 	for (i = 0; i < PF_N_TAG; ++i)
 	{
-		p = &pf->pTag[i];
+		p = &pf[i];
 		p->w = 1.0f;
 		p->x = 0.0f;
 		p->y = 0.0f;
@@ -36,27 +38,51 @@ void particleFilter_applyVio(particleFilter_t* pf, float dt, float dx, float dy,
 	int i;
 	tagParticle_t* p;
 	float c, s, p_dx, p_dy;
-	float f1, f2, g1, g2;
+	float rx, ry, rz, rtheta;
 
 	for (i = 0; i < PF_N_TAG; ++i)
 	{
-		p = &pf->pTag[i];
+		p = &pf[i];
 		c = cosf(p->theta);
 		s = sinf(p->theta);
 		p_dx = dx * c - dy * s;
 		p_dy = dx * s + dy * c;
 
-		f1 = sqrt(-2 * log((float)rand() / RAND_MAX));
-		f2 = sqrt(-2 * log((float)rand() / RAND_MAX));
-		g1 = (float)rand() / RAND_MAX * 2 * M_PI;
-		g2 = (float)rand() / RAND_MAX * 2 * M_PI;
+		_randomNormal2(&rx, &ry);
+		_randomNormal2(&rz, &rtheta);
 
-		p->x += p_dx + std_xyz * f1 * cosf(g1);
-		p->y += p_dy + std_xyz * f1 * sinf(g1);
-		p->z += dz + std_xyz * f2 * cosf(g2);
-		p->theta = fmodf(p->theta + std_theta * f2 * sinf(g2), 2 * M_PI);
+		p->x += p_dx + std_xyz * rx;
+		p->y += p_dy + std_xyz * ry;
+		p->z += dz + std_xyz *rz;
+		p->theta = fmodf(p->theta + std_theta * rtheta), 2 * M_PI);
 	}
 }
+
+void particleFilter_addBeacon(particleFilter_t* pf, beacon_t* b)
+{
+	int i, j;
+	tagParticle_t* tp;
+	beaconParticle_t* bp;
+	float f1, f2, g1, g2;
+
+	for (i = 0; i < PF_N_TAG; ++i)
+	{
+		tp = &pf[i];
+		for (j = 0; j < PF_N_BEACON; ++j)
+		{
+			bp = &b[i][j];
+		}
+	}
+}
+
+static void _randomNormal2(float* x, float* y)
+{
+	float f = sqrt(-2 * log((float)rand() / RAND_MAX));
+	float g = (float)rand() / RAND_MAX * 2 * M_PI;
+	*x = f * cosf(g);
+	*y = f * sinf(g);
+}
+
 //
 //- (void)initFromUwb:(UwbMeasurement*)uwb beacon:(Beacon*)beacon
 //{
@@ -133,47 +159,6 @@ void particleFilter_applyVio(particleFilter_t* pf, float dt, float dx, float dy,
 //	
 //	[self resampleParticles];
 //	[self computeLocationWithT:uwb.t];
-//}
-//
-//- (void)applyVio:(VioMeasurement *)vio
-//{
-//	uint32_t r1[NUM_PARTICLES];
-//	uint32_t r2[NUM_PARTICLES];
-//	uint32_t r3[NUM_PARTICLES];
-//	uint32_t r4[NUM_PARTICLES];
-//	
-//	arc4random_buf(r1, sizeof(r1));
-//	arc4random_buf(r2, sizeof(r2));
-//	arc4random_buf(r3, sizeof(r3));
-//	arc4random_buf(r4, sizeof(r4));
-//	
-//	double dt = vio.t - self.lastVio.t;
-//	double dx = vio.x - self.lastVio.x;
-//	double dy = vio.y - self.lastVio.y;
-//	double s_dt = sqrt(dt);
-//	double s_dxy = sqrt(hypot(dx, dy));
-//	
-//	for (int i = 0; i < NUM_PARTICLES; ++i)
-//	{
-//		Particle* p = self.particles[i];
-//		double theta = p.theta;
-//		double scale = p.scale;
-//		double c = cos(theta);
-//		double s = sin(theta);
-//		
-//		double f1 = sqrt(-2 * log((double)r1[i] / UINT32_MAX));
-//		double g1 = sqrt(-2 * log((double)r2[i] / UINT32_MAX));
-//		double f2 = (double)r3[i] / UINT32_MAX * 2 * M_PI;
-//		double g2 = (double)r4[i] / UINT32_MAX * 2 * M_PI;
-//		
-//		p.x += scale * (dx * c - dy * s) + f1 * cos(f2) * VIO_XY_STD * s_dxy;
-//		p.y += scale * (dx * s + dy * c) + f1 * sin(f2) * VIO_XY_STD * s_dxy;
-//		theta += g1 * cos(g2) * VIO_STD_THETA * s_dt;
-//		p.scale += g1 * sin(g2) * VIO_STD_SCALE * s_dt;
-//		
-//		p.theta = fmod(theta, 2 * M_PI);
-//	}
-//	self.lastVio = vio;
 //}
 //
 //- (void)applyUwb:(UwbMeasurement*)uwb

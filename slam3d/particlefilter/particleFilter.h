@@ -35,15 +35,11 @@ extern "C" {
 	} tagParticle_t;
 
 	typedef beaconParticle_t beacon_t[PF_N_TAG][PF_N_BEACON];
-
-	typedef struct
-	{
-		tagParticle_t pTag[PF_N_TAG];
-
-	} particleFilter_t;
+	typedef tagParticle_t particleFilter_t[PF_N_TAG];
 
 	void particleFilter_init(particleFilter_t* pf);
 	void particleFilter_applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta);
+	void particleFilter_addBeacon(particleFilter_t*pf, beacon_t* b);
 
 #ifdef __cplusplus
 } // extern "C"
