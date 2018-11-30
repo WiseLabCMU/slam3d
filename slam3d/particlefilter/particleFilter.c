@@ -8,6 +8,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #undef _USE_MATH_DEFINES
+#include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -22,7 +23,7 @@ void particleFilter_init(particleFilter_t* pf)
 
 	for (i = 0; i < PF_N_TAG; ++i)
 	{
-		p = &pf[i];
+		p = &pf->pTag[i];
 		p->w = 1.0f;
 		p->x = 0.0f;
 		p->y = 0.0f;
@@ -30,7 +31,7 @@ void particleFilter_init(particleFilter_t* pf)
 		p->theta = 0.0f;
 	}
 
-	srand(time(NULL));
+	srand((uint32_t)time(NULL));
 }
 
 void particleFilter_applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta)
@@ -42,7 +43,7 @@ void particleFilter_applyVio(particleFilter_t* pf, float dt, float dx, float dy,
 
 	for (i = 0; i < PF_N_TAG; ++i)
 	{
-		p = &pf[i];
+		p = &pf->pTag[i];
 		c = cosf(p->theta);
 		s = sinf(p->theta);
 		p_dx = dx * c - dy * s;
@@ -54,7 +55,7 @@ void particleFilter_applyVio(particleFilter_t* pf, float dt, float dx, float dy,
 		p->x += p_dx + std_xyz * rx;
 		p->y += p_dy + std_xyz * ry;
 		p->z += dz + std_xyz *rz;
-		p->theta = fmodf(p->theta + std_theta * rtheta), 2 * M_PI);
+		p->theta = fmodf(p->theta + std_theta * rtheta, 2 * (float)M_PI);
 	}
 }
 
@@ -63,22 +64,21 @@ void particleFilter_addBeacon(particleFilter_t* pf, beacon_t* b)
 	int i, j;
 	tagParticle_t* tp;
 	beaconParticle_t* bp;
-	float f1, f2, g1, g2;
 
 	for (i = 0; i < PF_N_TAG; ++i)
 	{
-		tp = &pf[i];
+		tp = &pf->pTag[i];
 		for (j = 0; j < PF_N_BEACON; ++j)
 		{
-			bp = &b[i][j];
+			bp = &b->pBeacon[i][j];
 		}
 	}
 }
 
 static void _randomNormal2(float* x, float* y)
 {
-	float f = sqrt(-2 * log((float)rand() / RAND_MAX));
-	float g = (float)rand() / RAND_MAX * 2 * M_PI;
+	float f = sqrtf(-2 * logf((float)rand() / RAND_MAX));
+	float g = (float)rand() / RAND_MAX * 2 * (float)M_PI;
 	*x = f * cosf(g);
 	*y = f * sinf(g);
 }

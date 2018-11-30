@@ -34,8 +34,17 @@ extern "C" {
 
 	} tagParticle_t;
 
-	typedef beaconParticle_t beacon_t[PF_N_TAG][PF_N_BEACON];
-	typedef tagParticle_t particleFilter_t[PF_N_TAG];
+	typedef struct
+	{
+		beaconParticle_t pBeacon[PF_N_TAG][PF_N_BEACON];
+
+	} beacon_t;
+
+	typedef struct
+	{
+		tagParticle_t pTag[PF_N_TAG];
+
+	} particleFilter_t;
 
 	void particleFilter_init(particleFilter_t* pf);
 	void particleFilter_applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta);
