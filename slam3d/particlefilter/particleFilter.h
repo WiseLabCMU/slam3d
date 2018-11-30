@@ -8,10 +8,8 @@
 #ifndef _PARTICLEFILTER_H
 #define _PARTICLEFILTER_H
 
-#include "particleFilter.h"
-
-#define N_TAG		(100)
-#define N_BEACON	(1000)
+#define PF_N_TAG	(100)
+#define PF_N_BEACON	(1000)
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,14 +34,16 @@ extern "C" {
 
 	} tagParticle_t;
 
-	typedef beaconParticle_t _beacon_t[N_TAG][N_BEACON];
+	typedef beaconParticle_t beacon_t[PF_N_TAG][PF_N_BEACON];
 
 	typedef struct
 	{
-		tagParticle_t pTag[N_TAG];
-		beacon_t* pBeacon;
+		tagParticle_t pTag[PF_N_TAG];
 
-	} _particleFilter_t;
+	} particleFilter_t;
+
+	void particleFilter_init(particleFilter_t* pf);
+	void particleFilter_applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta);
 
 #ifdef __cplusplus
 } // extern "C"

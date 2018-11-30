@@ -85,7 +85,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="particlefilter\particleFilter.h" />
-    <ClInclude Include="particlefilter\particleFilterInternal.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="particlefilter\particleFilter.c" />

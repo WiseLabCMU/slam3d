@@ -24,9 +24,6 @@
     <ClInclude Include="particlefilter\particleFilter.h">
       <Filter>Header Files\particlefilter</Filter>
     </ClInclude>
-    <ClInclude Include="particlefilter\particleFilterInternal.h">
-      <Filter>Header Files\particlefilter</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="slam3d.c">
