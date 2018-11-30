@@ -14,21 +14,22 @@
 
 #include "particleFilter.h"
 
+static float _randomUniform(void);
 static void _randomNormal2(float* x, float* y);
 
 void particleFilter_init(particleFilter_t* pf)
 {
 	int i;
-	tagParticle_t* p;
+	tagParticle_t* tp;
 
 	for (i = 0; i < PF_N_TAG; ++i)
 	{
-		p = &pf->pTag[i];
-		p->w = 1.0f;
-		p->x = 0.0f;
-		p->y = 0.0f;
-		p->z = 0.0f;
-		p->theta = 0.0f;
+		tp = &pf->pTag[i];
+		tp->w = 1.0f;
+		tp->x = 0.0f;
+		tp->y = 0.0f;
+		tp->z = 0.0f;
+		tp->theta = 0.0f;
 	}
 
 	srand((uint32_t)time(NULL));
@@ -37,33 +38,35 @@ void particleFilter_init(particleFilter_t* pf)
 void particleFilter_applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta)
 {
 	int i;
-	tagParticle_t* p;
+	tagParticle_t* tp;
 	float c, s, p_dx, p_dy;
 	float rx, ry, rz, rtheta;
 
 	for (i = 0; i < PF_N_TAG; ++i)
 	{
-		p = &pf->pTag[i];
-		c = cosf(p->theta);
-		s = sinf(p->theta);
+		tp = &pf->pTag[i];
+		c = cosf(tp->theta);
+		s = sinf(tp->theta);
 		p_dx = dx * c - dy * s;
 		p_dy = dx * s + dy * c;
 
 		_randomNormal2(&rx, &ry);
 		_randomNormal2(&rz, &rtheta);
 
-		p->x += p_dx + std_xyz * rx;
-		p->y += p_dy + std_xyz * ry;
-		p->z += dz + std_xyz *rz;
-		p->theta = fmodf(p->theta + std_theta * rtheta, 2 * (float)M_PI);
+		tp->x += p_dx + std_xyz * rx;
+		tp->y += p_dy + std_xyz * ry;
+		tp->z += dz + std_xyz *rz;
+		tp->theta = fmodf(tp->theta + std_theta * rtheta, 2 * (float)M_PI);
 	}
 }
 
-void particleFilter_addBeacon(particleFilter_t* pf, beacon_t* b)
+void particleFilter_addBeacon(particleFilter_t* pf, beacon_t* b, float range, float std)
 {
 	int i, j;
 	tagParticle_t* tp;
 	beaconParticle_t* bp;
+	float rdist, relev, razim;
+	float c, dx, dy, dz;
 
 	for (i = 0; i < PF_N_TAG; ++i)
 	{
@@ -71,14 +74,37 @@ void particleFilter_addBeacon(particleFilter_t* pf, beacon_t* b)
 		for (j = 0; j < PF_N_BEACON; ++j)
 		{
 			bp = &b->pBeacon[i][j];
+
+			do
+			{
+				rdist = range + 3 * std * (_randomUniform() * 2 - 1);
+			} while (rdist < 0);
+
+			relev = asinf(_randomUniform() * 2 - 1);
+			razim = _randomUniform() * 2 * (float)M_PI;
+			
+			c = rdist * cosf(relev);
+			dx = c * cosf(razim);
+			dy = c * sinf(razim);
+			dz = rdist * sinf(relev);
+
+			bp->w = 1.0f;
+			bp->x = tp->x + dx;
+			bp->y = tp->y + dy;
+			bp->z = tp->z + dz;
 		}
 	}
 }
 
+static float _randomUniform(void)
+{
+	return (float)rand() / RAND_MAX;
+}
+
 static void _randomNormal2(float* x, float* y)
 {
-	float f = sqrtf(-2 * logf((float)rand() / RAND_MAX));
-	float g = (float)rand() / RAND_MAX * 2 * (float)M_PI;
+	float f = sqrtf(-2 * logf(_randomUniform()));
+	float g = _randomUniform() * 2 * (float)M_PI;
 	*x = f * cosf(g);
 	*y = f * sinf(g);
 }
