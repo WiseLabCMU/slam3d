@@ -14,6 +14,15 @@
 
 #include "particleFilter.h"
 
+#define RESAMPLE_THRESH     (0.5f)
+#define RADIUS_SPAWN_THRESH (1.0f)
+#define WEIGHT_SPAWN_THRESH (0.4f)
+#define PCT_SPAWN           (0.05f)
+#define HXYZ                (0.1f)
+
+static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_range);
+static void _resampleBeacon(particleFilter_t* pf, beacon_t* b, uint8_t force);
+
 static float _randomUniform(void);
 static void _randomNormal2(float* x, float* y);
 
@@ -137,6 +146,100 @@ void particleFilter_applyUwb(particleFilter_t* pf, uint32_t beaconId, float rang
     }
 }
 
+static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_range)
+{
+    int i;
+    tagParticle_t* tp;
+    float w, s, ss, csum, ssum, ess;
+    float weightCdf[PF_N_TAG];
+    float randArray[PF_N_TAG];
+
+    for (i = 0; i < PF_N_TAG; ++i)
+    {
+        tp = &pf->pTag[i];
+        w = tp->w;
+        s += w;
+        ss += w * w;
+        csum += w * cosf(tp->theta);
+        ssum += w * sinf(tp->theta);
+        weightCdf[i] = s;
+    }
+    ess = s * s / ss;
+    
+    if (ess / PF_N_TAG < RESAMPLE_THRESH)
+    {
+        csum /= s;
+        ssum /= s;
+        for (i = 0; i < PF_N_TAG; ++i)
+        {
+            tp = &pf->pTag[i];
+            randArray[i] = _randomUniform() * s;
+            scaleDev += p.w * (p.scale - scaleSum) * (p.scale - scaleSum);
+        }
+        NSArray* randCdf = [self.randArray sortedArrayUsingSelector:@selector(compare:)];
+        scaleDev /= s;
+
+        double hXY = 0.1;
+        double hTheta = sqrt(-log(csum * csum + ssum * ssum) / ess);
+        double hScale = sqrt(scaleDev / sqrt(ess));
+
+        int i = 0;
+        int j = 0;
+        int k = 0;
+        while (k < NUM_PARTICLES)
+        {
+            while (k < NUM_PARTICLES && [randCdf[i] doubleValue] < weightCdf[j])
+            {
+                [self.spareParticles[k++] initFromOther:self.particles[j]
+                                        withXYBandwidth:hXY
+                                     withThetaBandwidth:hTheta
+                                     withScaleBandwidth:hScale];
+                ++i;
+            }
+            ++j;
+        }
+
+        NSMutableArray* tmp = self.particles;
+        self.particles = self.spareParticles;
+        self.spareParticles = tmp;
+        
+        indices = randsample(N, N, true, pTag(:, 1));
+        pTag = pTag(indices, :);
+        temp = mean(cos(pTag(:, 4)))^2 + mean(sin(pTag(:, 4)))^2;
+        temp = max(temp, 0.000001);
+        temp = min(temp, 0.999999);
+        devt = sqrt(-log(temp));
+        ht = devt * ess^-.5;
+        pTag(:, 1) = 1;
+        pTag(:, 2:4) = pTag(:, 2:4) + HXYZ * randn(size(pTag(:, 2:4)));
+        pTag(:, 5) = pTag(:, 5) + ht * randn(size(pTag(:, 5)));
+        pTag(:, 5) = mod(pTag(:, 5), 2 * pi);
+        for i = 1:length(pBeaconsMean)
+        {
+            if numel(pBeaconsMean{i}) > 0
+            {
+                [pBeaconsMean{i}, pBeaconsCov{i}] = resampleBeacon(pTag, pBeaconsMean{i}(indices, :, :), pBeaconsCov{i}(indices, :, :, :), true);
+            }
+        }
+    }
+//    Otherwise, normalize top layer and resample lower layers if necessary
+    else
+    {
+        float m = s / PF_N_TAG;
+        for (i = 0; i < PF_N_TAG; ++i)
+        {
+            tp = &pf->pTag[i];
+            tp->w /= m;
+        }
+        _resampleBeacon(pf, b, 0);
+    }
+}
+
+static void _resampleBeacon(particleFilter_t* pf, beacon_t* b, uint8_t force)
+{
+    
+}
+
 static float _randomUniform(void)
 {
 	return (float)rand() / RAND_MAX;
@@ -150,22 +253,6 @@ static void _randomNormal2(float* x, float* y)
 	*y = f * sinf(g);
 }
 
-//
-//- (void)initFromUwb:(UwbMeasurement*)uwb beacon:(Beacon*)beacon
-//{
-//	double angle = (double)arc4random() / UINT32_MAX * 2 * M_PI;
-//	double dist = ((double)arc4random() / UINT32_MAX * 2 - 1) * 3 * uwb.s + uwb.r;
-//	
-//	double f1 = sqrt(-2 * log((double)arc4random() / UINT32_MAX));
-//	double f2 = (double)arc4random() / UINT32_MAX * 2 * M_PI;
-//	
-//	self.w = 1.0;
-//	self.x = beacon.x + dist * cos(angle);
-//	self.y = beacon.y + dist * sin(angle);
-//	self.theta = (double)arc4random() / UINT32_MAX * 2 * M_PI;
-//	self.scale = f1 * cos(f2) * SCALE_STD + 1;
-//}
-//
 //- (void)initFromOther:(Particle*)other withXYBandwidth:(double)hXY withThetaBandwidth:(double)hTheta withScaleBandwidth:(double)hScale
 //{
 //	double f1 = sqrt(-2 * log((double)arc4random() / UINT32_MAX));
