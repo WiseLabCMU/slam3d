@@ -50,8 +50,9 @@ extern "C" {
 	} particleFilter_t;
 
 	void particleFilter_init(particleFilter_t* pf);
+    void particleFilter_addBeacon(particleFilter_t* pf, beacon_t* b, uint32_t beaconId, float range, float std_range);
 	void particleFilter_applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta);
-	void particleFilter_addBeacon(particleFilter_t* pf, beacon_t* b, uint32_t beaconId, float range, float std);
+    void particleFilter_applyUwb(particleFilter_t* pf, uint32_t beaconId, float range, float std_range);
 
 #ifdef __cplusplus
 } // extern "C"
