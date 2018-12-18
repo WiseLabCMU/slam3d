@@ -31,7 +31,8 @@ void particleFilter_init(particleFilter_t* pf)
 		tp->z = 0.0f;
 		tp->theta = 0.0f;
 	}
-
+    pf->firstBeacon = NULL;
+    
 	srand((uint32_t)time(NULL));
 }
 
@@ -55,12 +56,12 @@ void particleFilter_applyVio(particleFilter_t* pf, float dt, float dx, float dy,
 
 		tp->x += p_dx + std_xyz * rx;
 		tp->y += p_dy + std_xyz * ry;
-		tp->z += dz + std_xyz *rz;
+		tp->z += dz + std_xyz * rz;
 		tp->theta = fmodf(tp->theta + std_theta * rtheta, 2 * (float)M_PI);
 	}
 }
 
-void particleFilter_addBeacon(particleFilter_t* pf, beacon_t* b, float range, float std)
+void particleFilter_addBeacon(particleFilter_t* pf, beacon_t* b, uint32_t beaconId, float range, float std)
 {
 	int i, j;
 	tagParticle_t* tp;
@@ -94,6 +95,9 @@ void particleFilter_addBeacon(particleFilter_t* pf, beacon_t* b, float range, fl
 			bp->z = tp->z + dz;
 		}
 	}
+    b->beaconId = beaconId;
+    b->nextBeacon = pf->firstBeacon;
+    pf->firstBeacon = b;
 }
 
 static float _randomUniform(void)
