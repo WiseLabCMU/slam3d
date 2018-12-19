@@ -21,7 +21,9 @@
 #define HXYZ                (0.1f)
 
 static void _initTag(particleFilter_t* pf);
+static void _initTagParticle(tagParticle_t* tp);
 static void _initBeacon(particleFilter_t* pf, beacon_t* b, float range, float std_range);
+static void _initBeaconParticle(beaconParticle_t* bp, const tagParticle_t* tp, float range, float std_range);
 static void _applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta);
 static void _applyUwb(particleFilter_t* pf, beacon_t* b, float range, float std_range);
 static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_range);
@@ -68,52 +70,54 @@ void particleFilter_depositUwb(particleFilter_t* pf, uint32_t beaconId, float ra
 static void _initTag(particleFilter_t* pf)
 {
     int i;
-    tagParticle_t* tp;
     
     for (i = 0; i < PF_N_TAG; ++i)
-    {
-        tp = &pf->pTag[i];
-        tp->w = 1.0f;
-        tp->x = 0.0f;
-        tp->y = 0.0f;
-        tp->z = 0.0f;
-        tp->theta = 0.0f;
-    }
+        _initTagParticle(&pf->pTag[i]);
 }
 
 static void _initBeacon(particleFilter_t* pf, beacon_t* b, float range, float std_range)
 {
     int i, j;
     tagParticle_t* tp;
-    beaconParticle_t* bp;
-    float rdist, relev, razim;
-    float c, dx, dy, dz;
     
     for (i = 0; i < PF_N_TAG; ++i)
     {
         tp = &pf->pTag[i];
         for (j = 0; j < PF_N_BEACON; ++j)
-        {
-            bp = &b->pBeacon[i][j];
-            
-            do
-                rdist = range + 3 * std_range * (_randomUniform() * 2 - 1);
-            while (rdist < 0);
-            
-            relev = asinf(_randomUniform() * 2 - 1);
-            razim = _randomUniform() * 2 * (float)M_PI;
-            
-            c = rdist * cosf(relev);
-            dx = c * cosf(razim);
-            dy = c * sinf(razim);
-            dz = rdist * sinf(relev);
-            
-            bp->w = 1.0f;
-            bp->x = tp->x + dx;
-            bp->y = tp->y + dy;
-            bp->z = tp->z + dz;
-        }
+            _initBeaconParticle(&b->pBeacon[i][j], tp, range, std_range);
     }
+}
+
+static void _initTagParticle(tagParticle_t* tp)
+{
+    tp->w = 1.0f;
+    tp->x = 0.0f;
+    tp->y = 0.0f;
+    tp->z = 0.0f;
+    tp->theta = 0.0f;
+}
+
+static void _initBeaconParticle(beaconParticle_t* bp, const tagParticle_t* tp, float range, float std_range)
+{
+    float rdist, relev, razim;
+    float c, dx, dy, dz;
+    
+    do
+        rdist = range + 3 * std_range * (_randomUniform() * 2 - 1);
+    while (rdist < 0);
+    
+    relev = asinf(_randomUniform() * 2 - 1);
+    razim = _randomUniform() * 2 * (float)M_PI;
+    
+    c = rdist * cosf(relev);
+    dx = c * cosf(razim);
+    dy = c * sinf(razim);
+    dz = rdist * sinf(relev);
+    
+    bp->w = 1.0f;
+    bp->x = tp->x + dx;
+    bp->y = tp->y + dy;
+    bp->z = tp->z + dz;
 }
 
 static void _applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta)
@@ -249,8 +253,8 @@ static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_
 
 static void _resampleBeacon(particleFilter_t* pf, beacon_t* b, float range, float std_range, uint8_t force)
 {
-    int num_spawn, i, j, k;
-    uint8_t didSpawn;
+    int numSpawn, i, j, k;
+    tagParticle_t* tp;
     beaconParticle_t* bp;
     beaconParticle_t* bp2;
     beaconParticle_t (* bpt)[PF_N_BEACON];
@@ -258,7 +262,6 @@ static void _resampleBeacon(particleFilter_t* pf, beacon_t* b, float range, floa
     float weightCdf[PF_N_BEACON];
     float randCdf[PF_N_BEACON];
     
-    num_spawn = (int)lroundf(PF_N_BEACON * PCT_SPAWN);
     for (k = 0; k < PF_N_TAG; ++k)
     {
         s = 0.0f;
@@ -273,14 +276,11 @@ static void _resampleBeacon(particleFilter_t* pf, beacon_t* b, float range, floa
         }
         ess = s * s / ss;
         
-        didSpawn = 0;
+        numSpawn = 0;
         if (s / PF_N_BEACON < WEIGHT_SPAWN_THRESH && range < RADIUS_SPAWN_THRESH)
-        {
-            //spawn_p = initializeBeaconTrueSLAM(num_spawn, range, stddev, pTag(did_spawn, :), ble_slam);
-            didSpawn = 1;
-        }
+            numSpawn = (int)lroundf(PF_N_BEACON * PCT_SPAWN);
         
-        if (ess / PF_N_BEACON < RESAMPLE_THRESH || didSpawn || force)
+        if (ess / PF_N_BEACON < RESAMPLE_THRESH || numSpawn > 0 || force)
         {
             for (i = 0; i < PF_N_TAG; ++i)
                 randCdf[i] = _randomUniform() * s;
@@ -311,10 +311,9 @@ static void _resampleBeacon(particleFilter_t* pf, beacon_t* b, float range, floa
             b->pBeacon = b->pBeaconTmp;
             b->pBeaconTmp = bpt;
             
-            if (didSpawn)
-            {
-//                pBeaconMean(did_spawn, 1:num_spawn, :) = spawn_p;
-            }
+            tp = &pf->pTag[k];
+            for (i = 0; i < numSpawn; ++i)
+                _initBeaconParticle(&b->pBeacon[k][i], tp, range, std_range);
         }
         
         m = PF_N_BEACON / s;
@@ -355,178 +354,3 @@ static void _randomNormal2(float* x, float* y)
 	*x = f * cosf(g);
 	*y = f * sinf(g);
 }
-
-//- (void)initFromOther:(Particle*)other withXYBandwidth:(double)hXY withThetaBandwidth:(double)hTheta withScaleBandwidth:(double)hScale
-//{
-//	double f1 = sqrt(-2 * log((double)arc4random() / UINT32_MAX));
-//	double g1 = sqrt(-2 * log((double)arc4random() / UINT32_MAX));
-//	double f2 = (double)arc4random() / UINT32_MAX * 2 * M_PI;
-//	double g2 = (double)arc4random() / UINT32_MAX * 2 * M_PI;
-//	
-//	self.w = 1.0;
-//	self.x = other.x + f1 * cos(f2) * hXY;
-//	self.y = other.y + f1 * sin(f2) * hXY;
-//	self.theta = other.theta + g1 * cos(g2) * hTheta;
-//	self.scale = other.scale + g1 * sin(g2) * hScale;
-//	
-//	self.theta = fmod(self.theta, 2 * M_PI);
-//}
-//
-//
-//#define NUM_PARTICLES   (10000)
-//#define VIO_XY_STD      (1e-3)
-//#define VIO_STD_THETA   (1e-6)
-//#define VIO_STD_SCALE   (1e-3)
-//#define RESAMPLE_THRESH (0.5)
-//
-//- (id)initWithBcn:(NSArray*)bcn
-//{
-//	self = [super init];
-//	if (self)
-//	{
-//		self.isInit = NO;
-//		self.bcn = bcn;
-//		self.loc = [[OutputLocation alloc] initWithT:0 x:0 y:0 z:0 theta:0 s:0];
-//		self.lastVio = [[VioMeasurement alloc] initWithT:0 x:0 y:0 z:0];
-//		self.particles = [NSMutableArray arrayWithCapacity:NUM_PARTICLES];
-//		self.spareParticles = [NSMutableArray arrayWithCapacity:NUM_PARTICLES];
-//		self.randArray = [NSMutableArray arrayWithCapacity:NUM_PARTICLES];
-//		for (int i = 0; i < NUM_PARTICLES; ++i)
-//		{
-//			[self.particles addObject:[[Particle alloc] init]];
-//			[self.spareParticles addObject:[[Particle alloc] init]];
-//			[self.randArray addObject:[NSNumber numberWithDouble:0]];
-//		}
-//	}
-//	return self;
-//}
-//
-//- (void)depositVio:(VioMeasurement*)vio
-//{
-//	[self applyVio:vio];
-//	[self computeLocationWithT:vio.t];
-//}
-//
-//- (void)depositUwb:(UwbMeasurement*)uwb
-//{
-//	if (!self.isInit)
-//		[self initializeParticlesFromUwb:uwb];
-//	else
-//		[self applyUwb:uwb];
-//	
-//	[self resampleParticles];
-//	[self computeLocationWithT:uwb.t];
-//}
-//
-//
-//- (void)initializeParticlesFromUwb:(UwbMeasurement*)uwb
-//{
-//	for (Particle* p in self.particles)
-//		[p initFromUwb:uwb beacon:self.bcn[uwb.i]];
-//	
-//	self.isInit = YES;
-//}
-//
-//- (void)computeLocationWithT:(double)t
-//{
-//	if (!self.isInit)
-//		return;
-//	
-//	double wsum = 0;
-//	double xsum = 0;
-//	double ysum = 0;
-//	double csum = 0;
-//	double ssum = 0;
-//	for (Particle* p in self.particles)
-//	{
-//		double w = p.w;
-//		wsum += w;
-//		xsum += w * p.x;
-//		ysum += w * p.y;
-//		csum += w * cos(p.theta);
-//		ssum += w * sin(p.theta);
-//	}
-//	self.loc.t = t;
-//	self.loc.x = xsum / wsum;
-//	self.loc.y = ysum / wsum;
-//	self.loc.z = self.lastVio.z;
-//	self.loc.theta = atan2(ssum, csum);
-//	
-//	double dsum = 0;
-//	for (Particle* p in self.particles)
-//	{
-//		double dx = p.x - self.loc.x;
-//		double dy = p.y - self.loc.y;
-//		dsum += p.w * (dx * dx + dy * dy);
-//	}
-//	self.loc.s = sqrt(dsum / wsum);
-//}
-//
-//- (void)resampleParticles
-//{
-//	double s = 0;
-//	double ss = 0;
-//	double csum = 0;
-//	double ssum = 0;
-//	double scaleSum = 0;
-//	double weightCdf[NUM_PARTICLES];
-//	for (int i = 0; i < NUM_PARTICLES; ++i)
-//	{
-//		Particle* p = self.particles[i];
-//		double w = p.w;
-//		s += w;
-//		ss += w * w;
-//		csum += w * cos(p.theta);
-//		ssum += w * sin(p.theta);
-//		scaleSum += w * p.scale;
-//		weightCdf[i] = s;
-//	}
-//	double ess = s * s / ss;
-//	
-//	if (ess / NUM_PARTICLES < RESAMPLE_THRESH)
-//	{
-//		csum /= s;
-//		ssum /= s;
-//		scaleSum /= s;
-//		
-//		double scaleDev = 0;
-//		for (int i = 0; i < NUM_PARTICLES; ++i)
-//		{
-//			Particle* p = self.particles[i];
-//			self.randArray[i] = [NSNumber numberWithDouble:(double)arc4random() / UINT32_MAX * s];
-//			scaleDev += p.w * (p.scale - scaleSum) * (p.scale - scaleSum);
-//		}
-//		NSArray* randCdf = [self.randArray sortedArrayUsingSelector:@selector(compare:)];
-//		scaleDev /= s;
-//		
-//		double hXY = 0.1;
-//		double hTheta = sqrt(-log(csum * csum + ssum * ssum) / ess);
-//		double hScale = sqrt(scaleDev / sqrt(ess));
-//		
-//		int i = 0;
-//		int j = 0;
-//		int k = 0;
-//		while (k < NUM_PARTICLES)
-//		{
-//			while (k < NUM_PARTICLES && [randCdf[i] doubleValue] < weightCdf[j])
-//			{
-//				[self.spareParticles[k++] initFromOther:self.particles[j]
-//										withXYBandwidth:hXY
-//									 withThetaBandwidth:hTheta
-//									 withScaleBandwidth:hScale];
-//				++i;
-//			}
-//			++j;
-//		}
-//		
-//		NSMutableArray* tmp = self.particles;
-//		self.particles = self.spareParticles;
-//		self.spareParticles = tmp;
-//	}
-//	else
-//	{
-//		double m = s / NUM_PARTICLES;
-//		for (Particle* p in self.particles)
-//			p.w /= m;
-//	}
-//}
