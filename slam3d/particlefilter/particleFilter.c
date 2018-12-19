@@ -25,7 +25,7 @@ static void _initBeacon(particleFilter_t* pf, beacon_t* b, float range, float st
 static void _applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta);
 static void _applyUwb(particleFilter_t* pf, beacon_t* b, float range, float std_range);
 static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_range);
-static void _resampleBeacon(particleFilter_t* pf, beacon_t* b, uint8_t force);
+static void _resampleBeacon(particleFilter_t* pf, beacon_t* b, float range, float std_range, uint8_t force);
 
 static beacon_t* _getBeacon(const particleFilter_t* pf, uint32_t beaconId);
 static int _floatCmp(const void* a, const void* b);
@@ -174,6 +174,7 @@ static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_
 {
     int i, j;
     tagParticle_t* tp;
+    tagParticle_t* tp2;
     beacon_t* bcn;
     float w, s, ss, csum, ssum, ess, htheta, dx, dy, dz, dtheta, m;
     float weightCdf[PF_N_TAG];
@@ -203,11 +204,11 @@ static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_
         htheta = htheta > 1e-10 ? htheta : 1e-10;
         htheta = htheta < 1 - 1e-10 ? htheta : 1 - 1e-10;
         htheta = sqrtf(-logf(htheta) / ess);
-        
+
         for (i = 0; i < PF_N_TAG; ++i)
             randCdf[i] = _randomUniform() * s;
         qsort(randCdf, PF_N_TAG, sizeof(float), _floatCmp);
-
+        
         i = 0;
         j = 0;
         while (i < PF_N_TAG)
@@ -215,15 +216,15 @@ static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_
             while (i < PF_N_TAG && randCdf[i] < weightCdf[j])
             {
                 tp = &pf->pTagTmp[i];
-                *tp = pf->pTag[j];
+                tp2 = &pf->pTag[j];
                 
                 _randomNormal2(&dx, &dy);
                 _randomNormal2(&dz, &dtheta);
                 tp->w = 1.0f;
-                tp->x += dx * HXYZ;
-                tp->y += dy * HXYZ;
-                tp->z += dz * HXYZ;
-                tp->theta = fmodf(tp->theta + dtheta * htheta, 2 * (float)M_PI);
+                tp->x = tp2->x + dx * HXYZ;
+                tp->y = tp2->y + dy * HXYZ;
+                tp->z = tp2->z + dz * HXYZ;
+                tp->theta = fmodf(tp2->theta + dtheta * htheta, 2 * (float)M_PI);
                 
                 ++i;
             }
@@ -235,42 +236,91 @@ static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_
         pf->pTagTmp = tp;
 
         for (bcn = pf->firstBeacon; bcn != NULL; bcn = bcn->nextBeacon)
-            _resampleBeacon(pf, bcn, 1);
+            _resampleBeacon(pf, bcn, range, std_range, 1);
     }
     else
     {
-        m = s / PF_N_TAG;
+        m = PF_N_TAG / s;
         for (i = 0; i < PF_N_TAG; ++i)
-        {
-            tp = &pf->pTag[i];
-            tp->w /= m;
-        }
-        _resampleBeacon(pf, b, 0);
+            pf->pTag[i].w *= m;
+        _resampleBeacon(pf, b, range, std_range, 0);
     }
 }
 
-static void _resampleBeacon(particleFilter_t* pf, beacon_t* b, uint8_t force)
+static void _resampleBeacon(particleFilter_t* pf, beacon_t* b, float range, float std_range, uint8_t force)
 {
-    int num_spawn;
+    int num_spawn, i, j, k;
+    uint8_t didSpawn;
+    beaconParticle_t* bp;
+    beaconParticle_t* bp2;
+    beaconParticle_t (* bpt)[PF_N_BEACON];
+    float w, s, ss, ess, dx, dy, dz, dtheta, m;
+    float weightCdf[PF_N_BEACON];
+    float randCdf[PF_N_BEACON];
     
-    num_spawn = lroundf(PF_N_BEACON * PCT_SPAWN);
-    did_spawn = (mean(pBeaconMean(:, :, 1), 2) < WEIGHT_SPAWN_THRESH) & (range < RADIUS_SPAWN_THRESH);
-    if any(did_spawn)
-        spawn_p = initializeBeaconTrueSLAM(num_spawn, range, stddev, pTag(did_spawn, :), ble_slam);
-    end
-    beacon_ess = sum(pBeaconMean(:, :, 1), 2).^2 ./ sum(pBeaconMean(:, :, 1).^2, 2);
-    needs_resample = (beacon_ess / M < RESAMPLE_THRESH) | did_spawn | force;
-    to_resample = pBeaconMean(needs_resample, :, :);
-    for j = 1:size(to_resample, 1)
-        to_resample(j, :, :) = to_resample(j, randsample(M, M, true, to_resample(j, :, 1)), :);
-    to_resample(j, :, 1) = 1;
-    to_resample(j, :, 2:4) = to_resample(j, :, 2:4) + HXYZ * randn(size(to_resample(j, :, 2:4)));
-    end
-    pBeaconMean(needs_resample, :, :) = to_resample;
-    if any(did_spawn)
-        pBeaconMean(did_spawn, 1:num_spawn, :) = spawn_p;
-    end
-    pBeaconMean(:, :, 1) = pBeaconMean(:, :, 1) ./ mean(pBeaconMean(:, :, 1), 2);
+    num_spawn = (int)lroundf(PF_N_BEACON * PCT_SPAWN);
+    for (k = 0; k < PF_N_TAG; ++k)
+    {
+        s = 0.0f;
+        ss = 0.0f;
+        for (i = 0; i < PF_N_BEACON; ++i)
+        {
+            bp = &b->pBeacon[k][i];
+            w = bp->w;
+            s += w;
+            ss += w * w;
+            weightCdf[i] = s;
+        }
+        ess = s * s / ss;
+        
+        didSpawn = 0;
+        if (s / PF_N_BEACON < WEIGHT_SPAWN_THRESH && range < RADIUS_SPAWN_THRESH)
+        {
+            //spawn_p = initializeBeaconTrueSLAM(num_spawn, range, stddev, pTag(did_spawn, :), ble_slam);
+            didSpawn = 1;
+        }
+        
+        if (ess / PF_N_BEACON < RESAMPLE_THRESH || didSpawn || force)
+        {
+            for (i = 0; i < PF_N_TAG; ++i)
+                randCdf[i] = _randomUniform() * s;
+            qsort(randCdf, PF_N_TAG, sizeof(float), _floatCmp);
+            
+            i = 0;
+            j = 0;
+            while (i < PF_N_BEACON)
+            {
+                while (i < PF_N_BEACON && randCdf[i] < weightCdf[j])
+                {
+                    bp = &b->pBeaconTmp[k][i];
+                    bp2 = &b->pBeacon[k][j];
+                    
+                    _randomNormal2(&dx, &dy);
+                    _randomNormal2(&dz, &dtheta);
+                    bp->w = 1.0f;
+                    bp->x = bp2->x + dx * HXYZ;
+                    bp->y = bp2->y + dy * HXYZ;
+                    bp->z = bp2->z + dz * HXYZ;
+                    
+                    ++i;
+                }
+                ++j;
+            }
+            
+            bpt = b->pBeacon;
+            b->pBeacon = b->pBeaconTmp;
+            b->pBeaconTmp = bpt;
+            
+            if (didSpawn)
+            {
+//                pBeaconMean(did_spawn, 1:num_spawn, :) = spawn_p;
+            }
+        }
+        
+        m = PF_N_BEACON / s;
+        for (i = 0; i < PF_N_BEACON; ++i)
+            b->pBeacon[k][i].w *= m;
+    }
 }
 
 static beacon_t* _getBeacon(const particleFilter_t* pf, uint32_t beaconId)
