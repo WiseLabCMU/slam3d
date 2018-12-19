@@ -20,6 +20,8 @@
 #define PCT_SPAWN           (0.05f)
 #define HXYZ                (0.1f)
 
+static void _initTag(particleFilter_t* pf);
+static void _initBeacon(particleFilter_t* pf, beacon_t* b, float range, float std_range);
 static void _applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta);
 static void _applyUwb(particleFilter_t* pf, beacon_t* b, float range, float std_range);
 static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_range);
@@ -32,24 +34,54 @@ static void _randomNormal2(float* x, float* y);
 
 void particleFilter_init(particleFilter_t* pf)
 {
-	int i;
-	tagParticle_t* tp;
-
-	for (i = 0; i < PF_N_TAG; ++i)
-	{
-		tp = &pf->pTag[i];
-		tp->w = 1.0f;
-		tp->x = 0.0f;
-		tp->y = 0.0f;
-		tp->z = 0.0f;
-		tp->theta = 0.0f;
-	}
+    srand((uint32_t)time(NULL));
     pf->firstBeacon = NULL;
-    
-	srand((uint32_t)time(NULL));
+    pf->pTag = pf->pTagBuf1;
+    pf->pTagTmp = pf->pTagBuf2;
+    _initTag(pf);
 }
 
 void particleFilter_addBeacon(particleFilter_t* pf, beacon_t* b, uint32_t beaconId, float range, float std_range)
+{
+    b->pBeacon = b->pBeaconBuf1;
+    b->pBeaconTmp = b->pBeaconBuf2;
+    b->beaconId = beaconId;
+    b->nextBeacon = pf->firstBeacon;
+    pf->firstBeacon = b;
+    _initBeacon(pf, b, range, std_range);
+}
+
+void particleFilter_depositVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta)
+{
+    _applyVio(pf, dt, dx, dy, dz, std_xyz, std_theta);
+}
+
+void particleFilter_depositUwb(particleFilter_t* pf, uint32_t beaconId, float range, float std_range)
+{
+    beacon_t* b;
+    
+    b = _getBeacon(pf, beaconId);
+    _applyUwb(pf, b, range, std_range);
+    _resample(pf, b, range, std_range);
+}
+
+static void _initTag(particleFilter_t* pf)
+{
+    int i;
+    tagParticle_t* tp;
+    
+    for (i = 0; i < PF_N_TAG; ++i)
+    {
+        tp = &pf->pTag[i];
+        tp->w = 1.0f;
+        tp->x = 0.0f;
+        tp->y = 0.0f;
+        tp->z = 0.0f;
+        tp->theta = 0.0f;
+    }
+}
+
+static void _initBeacon(particleFilter_t* pf, beacon_t* b, float range, float std_range)
 {
     int i, j;
     tagParticle_t* tp;
@@ -82,19 +114,6 @@ void particleFilter_addBeacon(particleFilter_t* pf, beacon_t* b, uint32_t beacon
             bp->z = tp->z + dz;
         }
     }
-    b->beaconId = beaconId;
-    b->nextBeacon = pf->firstBeacon;
-    pf->firstBeacon = b;
-}
-
-void particleFilter_depositVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta)
-{
-    _applyVio(pf, dt, dx, dy, dz, std_xyz, std_theta);
-}
-
-void particleFilter_depositUwb(particleFilter_t* pf, uint32_t beaconId, float range, float std_range)
-{
-    _applyUwb(pf, _getBeacon(pf, beaconId), range, std_range);
 }
 
 static void _applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta)
@@ -153,12 +172,17 @@ static void _applyUwb(particleFilter_t* pf, beacon_t* b, float range, float std_
 
 static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_range)
 {
-    int i;
+    int i, j;
     tagParticle_t* tp;
-    float w, s, ss, csum, ssum, ess;
+    beacon_t* bcn;
+    float w, s, ss, csum, ssum, ess, htheta, dx, dy, dz, dtheta, m;
     float weightCdf[PF_N_TAG];
-    float randArray[PF_N_TAG];
+    float randCdf[PF_N_TAG];
 
+    s = 0.0f;
+    ss = 0.0f;
+    csum = 0.0f;
+    ssum = 0.0f;
     for (i = 0; i < PF_N_TAG; ++i)
     {
         tp = &pf->pTag[i];
@@ -175,60 +199,47 @@ static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_
     {
         csum /= s;
         ssum /= s;
+        htheta = csum * csum + ssum * ssum;
+        htheta = htheta > 1e-10 ? htheta : 1e-10;
+        htheta = htheta < 1 - 1e-10 ? htheta : 1 - 1e-10;
+        htheta = sqrtf(-logf(htheta) / ess);
+        
         for (i = 0; i < PF_N_TAG; ++i)
-        {
-            tp = &pf->pTag[i];
-            randArray[i] = _randomUniform() * s;
-        }
-        qsort(randArray, PF_N_TAG, sizeof(float), _floatCmp);
+            randCdf[i] = _randomUniform() * s;
+        qsort(randCdf, PF_N_TAG, sizeof(float), _floatCmp);
 
-        double hXY = 0.1;
-        double hTheta = sqrt(-log(csum * csum + ssum * ssum) / ess);
-        double hScale = sqrt(scaleDev / sqrt(ess));
-
-        int i = 0;
-        int j = 0;
-        int k = 0;
-        while (k < NUM_PARTICLES)
+        i = 0;
+        j = 0;
+        while (i < PF_N_TAG)
         {
-            while (k < NUM_PARTICLES && [randCdf[i] doubleValue] < weightCdf[j])
+            while (i < PF_N_TAG && randCdf[i] < weightCdf[j])
             {
-                [self.spareParticles[k++] initFromOther:self.particles[j]
-                                        withXYBandwidth:hXY
-                                     withThetaBandwidth:hTheta
-                                     withScaleBandwidth:hScale];
+                tp = &pf->pTagTmp[i];
+                *tp = pf->pTag[j];
+                
+                _randomNormal2(&dx, &dy);
+                _randomNormal2(&dz, &dtheta);
+                tp->w = 1.0f;
+                tp->x += dx * HXYZ;
+                tp->y += dy * HXYZ;
+                tp->z += dz * HXYZ;
+                tp->theta = fmodf(tp->theta + dtheta * htheta, 2 * (float)M_PI);
+                
                 ++i;
             }
             ++j;
         }
 
-        NSMutableArray* tmp = self.particles;
-        self.particles = self.spareParticles;
-        self.spareParticles = tmp;
-        
-        indices = randsample(N, N, true, pTag(:, 1));
-        pTag = pTag(indices, :);
-        temp = mean(cos(pTag(:, 4)))^2 + mean(sin(pTag(:, 4)))^2;
-        temp = max(temp, 0.000001);
-        temp = min(temp, 0.999999);
-        devt = sqrt(-log(temp));
-        ht = devt * ess^-.5;
-        pTag(:, 1) = 1;
-        pTag(:, 2:4) = pTag(:, 2:4) + HXYZ * randn(size(pTag(:, 2:4)));
-        pTag(:, 5) = pTag(:, 5) + ht * randn(size(pTag(:, 5)));
-        pTag(:, 5) = mod(pTag(:, 5), 2 * pi);
-        for i = 1:length(pBeaconsMean)
-        {
-            if numel(pBeaconsMean{i}) > 0
-            {
-                [pBeaconsMean{i}, pBeaconsCov{i}] = resampleBeacon(pTag, pBeaconsMean{i}(indices, :, :), pBeaconsCov{i}(indices, :, :, :), true);
-            }
-        }
+        tp = pf->pTag;
+        pf->pTag = pf->pTagTmp;
+        pf->pTagTmp = tp;
+
+        for (bcn = pf->firstBeacon; bcn != NULL; bcn = bcn->nextBeacon)
+            _resampleBeacon(pf, bcn, 1);
     }
-//    Otherwise, normalize top layer and resample lower layers if necessary
     else
     {
-        float m = s / PF_N_TAG;
+        m = s / PF_N_TAG;
         for (i = 0; i < PF_N_TAG; ++i)
         {
             tp = &pf->pTag[i];
@@ -240,7 +251,26 @@ static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_
 
 static void _resampleBeacon(particleFilter_t* pf, beacon_t* b, uint8_t force)
 {
+    int num_spawn;
     
+    num_spawn = lroundf(PF_N_BEACON * PCT_SPAWN);
+    did_spawn = (mean(pBeaconMean(:, :, 1), 2) < WEIGHT_SPAWN_THRESH) & (range < RADIUS_SPAWN_THRESH);
+    if any(did_spawn)
+        spawn_p = initializeBeaconTrueSLAM(num_spawn, range, stddev, pTag(did_spawn, :), ble_slam);
+    end
+    beacon_ess = sum(pBeaconMean(:, :, 1), 2).^2 ./ sum(pBeaconMean(:, :, 1).^2, 2);
+    needs_resample = (beacon_ess / M < RESAMPLE_THRESH) | did_spawn | force;
+    to_resample = pBeaconMean(needs_resample, :, :);
+    for j = 1:size(to_resample, 1)
+        to_resample(j, :, :) = to_resample(j, randsample(M, M, true, to_resample(j, :, 1)), :);
+    to_resample(j, :, 1) = 1;
+    to_resample(j, :, 2:4) = to_resample(j, :, 2:4) + HXYZ * randn(size(to_resample(j, :, 2:4)));
+    end
+    pBeaconMean(needs_resample, :, :) = to_resample;
+    if any(did_spawn)
+        pBeaconMean(did_spawn, 1:num_spawn, :) = spawn_p;
+    end
+    pBeaconMean(:, :, 1) = pBeaconMean(:, :, 1) ./ mean(pBeaconMean(:, :, 1), 2);
 }
 
 static beacon_t* _getBeacon(const particleFilter_t* pf, uint32_t beaconId)

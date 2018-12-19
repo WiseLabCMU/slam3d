@@ -36,7 +36,10 @@ extern "C" {
 
 	typedef struct _beacon
 	{
-		beaconParticle_t pBeacon[PF_N_TAG][PF_N_BEACON];
+        beaconParticle_t (* pBeacon)[PF_N_BEACON];
+        beaconParticle_t (* pBeaconTmp)[PF_N_BEACON];
+		beaconParticle_t pBeaconBuf1[PF_N_TAG][PF_N_BEACON];
+        beaconParticle_t pBeaconBuf2[PF_N_TAG][PF_N_BEACON];
         uint32_t beaconId;
         struct _beacon* nextBeacon;
 
@@ -44,7 +47,10 @@ extern "C" {
 
 	typedef struct
 	{
-		tagParticle_t pTag[PF_N_TAG];
+        tagParticle_t* pTag;
+        tagParticle_t* pTagTmp;
+		tagParticle_t pTagBuf1[PF_N_TAG];
+        tagParticle_t pTagBuf2[PF_N_TAG];
         struct _beacon* firstBeacon;
 
 	} particleFilter_t;
