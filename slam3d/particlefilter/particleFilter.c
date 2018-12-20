@@ -34,7 +34,6 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
 static void _spawnTagParticle(tagParticle_t* tp);
 static void _spawnBcnParticle(bcnParticle_t* bp, const tagParticle_t* tp, float range, float stdRange);
 
-static bcn_t* _getBcn(const particleFilter_t* pf, uint32_t bcnId);
 static int _floatCmp(const void* a, const void* b);
 static float _randomUniform(void);
 static void _randomNormal2(float* x, float* y);
@@ -56,11 +55,10 @@ void particleFilter_init(particleFilter_t* pf)
     _initTag(pf->tag);
 }
 
-void particleFilter_addBcn(particleFilter_t* pf, bcn_t* bcn, uint32_t bcnId, float range, float stdRange)
+void particleFilter_addBcn(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange)
 {
     pf->firstBcn = bcn;
     bcn->nextBcn = pf->firstBcn;
-    bcn->bcnId = bcnId;
     _initBcn(bcn, pf->tag, range, stdRange);
 }
 
@@ -85,9 +83,8 @@ void particleFilter_depositVio(particleFilter_t* pf, float t, float x, float y, 
     }
 }
 
-void particleFilter_depositUwb(particleFilter_t* pf, uint32_t bcnId, float range, float stdRange)
+void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange)
 {
-    bcn_t* bcn;
     float dt, dx, dy, dz, ddist;
     
     dt = pf->lastT - pf->firstT;
@@ -101,7 +98,6 @@ void particleFilter_depositUwb(particleFilter_t* pf, uint32_t bcnId, float range
     pf->firstZ = pf->lastZ;
     pf->firstDist = pf->lastDist;
     
-    bcn = _getBcn(pf, bcnId);
     _applyVio(pf->tag, dt, dx, dy, dz, ddist);
     _applyUwb(pf->tag, bcn, range, stdRange);
     _resampleAll(pf->tag, bcn, pf->firstBcn, range, stdRange);
@@ -365,16 +361,6 @@ static void _spawnBcnParticle(bcnParticle_t* bp, const tagParticle_t* tp, float 
     bp->x = tp->x + dx;
     bp->y = tp->y + dy;
     bp->z = tp->z + dz;
-}
-
-static bcn_t* _getBcn(const particleFilter_t* pf, uint32_t bcnId)
-{
-    bcn_t* bcn;
-    
-    for (bcn = pf->firstBcn; bcn != NULL; bcn = bcn->nextBcn)
-        if (bcn->bcnId == bcnId)
-            return bcn;
-    return NULL;
 }
 
 static int _floatCmp(const void* a, const void* b)
