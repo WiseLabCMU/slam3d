@@ -27,7 +27,7 @@ static void _initBeaconParticle(beaconParticle_t* bp, const tagParticle_t* tp, f
 static void _applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta);
 static void _applyUwb(particleFilter_t* pf, beacon_t* b, float range, float std_range);
 static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_range);
-static void _resampleBeacon(particleFilter_t* pf, beacon_t* b, float range, float std_range, uint8_t force);
+static void _resampleBeacon(const particleFilter_t* pf, beacon_t* b, float range, float std_range, uint8_t force);
 
 static beacon_t* _getBeacon(const particleFilter_t* pf, uint32_t beaconId);
 static int _floatCmp(const void* a, const void* b);
@@ -251,7 +251,7 @@ static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_
     }
 }
 
-static void _resampleBeacon(particleFilter_t* pf, beacon_t* b, float range, float std_range, uint8_t force)
+static void _resampleBeacon(const particleFilter_t* pf, beacon_t* b, float range, float std_range, uint8_t force)
 {
     int numSpawn, i, j, k;
     tagParticle_t* tp;
