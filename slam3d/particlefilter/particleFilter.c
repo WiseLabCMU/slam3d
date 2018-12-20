@@ -105,6 +105,49 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
     _resampleAll(&pf->tag, bcn, pf->firstBcn, range, stdRange);
 }
 
+void particleFilter_getTagLoc(const particleFilter_t* pf, float* t, float* x, float* y, float* z, float* theta, float* stdXy, float* stdZ, float* stdTheta)
+{
+    int i;
+    tagParticle_t* tp;
+    float w, s, xsum, ysum, zsum, csum, ssum, dx, dy, dz, h, co, si;
+    
+    s = 0.0f;
+    xsum = 0.0f;
+    ysum = 0.0f;
+    zsum = 0.0f;
+    csum = 0.0f;
+    ssum = 0.0f;
+    for (i = 0; i < PF_N_TAG; ++i)
+    {
+        tp = &pf->tag.pTag[i];
+        w = tp->w;
+        s += w;
+        xsum += w * tp->x;
+        ysum += w * tp->y;
+        zsum += w * tp->z;
+        csum += w * cosf(tp->theta);
+        ssum += w * sinf(tp->theta);
+    }
+    csum /= s;
+    ssum /= s;
+    *t = pf->lastT;
+    *x = xsum / s;
+    *y = ysum / s;
+    *z = zsum / s;
+    *theta = atan2f(ssum, csum);
+    
+    dx = pf->lastX - pf->firstX;
+    dy = pf->lastY - pf->firstY;
+    dz = pf->lastZ - pf->firstZ;
+    
+    h = hypotf(csum, ssum);
+    co = csum / h;
+    si = ssum / h;
+    *x += dx * co - dy * si;
+    *y += dx * si + dy * co;
+    *z += dz;
+}
+
 static void _initTag(tag_t* tag)
 {
     int i;
