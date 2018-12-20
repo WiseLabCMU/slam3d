@@ -56,11 +56,16 @@ extern "C" {
 
 	typedef struct
 	{
-        float totalDt;
-        float totalDx;
-        float totalDy;
-        float totalDz;
-        float totalDist;
+        float firstT;
+        float firstX;
+        float firstY;
+        float firstZ;
+        float firstDist;
+        float lastT;
+        float lastX;
+        float lastY;
+        float lastZ;
+        float lastDist;
         tag_t* tag;
         bcn_t* firstBcn;
 
@@ -68,7 +73,7 @@ extern "C" {
 
 	void particleFilter_init(particleFilter_t* pf);
     void particleFilter_addBcn(particleFilter_t* pf, bcn_t* bcn, uint32_t bcnId, float range, float stdRange);
-	void particleFilter_depositVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float dist);
+	void particleFilter_depositVio(particleFilter_t* pf, float t, float x, float y, float z, float dist);
     void particleFilter_depositUwb(particleFilter_t* pf, uint32_t bcnId, float range, float stdRange);
 
 #ifdef __cplusplus

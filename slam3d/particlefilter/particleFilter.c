@@ -43,11 +43,16 @@ void particleFilter_init(particleFilter_t* pf)
 {
     srand((uint32_t)time(NULL));
     pf->firstBcn = NULL;
-    pf->totalDt = 0.0f;
-    pf->totalDx = 0.0f;
-    pf->totalDy = 0.0f;
-    pf->totalDz = 0.0f;
-    pf->totalDist = 0.0f;
+    pf->firstT = 0.0f;
+    pf->firstX = 0.0f;
+    pf->firstY = 0.0f;
+    pf->firstZ = 0.0f;
+    pf->firstDist = 0.0f;
+    pf->lastT = 0.0f;
+    pf->lastX = 0.0f;
+    pf->lastY = 0.0f;
+    pf->lastZ = 0.0f;
+    pf->lastDist = 0.0f;
     _initTag(pf->tag);
 }
 
@@ -59,28 +64,47 @@ void particleFilter_addBcn(particleFilter_t* pf, bcn_t* bcn, uint32_t bcnId, flo
     _initBcn(bcn, pf->tag, range, stdRange);
 }
 
-void particleFilter_depositVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float dist)
-{    
-    pf->totalDt += dt;
-    pf->totalDx += dx;
-    pf->totalDy += dy;
-    pf->totalDz += dz;
-    pf->totalDist += dist;
+void particleFilter_depositVio(particleFilter_t* pf, float t, float x, float y, float z, float dist)
+{
+    float dx, dy, dz;
+    
+    pf->lastT = t;
+    pf->lastX = x;
+    pf->lastY = y;
+    pf->lastZ = z;
+    if (dist > pf->lastDist)
+    {
+        pf->lastDist = dist;
+    }
+    else
+    {
+        dx = x - pf->lastX;
+        dy = y - pf->lastY;
+        dz = z - pf->lastZ;
+        pf->lastDist += sqrtf(dx * dx + dy * dy + dz * dz);
+    }
 }
 
 void particleFilter_depositUwb(particleFilter_t* pf, uint32_t bcnId, float range, float stdRange)
 {
     bcn_t* bcn;
+    float dt, dx, dy, dz, ddist;
+    
+    dt = pf->lastT - pf->firstT;
+    dx = pf->lastX - pf->firstX;
+    dy = pf->lastY - pf->firstY;
+    dz = pf->lastZ - pf->firstZ;
+    ddist = pf->lastDist - pf->firstDist;
+    pf->firstT = pf->lastT;
+    pf->firstX = pf->lastX;
+    pf->firstY = pf->lastY;
+    pf->firstZ = pf->lastZ;
+    pf->firstDist = pf->lastDist;
     
     bcn = _getBcn(pf, bcnId);
-    _applyVio(pf->tag, pf->totalDt, pf->totalDx, pf->totalDy, pf->totalDz, pf->totalDist);
+    _applyVio(pf->tag, dt, dx, dy, dz, ddist);
     _applyUwb(pf->tag, bcn, range, stdRange);
     _resampleAll(pf->tag, bcn, pf->firstBcn, range, stdRange);
-    pf->totalDt = 0.0f;
-    pf->totalDx = 0.0f;
-    pf->totalDy = 0.0f;
-    pf->totalDz = 0.0f;
-    pf->totalDist = 0.0f;
 }
 
 static void _initTag(tag_t* tag)
