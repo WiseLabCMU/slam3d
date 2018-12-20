@@ -65,7 +65,7 @@ extern "C" {
         float lastY;
         float lastZ;
         float lastDist;
-        tag_t* tag;
+        tag_t tag;
         bcn_t* firstBcn;
 
 	} particleFilter_t;

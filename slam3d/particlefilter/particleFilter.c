@@ -53,7 +53,7 @@ void particleFilter_init(particleFilter_t* pf)
     pf->lastY = 0.0f;
     pf->lastZ = 0.0f;
     pf->lastDist = 0.0f;
-    _initTag(pf->tag);
+    _initTag(&pf->tag);
 }
 
 void particleFilter_depositVio(particleFilter_t* pf, float t, float x, float y, float z, float dist)
@@ -85,7 +85,7 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
     {
         pf->firstBcn = bcn;
         bcn->nextBcn = pf->firstBcn;
-        _initBcn(bcn, pf->tag, range, stdRange);
+        _initBcn(bcn, &pf->tag, range, stdRange);
         return;
     }
     
@@ -100,9 +100,9 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
     pf->firstZ = pf->lastZ;
     pf->firstDist = pf->lastDist;
     
-    _applyVio(pf->tag, dt, dx, dy, dz, ddist);
-    _applyUwb(pf->tag, bcn, range, stdRange);
-    _resampleAll(pf->tag, bcn, pf->firstBcn, range, stdRange);
+    _applyVio(&pf->tag, dt, dx, dy, dz, ddist);
+    _applyUwb(&pf->tag, bcn, range, stdRange);
+    _resampleAll(&pf->tag, bcn, pf->firstBcn, range, stdRange);
 }
 
 static void _initTag(tag_t* tag)
