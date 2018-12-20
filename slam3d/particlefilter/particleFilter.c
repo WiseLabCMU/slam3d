@@ -17,6 +17,8 @@
 #define VIO_STD_XYZ         (1e-3f)
 #define VIO_STD_THETA       (1e-6f)
 
+#define MIN_WEIGHT(range)   ((range < 3.0f) ? 0.1f : 0.5f)
+
 #define RESAMPLE_THRESH     (0.5f)
 #define RADIUS_SPAWN_THRESH (1.0f)
 #define WEIGHT_SPAWN_THRESH (0.4f)
@@ -140,7 +142,7 @@ static void _applyUwb(tag_t* tag, bcn_t* b, float range, float stdRange)
     bcnParticle_t* bp;
     float minWeight, dx, dy, dz, pRange, bcnSum;
     
-    minWeight = (range < 3.0f) ? 0.1f : 0.5f;
+    minWeight = MIN_WEIGHT(range);
     for (i = 0; i < PF_N_TAG; ++i)
     {
         tp = &tag->pTag[i];
