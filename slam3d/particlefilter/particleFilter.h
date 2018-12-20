@@ -71,10 +71,10 @@ extern "C" {
 	} particleFilter_t;
 
 	void particleFilter_init(particleFilter_t* pf);
-    void particleFilter_addBcn(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange);
 	void particleFilter_depositVio(particleFilter_t* pf, float t, float x, float y, float z, float dist);
     void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange);
-    void particleFilter_getTagLoc(const particleFilter_t* pf, float* t, float* x, float* y, float* z, float* theta, float* stdXyz, float* stdTheta);
+    void particleFilter_getTagLoc(const particleFilter_t* pf, float* t, float* x, float* y, float* z, float* theta, float* stdXy, float* stdZ, float* stdTheta);
+    void particleFilter_getBcnLoc(const bcn_t* bcn, float* t, float* x, float* y, float* z, float* stdXy, float* stdZ);
 
 #ifdef __cplusplus
 } // extern "C"

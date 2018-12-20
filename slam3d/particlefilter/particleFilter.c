@@ -34,6 +34,7 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
 static void _spawnTagParticle(tagParticle_t* tp);
 static void _spawnBcnParticle(bcnParticle_t* bp, const tagParticle_t* tp, float range, float stdRange);
 
+static uint8_t _haveBcn(const particleFilter_t* pf, const bcn_t* bcn);
 static int _floatCmp(const void* a, const void* b);
 static float _randomUniform(void);
 static void _randomNormal2(float* x, float* y);
@@ -53,13 +54,6 @@ void particleFilter_init(particleFilter_t* pf)
     pf->lastZ = 0.0f;
     pf->lastDist = 0.0f;
     _initTag(pf->tag);
-}
-
-void particleFilter_addBcn(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange)
-{
-    pf->firstBcn = bcn;
-    bcn->nextBcn = pf->firstBcn;
-    _initBcn(bcn, pf->tag, range, stdRange);
 }
 
 void particleFilter_depositVio(particleFilter_t* pf, float t, float x, float y, float z, float dist)
@@ -86,6 +80,14 @@ void particleFilter_depositVio(particleFilter_t* pf, float t, float x, float y, 
 void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange)
 {
     float dt, dx, dy, dz, ddist;
+    
+    if (!_haveBcn(pf, bcn))
+    {
+        pf->firstBcn = bcn;
+        bcn->nextBcn = pf->firstBcn;
+        _initBcn(bcn, pf->tag, range, stdRange);
+        return;
+    }
     
     dt = pf->lastT - pf->firstT;
     dx = pf->lastX - pf->firstX;
@@ -361,6 +363,16 @@ static void _spawnBcnParticle(bcnParticle_t* bp, const tagParticle_t* tp, float 
     bp->x = tp->x + dx;
     bp->y = tp->y + dy;
     bp->z = tp->z + dz;
+}
+
+static uint8_t _haveBcn(const particleFilter_t* pf, const bcn_t* bcn)
+{
+    bcn_t* bcn2;
+    
+    for (bcn2 = pf->firstBcn; bcn2 != NULL; bcn2 = bcn2->nextBcn)
+        if (bcn2 == bcn)
+            return 1;
+    return 0;
 }
 
 static int _floatCmp(const void* a, const void* b)
