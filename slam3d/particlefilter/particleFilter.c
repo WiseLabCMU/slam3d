@@ -21,9 +21,8 @@
 #define HXYZ                (0.1f)
 
 static void _initTag(particleFilter_t* pf);
-static void _initTagParticle(tagParticle_t* tp);
 static void _initBeacon(particleFilter_t* pf, beacon_t* b, float range, float std_range);
-static void _initBeaconParticle(beaconParticle_t* bp, const tagParticle_t* tp, float range, float std_range);
+static void _spawnBeaconParticle(beaconParticle_t* bp, const tagParticle_t* tp, float range, float std_range);
 static void _applyVio(particleFilter_t* pf, float dt, float dx, float dy, float dz, float std_xyz, float std_theta);
 static void _applyUwb(particleFilter_t* pf, beacon_t* b, float range, float std_range);
 static void _resample(particleFilter_t* pf, beacon_t* b, float range, float std_range);
@@ -70,9 +69,17 @@ void particleFilter_depositUwb(particleFilter_t* pf, uint32_t beaconId, float ra
 static void _initTag(particleFilter_t* pf)
 {
     int i;
+    tagParticle_t* tp;
     
     for (i = 0; i < PF_N_TAG; ++i)
-        _initTagParticle(&pf->pTag[i]);
+    {
+        tp = &pf->pTag[i];
+        tp->w = 1.0f;
+        tp->x = 0.0f;
+        tp->y = 0.0f;
+        tp->z = 0.0f;
+        tp->theta = 0.0f;
+    }
 }
 
 static void _initBeacon(particleFilter_t* pf, beacon_t* b, float range, float std_range)
@@ -84,20 +91,11 @@ static void _initBeacon(particleFilter_t* pf, beacon_t* b, float range, float st
     {
         tp = &pf->pTag[i];
         for (j = 0; j < PF_N_BEACON; ++j)
-            _initBeaconParticle(&b->pBeacon[i][j], tp, range, std_range);
+            _spawnBeaconParticle(&b->pBeacon[i][j], tp, range, std_range);
     }
 }
 
-static void _initTagParticle(tagParticle_t* tp)
-{
-    tp->w = 1.0f;
-    tp->x = 0.0f;
-    tp->y = 0.0f;
-    tp->z = 0.0f;
-    tp->theta = 0.0f;
-}
-
-static void _initBeaconParticle(beaconParticle_t* bp, const tagParticle_t* tp, float range, float std_range)
+static void _spawnBeaconParticle(beaconParticle_t* bp, const tagParticle_t* tp, float range, float std_range)
 {
     float rdist, relev, razim;
     float c, dx, dy, dz;
@@ -313,7 +311,7 @@ static void _resampleBeacon(const particleFilter_t* pf, beacon_t* b, float range
             
             tp = &pf->pTag[k];
             for (i = 0; i < numSpawn; ++i)
-                _initBeaconParticle(&b->pBeacon[k][i], tp, range, std_range);
+                _spawnBeaconParticle(&b->pBeacon[k][i], tp, range, std_range);
         }
         
         m = PF_N_BEACON / s;
