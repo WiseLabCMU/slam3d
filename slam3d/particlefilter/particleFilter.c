@@ -30,7 +30,7 @@ static void _initBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange);
 static void _applyVio(tag_t* tag, float dt, float dx, float dy, float dz, float dist);
 static void _applyUwb(tag_t* tag, bcn_t* bcn, float range, float stdRange);
 static void _resampleAll(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, float stdRange);
-static void _resampleBcn(bcn_t* bcn, const tag_t* pf, float range, float stdRange, uint8_t force);
+static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange, uint8_t force);
 static void _spawnTagParticle(tagParticle_t* tp);
 static void _spawnBcnParticle(bcnParticle_t* bp, const tagParticle_t* tp, float range, float stdRange);
 
