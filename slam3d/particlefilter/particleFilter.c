@@ -155,7 +155,7 @@ static void _applyVio(tag_t* tag, float dt, float dx, float dy, float dz, float 
 	}
 }
 
-static void _applyUwb(tag_t* tag, bcn_t* b, float range, float stdRange)
+static void _applyUwb(tag_t* tag, bcn_t* bcn, float range, float stdRange)
 {
     int i, j;
     tagParticle_t* tp;
@@ -169,7 +169,7 @@ static void _applyUwb(tag_t* tag, bcn_t* b, float range, float stdRange)
         bcnSum = 0.0f;
         for (j = 0; j < PF_N_BCN; ++j)
         {
-            bp = &b->pBcn[i][j];
+            bp = &bcn->pBcn[i][j];
             dx = tp->x - bp->x;
             dy = tp->y - bp->y;
             dz = tp->z - bp->z;
