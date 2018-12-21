@@ -83,8 +83,8 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
     
     if (!_haveBcn(pf, bcn))
     {
-        pf->firstBcn = bcn;
         bcn->nextBcn = pf->firstBcn;
+        pf->firstBcn = bcn;
         _initBcn(bcn, &pf->tag, range, stdRange);
         return;
     }
