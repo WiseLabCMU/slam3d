@@ -13,6 +13,7 @@
 
 #define VIO_FILE    "/Users/johnmiller/Documents/MATLAB/mag_fld_matlab/BuddySLAM/data_CIC/1515283298.129726_vio.csv"
 #define UWB_FILE    "/Users/johnmiller/Documents/MATLAB/mag_fld_matlab/BuddySLAM/data_CIC/1515283298.129726_uwb_range.csv"
+#define OUT_FILE    "/Users/johnmiller/Desktop/test.csv"
 #define LINE_LEN    (1024)
 
 #define NUM_BCNS    (12)
@@ -25,6 +26,7 @@ int main()
 {
     FILE* vioFile;
     FILE* uwbFile;
+    FILE* outFile;
     float vioT, vioX, vioY, vioZ;
     float uwbT, uwbR;
     uint8_t uwbB;
@@ -34,20 +36,29 @@ int main()
     
     vioFile = fopen(VIO_FILE, "r");
     uwbFile = fopen(UWB_FILE, "r");
+    outFile = fopen(OUT_FILE, "w");
 	particleFilter_init(&particleFilter);
-    while (1)
+    
+    haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ);
+    haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR);
+    while (haveVio || haveUwb)
     {
-        haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ);
-        haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR);
         if (haveVio && (!haveUwb || vioT < uwbT))
+        {
             particleFilter_depositVio(&particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
+            haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ);
+        }
         else if (haveUwb)
+        {
             particleFilter_depositUwb(&particleFilter, &bcns[uwbB], uwbR, UWB_STD);
-        else
-            break;
+            haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR);
+        }
     }
+    
     fclose(vioFile);
     fclose(uwbFile);
+    fclose(outFile);
+    
 	return 0;
 }
 
