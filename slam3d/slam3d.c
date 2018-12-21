@@ -5,6 +5,7 @@
 //  Copyright � 2018 CMU. All rights reserved.
 //
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -68,7 +69,7 @@ int main(void)
             if (uwbR > 0.0f && uwbR < 30.0f)
                 particleFilter_depositUwb(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD);
             haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR);
-            printf("Applied UWB %d\n", ++u);
+            printf("Applied UWB %d\n", u++);
         }
     }
     printf("Finished localization\n");
@@ -116,6 +117,8 @@ static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r)
     strtok(NULL, ","); // Skip waypoint number
     *b = strtok(NULL, ",")[0] - 'a';
     *r = (float)atof(strtok(NULL, ",\n"));
+    
+    assert(*b < NUM_BCNS);
     return 1;
 }
 
