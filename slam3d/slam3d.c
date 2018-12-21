@@ -98,9 +98,9 @@ static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z)
     strtok(NULL, ","); // Skip "position" or "orientation" string
     strtok(NULL, ","); // Skip waypoint number
     strtok(NULL, ","); // Skip accuracy number
-    *x = (float)atof(strtok(NULL, ","));
-    *y = (float)atof(strtok(NULL, ","));
-    *z = (float)atof(strtok(NULL, ",\n"));
+    *y = (float)atof(strtok(NULL, ","));    // VIO on iOS is reported in a different order (y, z, x)
+    *z = (float)atof(strtok(NULL, ","));
+    *x = (float)atof(strtok(NULL, ",\n"));
     fgets(_lineBuf, LINE_LEN, vioFile); // Skip line for orientation
     return 1;
 }
