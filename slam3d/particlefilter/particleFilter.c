@@ -80,7 +80,7 @@ void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y,
 void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange)
 {
     float dt, dx, dy, dz, ddist;
-    
+
     if (!_haveBcn(pf, bcn))
     {
         bcn->nextBcn = pf->firstBcn;
@@ -88,7 +88,7 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
         _initBcn(bcn, &pf->tag, range, stdRange);
         return;
     }
-    
+
     dt = (float)(pf->lastT - pf->firstT);
     dx = pf->lastX - pf->firstX;
     dy = pf->lastY - pf->firstY;
@@ -99,7 +99,7 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
     pf->firstY = pf->lastY;
     pf->firstZ = pf->lastZ;
     pf->firstDist = pf->lastDist;
-    
+
     _applyVio(&pf->tag, dt, dx, dy, dz, ddist);
     _applyUwb(&pf->tag, bcn, range, stdRange);
     _resampleAll(&pf->tag, bcn, pf->firstBcn, range, stdRange);

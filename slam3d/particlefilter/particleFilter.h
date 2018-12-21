@@ -55,12 +55,12 @@ extern "C" {
 
 	typedef struct
 	{
-        float firstT;
+        double firstT;
         float firstX;
         float firstY;
         float firstZ;
         float firstDist;
-        float lastT;
+        double lastT;
         float lastX;
         float lastY;
         float lastZ;
