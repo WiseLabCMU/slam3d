@@ -424,12 +424,19 @@ static void _spawnTagParticle(tagParticle_t* tp)
 
 static void _spawnBcnParticle(bcnParticle_t* bp, const tagParticle_t* tp, float range, float stdRange)
 {
-    float rdist, relev, razim;
+    int i;
+    float rdist, rdistTmp, relev, razim;
     float c, dx, dy, dz;
     
-    do
-        rdist = range + 3 * stdRange * (_randomUniform() * 2 - 1);
-    while (rdist < 0);
+    rdist = 0.0f;
+    for (i = 0; i < 10; ++i)
+    {
+        rdistTmp = range + 3 * stdRange * (_randomUniform() * 2 - 1);
+        if (rdistTmp < 0.0f)
+            continue;
+        rdist = rdistTmp;
+        break;
+    }
     
     relev = asinf(_randomUniform() * 2 - 1);
     razim = _randomUniform() * 2 * (float)M_PI;

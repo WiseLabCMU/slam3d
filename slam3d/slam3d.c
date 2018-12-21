@@ -37,6 +37,7 @@ int main(void)
     double vioT, uwbT, outT;
     float vioX, vioY, vioZ, uwbR, outX, outY, outZ, outTheta;
     uint8_t uwbB, haveVio, haveUwb;
+    int v, u;
     
     printf("Starting localization\n");
     vioFile = fopen(VIO_FILE, "r");
@@ -46,6 +47,8 @@ int main(void)
     particleFilter_init(&_particleFilter);
     printf("Initialized\n");
     
+    v = 0;
+    u = 0;
     haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ);
     haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR);
     while (haveVio || haveUwb)
@@ -56,19 +59,21 @@ int main(void)
             particleFilter_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta);
             _writeTagLoc(tagOutFile, outT, outX, outY, outZ, outTheta);
             haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ);
-            printf("Applied VIO\n");
+            printf("Applied VIO %d\n", v++);
         }
         else if (haveUwb)
         {
             particleFilter_depositUwb(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD);
             haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR);
-            printf("Applied UWB\n");
+            printf("Applied UWB %d\n", ++u);
         }
     }
+    printf("Finished localization\n");
     for (uwbB = 0; uwbB < NUM_BCNS; ++uwbB)
     {
         particleFilter_getBcnLoc(&_particleFilter, &_bcns[uwbB], &outT, &outX, &outY, &outZ);
         _writeBcnLoc(bcnOutFile, uwbB, outX, outY, outZ);
+        printf("Wrote beacon output\n");
     }
 
     fclose(vioFile);
@@ -76,6 +81,7 @@ int main(void)
     fclose(tagOutFile);
     fclose(bcnOutFile);
     
+    printf("Done\n");
 	return 0;
 }
 
