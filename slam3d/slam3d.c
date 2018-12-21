@@ -20,30 +20,31 @@
 #define NUM_BCNS        (12)
 #define UWB_STD         (0.1f)
 
-static uint8_t _getVio(FILE* vioFile, float* t, float* x, float* y, float* z);
-static uint8_t _getUwb(FILE* uwbFile, float* t, uint8_t* b, float* r);
-static void _writeTagLoc(FILE* outFile, float t, float x, float y, float z, float theta);
+static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z);
+static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r);
+static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, float theta);
 static void _writeBcnLoc(FILE* outFile, uint8_t b, float x, float y, float z);
 
-int main()
+static particleFilter_t _particleFilter;
+static bcn_t _bcns[NUM_BCNS];
+
+int main(void)
 {
     FILE* vioFile;
     FILE* uwbFile;
     FILE* tagOutFile;
     FILE* bcnOutFile;
-    float vioT, vioX, vioY, vioZ;
-    float uwbT, uwbR;
-    uint8_t uwbB;
-    float outT, outX, outY, outZ, outTheta;
-	particleFilter_t particleFilter;
-    bcn_t bcns[NUM_BCNS];
-    uint8_t haveVio, haveUwb;
+    double vioT, uwbT, outT;
+    float vioX, vioY, vioZ, uwbR, outX, outY, outZ, outTheta;
+    uint8_t uwbB, haveVio, haveUwb;
     
+    printf("Starting localization\n");
     vioFile = fopen(VIO_FILE, "r");
     uwbFile = fopen(UWB_FILE, "r");
     tagOutFile = fopen(TAG_OUT_FILE, "w");
     bcnOutFile = fopen(BCN_OUT_FILE, "w");
-	particleFilter_init(&particleFilter);
+    particleFilter_init(&_particleFilter);
+    printf("Initialized\n");
     
     haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ);
     haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR);
@@ -51,23 +52,25 @@ int main()
     {
         if (haveVio && (!haveUwb || vioT < uwbT))
         {
-            particleFilter_depositVio(&particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
-            particleFilter_getTagLoc(&particleFilter, &outT, &outX, &outY, &outZ, &outTheta);
+            particleFilter_depositVio(&_particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
+            particleFilter_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta);
             _writeTagLoc(tagOutFile, outT, outX, outY, outZ, outTheta);
             haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ);
+            printf("Applied VIO\n");
         }
         else if (haveUwb)
         {
-            particleFilter_depositUwb(&particleFilter, &bcns[uwbB], uwbR, UWB_STD);
+            particleFilter_depositUwb(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD);
             haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR);
+            printf("Applied UWB\n");
         }
     }
     for (uwbB = 0; uwbB < NUM_BCNS; ++uwbB)
     {
-        particleFilter_getBcnLoc(&particleFilter, &bcns[uwbB], &outT, &outX, &outY, &outZ);
+        particleFilter_getBcnLoc(&_particleFilter, &_bcns[uwbB], &outT, &outX, &outY, &outZ);
         _writeBcnLoc(bcnOutFile, uwbB, outX, outY, outZ);
     }
-    
+
     fclose(vioFile);
     fclose(uwbFile);
     fclose(tagOutFile);
@@ -76,13 +79,13 @@ int main()
 	return 0;
 }
 
-static uint8_t _getVio(FILE* vioFile, float* t, float* x, float* y, float* z)
+static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z)
 {
     static char _lineBuf[LINE_LEN];
-    
+
     if (fgets(_lineBuf, LINE_LEN, vioFile) == NULL)
         return 0;
-    *t = (float)atof(strtok(_lineBuf, ","));
+    *t = atof(strtok(_lineBuf, ","));
     strtok(NULL, ","); // Skip "position" or "orientation" string
     strtok(NULL, ","); // Skip waypoint number
     strtok(NULL, ","); // Skip accuracy number
@@ -93,13 +96,13 @@ static uint8_t _getVio(FILE* vioFile, float* t, float* x, float* y, float* z)
     return 1;
 }
 
-static uint8_t _getUwb(FILE* uwbFile, float* t, uint8_t* b, float* r)
+static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r)
 {
     static char _lineBuf[LINE_LEN];
-    
+
     if (fgets(_lineBuf, LINE_LEN, uwbFile) == NULL)
         return 0;
-    *t = (float)atof(strtok(_lineBuf, ","));
+    *t = atof(strtok(_lineBuf, ","));
     strtok(NULL, ","); // Skip "uwb_range" string
     strtok(NULL, ","); // Skip waypoint number
     *b = strtok(NULL, ",")[0] - 'a';
@@ -107,9 +110,9 @@ static uint8_t _getUwb(FILE* uwbFile, float* t, uint8_t* b, float* r)
     return 1;
 }
 
-static void _writeTagLoc(FILE* outFile, float t, float x, float y, float z, float theta)
+static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, float theta)
 {
-    fprintf(outFile, "%f,%f,%f,%f,%f\n", t, x, y, z, theta);
+    fprintf(outFile, "%lf,%f,%f,%f,%f\n", t, x, y, z, theta);
 }
 
 static void _writeBcnLoc(FILE* outFile, uint8_t b, float x, float y, float z)

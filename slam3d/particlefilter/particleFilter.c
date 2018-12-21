@@ -43,12 +43,12 @@ void particleFilter_init(particleFilter_t* pf)
 {
     srand((uint32_t)time(NULL));
     pf->firstBcn = NULL;
-    pf->firstT = 0.0f;
+    pf->firstT = 0.0;
     pf->firstX = 0.0f;
     pf->firstY = 0.0f;
     pf->firstZ = 0.0f;
     pf->firstDist = 0.0f;
-    pf->lastT = 0.0f;
+    pf->lastT = 0.0;
     pf->lastX = 0.0f;
     pf->lastY = 0.0f;
     pf->lastZ = 0.0f;
@@ -56,7 +56,7 @@ void particleFilter_init(particleFilter_t* pf)
     _initTag(&pf->tag);
 }
 
-void particleFilter_depositVio(particleFilter_t* pf, float t, float x, float y, float z, float dist)
+void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y, float z, float dist)
 {
     float dx, dy, dz;
     
@@ -89,7 +89,7 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
         return;
     }
     
-    dt = pf->lastT - pf->firstT;
+    dt = (float)(pf->lastT - pf->firstT);
     dx = pf->lastX - pf->firstX;
     dy = pf->lastY - pf->firstY;
     dz = pf->lastZ - pf->firstZ;
@@ -105,7 +105,7 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
     _resampleAll(&pf->tag, bcn, pf->firstBcn, range, stdRange);
 }
 
-void particleFilter_getTagLoc(const particleFilter_t* pf, float* t, float* x, float* y, float* z, float* theta)
+void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, float* y, float* z, float* theta)
 {
     int i;
     tagParticle_t* tp;
@@ -148,7 +148,7 @@ void particleFilter_getTagLoc(const particleFilter_t* pf, float* t, float* x, fl
     *z += dz;
 }
 
-void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, float* t, float* x, float* y, float* z)
+void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z)
 {
     int i, j;
     bcnParticle_t* bp;
