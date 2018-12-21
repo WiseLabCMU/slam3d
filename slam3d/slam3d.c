@@ -15,10 +15,10 @@
 #define UWB_FILE        "/Users/johnmiller/Documents/MATLAB/mag_fld_matlab/BuddySLAM/data_CIC/1515283298.129726_uwb_range.csv"
 #define TAG_OUT_FILE    "/Users/johnmiller/Desktop/tag.csv"
 #define BCN_OUT_FILE    "/Users/johnmiller/Desktop/bcn.csv"
-#define LINE_LEN    (1024)
+#define LINE_LEN        (1024)
 
-#define NUM_BCNS    (12)
-#define UWB_STD     (0.1f)
+#define NUM_BCNS        (12)
+#define UWB_STD         (0.1f)
 
 static uint8_t _getVio(FILE* vioFile, float* t, float* x, float* y, float* z);
 static uint8_t _getUwb(FILE* uwbFile, float* t, uint8_t* b, float* r);
