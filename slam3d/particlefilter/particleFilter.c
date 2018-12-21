@@ -154,6 +154,9 @@ void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, doub
     bcnParticle_t* bp;
     float w1, w2, s1, s2, xsum1, xsum2, ysum1, ysum2, zsum1, zsum2;
     
+    if (!_haveBcn(pf, bcn))
+        return;
+    
     s1 = 0.0f;
     xsum1 = 0.0f;
     ysum1 = 0.0f;
