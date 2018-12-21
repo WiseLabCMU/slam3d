@@ -260,10 +260,8 @@ static void _applyUwb(tag_t* tag, bcn_t* bcn, float range, float stdRange)
             dz = tp->z - bp->z;
             pRange = sqrtf(dx * dx + dy * dy + dz * dz);
             if (fabsf(pRange - range) > 3 * stdRange)
-            {
                 bp->w *= minWeight;
-                bcnSum += bp->w;
-            }
+            bcnSum += bp->w;
         }
         tp->w *= bcnSum;
     }

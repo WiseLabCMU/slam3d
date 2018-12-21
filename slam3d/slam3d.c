@@ -77,7 +77,6 @@ int main(void)
     {
         particleFilter_getBcnLoc(&_particleFilter, &_bcns[uwbB], &outT, &outX, &outY, &outZ);
         _writeBcnLoc(bcnOutFile, uwbB, outX, outY, outZ);
-        printf("Wrote beacon output\n");
     }
 
     fclose(vioFile);
