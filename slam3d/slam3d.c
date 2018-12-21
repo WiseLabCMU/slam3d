@@ -19,6 +19,7 @@
 
 #define NUM_BCNS        (12)
 #define UWB_STD         (0.1f)
+#define UWB_BIAS        (0.4f)
 
 static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z);
 static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r);
@@ -63,7 +64,9 @@ int main(void)
         }
         else if (haveUwb)
         {
-            particleFilter_depositUwb(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD);
+            uwbR -= UWB_BIAS;
+            if (uwbR > 0.0f && uwbR < 30.0f)
+                particleFilter_depositUwb(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD);
             haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR);
             printf("Applied UWB %d\n", ++u);
         }
