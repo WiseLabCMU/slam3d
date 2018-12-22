@@ -12,18 +12,19 @@
 
 #include "particlefilter/particleFilter.h"
 
-#define VIO_FILE        "/Users/johnmiller/Documents/MATLAB/mag_fld_matlab/BuddySLAM/data_CIC/1515283298.129726_vio.csv"
-#define UWB_FILE        "/Users/johnmiller/Documents/MATLAB/mag_fld_matlab/BuddySLAM/data_CIC/1515283298.129726_uwb_range.csv"
-#define TAG_OUT_FILE    "/Users/johnmiller/Desktop/tag.csv"
-#define BCN_OUT_FILE    "/Users/johnmiller/Desktop/bcn.csv"
-#define LINE_LEN        (1024)
+#define VIO_FILE            "/Users/johnmiller/Documents/MATLAB/mag_fld_matlab/BuddySLAM/data_CIC/1515284013.274926_vio.csv"
+#define UWB_FILE            "/Users/johnmiller/Documents/MATLAB/mag_fld_matlab/BuddySLAM/data_CIC/1515284013.274926_uwb_range.csv"
+#define TAG_OUT_FILE        "/Users/johnmiller/Desktop/tag.csv"
+#define BCN_OUT_FILE        "/Users/johnmiller/Desktop/bcn.csv"
+#define LINE_LEN            (1024)
 
-#define NUM_BCNS        (12)
-#define UWB_STD         (0.1f)
-#define UWB_BIAS        (0.4f)
+#define NUM_BCNS            (12)
+#define UWB_STD             (0.1f)
+#define UWB_BIAS            (0.4f)
+#define SKIP_TO_WAYPOINT    (1)
 
-static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z);
-static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r);
+static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z, uint8_t skipToWaypoint);
+static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r, uint8_t skipToWaypoint);
 static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, float theta);
 static void _writeBcnLoc(FILE* outFile, uint8_t b, float x, float y, float z);
 
@@ -51,8 +52,8 @@ int main(void)
     
     v = 0;
     u = 0;
-    haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ);
-    haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR);
+    haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ, SKIP_TO_WAYPOINT);
+    haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR, SKIP_TO_WAYPOINT);
     while (haveVio || haveUwb)
     {
         if (haveVio && (!haveUwb || vioT < uwbT))
@@ -60,7 +61,7 @@ int main(void)
             particleFilter_depositVio(&_particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
             particleFilter_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta);
             _writeTagLoc(tagOutFile, outT, outX, outY, outZ, outTheta);
-            haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ);
+            haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ, 0);
             printf("Applied VIO %d\n", v++);
         }
         else if (haveUwb)
@@ -68,7 +69,7 @@ int main(void)
             uwbR -= UWB_BIAS;
             if (uwbR > 0.0f && uwbR < 30.0f)
                 particleFilter_depositUwb(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD);
-            haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR);
+            haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR, 0);
             printf("Applied UWB %d\n", u++);
         }
     }
@@ -88,34 +89,43 @@ int main(void)
 	return 0;
 }
 
-static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z)
+static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z, uint8_t skipToWaypoint)
 {
     static char _lineBuf[LINE_LEN];
+    char waypoint;
 
-    if (fgets(_lineBuf, LINE_LEN, vioFile) == NULL)
-        return 0;
-    *t = atof(strtok(_lineBuf, ","));
-    strtok(NULL, ","); // Skip "position" or "orientation" string
-    strtok(NULL, ","); // Skip waypoint number
-    strtok(NULL, ","); // Skip accuracy number
-    *y = (float)atof(strtok(NULL, ","));    // VIO on iOS is reported in a different order (y, z, x)
-    *z = (float)atof(strtok(NULL, ","));
-    *x = (float)atof(strtok(NULL, ",\n"));
-    fgets(_lineBuf, LINE_LEN, vioFile); // Skip line for orientation
+    do
+    {
+        if (fgets(_lineBuf, LINE_LEN, vioFile) == NULL)
+            return 0;
+        *t = atof(strtok(_lineBuf, ","));
+        strtok(NULL, ","); // Skip "position" or "orientation" string
+        waypoint = strtok(NULL, ",")[0]; // Skip waypoint number
+        strtok(NULL, ","); // Skip accuracy number
+        *y = (float)atof(strtok(NULL, ","));    // VIO on iOS is reported in a different order (y, z, x)
+        *z = (float)atof(strtok(NULL, ","));
+        *x = (float)atof(strtok(NULL, ",\n"));
+        fgets(_lineBuf, LINE_LEN, vioFile); // Skip line for orientation
+    } while (skipToWaypoint && waypoint < '4');
+    
     return 1;
 }
 
-static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r)
+static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r, uint8_t skipToWaypoint)
 {
     static char _lineBuf[LINE_LEN];
+    char waypoint;
 
-    if (fgets(_lineBuf, LINE_LEN, uwbFile) == NULL)
-        return 0;
-    *t = atof(strtok(_lineBuf, ","));
-    strtok(NULL, ","); // Skip "uwb_range" string
-    strtok(NULL, ","); // Skip waypoint number
-    *b = strtok(NULL, ",")[0] - 'a';
-    *r = (float)atof(strtok(NULL, ",\n"));
+    do
+    {
+        if (fgets(_lineBuf, LINE_LEN, uwbFile) == NULL)
+            return 0;
+        *t = atof(strtok(_lineBuf, ","));
+        strtok(NULL, ","); // Skip "uwb_range" string
+        waypoint = strtok(NULL, ",")[0]; // Skip waypoint number
+        *b = strtok(NULL, ",")[0] - 'a';
+        *r = (float)atof(strtok(NULL, ",\n"));
+    } while (skipToWaypoint && waypoint < '4');
     
     assert(*b < NUM_BCNS);
     return 1;
