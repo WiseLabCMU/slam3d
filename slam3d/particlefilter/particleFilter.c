@@ -28,7 +28,7 @@
 
 static void _initTag(tag_t* tag);
 static void _initBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange);
-static void _applyVio(tag_t* tag, float dt, float dx, float dy, float dz, float dist);
+static void _applyVio(tag_t* tag, float dt, float dx, float dy, float dz, float ddist);
 static void _applyUwb(tag_t* tag, bcn_t* bcn, float range, float stdRange);
 static void _resampleAll(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, float stdRange);
 static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange, uint8_t force);
@@ -82,14 +82,6 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
 {
     float dt, dx, dy, dz, ddist;
 
-    if (!_haveBcn(pf, bcn))
-    {
-        bcn->nextBcn = pf->firstBcn;
-        pf->firstBcn = bcn;
-        _initBcn(bcn, &pf->tag, range, stdRange);
-        return;
-    }
-
     dt = (float)(pf->lastT - pf->firstT);
     dx = pf->lastX - pf->firstX;
     dy = pf->lastY - pf->firstY;
@@ -100,10 +92,18 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
     pf->firstY = pf->lastY;
     pf->firstZ = pf->lastZ;
     pf->firstDist = pf->lastDist;
-
     _applyVio(&pf->tag, dt, dx, dy, dz, ddist);
-    _applyUwb(&pf->tag, bcn, range, stdRange);
-    _resampleAll(&pf->tag, bcn, pf->firstBcn, range, stdRange);
+    if (_haveBcn(pf, bcn))
+    {
+        _applyUwb(&pf->tag, bcn, range, stdRange);
+        _resampleAll(&pf->tag, bcn, pf->firstBcn, range, stdRange);
+    }
+    else
+    {
+        bcn->nextBcn = pf->firstBcn;
+        pf->firstBcn = bcn;
+        _initBcn(bcn, &pf->tag, range, stdRange);
+    }
 }
 
 void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, float* y, float* z, float* theta)
@@ -210,14 +210,14 @@ static void _initBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange)
     }
 }
 
-static void _applyVio(tag_t* tag, float dt, float dx, float dy, float dz, float dist)
+static void _applyVio(tag_t* tag, float dt, float dx, float dy, float dz, float ddist)
 {
 	int i;
 	tagParticle_t* tp;
 	float c, s, pDx, pDy, stdXyz, stdTheta;
 	float rx, ry, rz, rtheta;
 
-    stdXyz = sqrtf(dist) * VIO_STD_XYZ;
+    stdXyz = sqrtf(ddist) * VIO_STD_XYZ;
     stdTheta = sqrtf(dt) * VIO_STD_THETA;
 	for (i = 0; i < PF_N_TAG; ++i)
 	{
