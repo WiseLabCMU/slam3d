@@ -368,9 +368,9 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
         
         if (ess / PF_N_BCN < RESAMPLE_THRESH || numSpawn > 0 || force)
         {
-            for (i = 0; i < PF_N_TAG; ++i)
+            for (i = 0; i < PF_N_BCN; ++i)
                 randCdf[i] = _randomUniform() * s;
-            qsort(randCdf, PF_N_TAG, sizeof(float), _floatCmp);
+            qsort(randCdf, PF_N_BCN, sizeof(float), _floatCmp);
             
             i = 0;
             j = 0;
