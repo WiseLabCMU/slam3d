@@ -110,7 +110,7 @@ void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, f
 {
     int i;
     const tagParticle_t* tp;
-    float w, s, xsum, ysum, zsum, csum, ssum, dx, dy, dz, h, co, si;
+    float w, s, xsum, ysum, zsum, csum, ssum, dx, dy, dz, co, si;
     
     s = 0.0f;
     xsum = 0.0f;
@@ -129,8 +129,6 @@ void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, f
         csum += w * cosf(tp->theta);
         ssum += w * sinf(tp->theta);
     }
-    csum /= s;
-    ssum /= s;
     *t = pf->lastT;
     *x = xsum / s;
     *y = ysum / s;
@@ -141,9 +139,8 @@ void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, f
     dy = pf->lastY - pf->firstY;
     dz = pf->lastZ - pf->firstZ;
     
-    h = hypotf(csum, ssum);
-    co = csum / h;
-    si = ssum / h;
+    co = cosf(*theta);
+    si = sinf(*theta);
     *x += dx * co - dy * si;
     *y += dx * si + dy * co;
     *z += dz;
