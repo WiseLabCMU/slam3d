@@ -10,6 +10,7 @@
 #undef _USE_MATH_DEFINES
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "particleFilter.h"
@@ -108,7 +109,7 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
 void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, float* y, float* z, float* theta)
 {
     int i;
-    tagParticle_t* tp;
+    const tagParticle_t* tp;
     float w, s, xsum, ysum, zsum, csum, ssum, dx, dy, dz, h, co, si;
     
     s = 0.0f;
@@ -151,7 +152,7 @@ void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, f
 void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z)
 {
     int i, j;
-    bcnParticle_t* bp;
+    const bcnParticle_t* bp;
     float w1, w2, s1, s2, xsum1, xsum2, ysum1, ysum2, zsum1, zsum2;
     
     if (!_haveBcn(pf, bcn))
@@ -192,8 +193,6 @@ static void _initTag(tag_t* tag)
 {
     int i;
     
-    tag->pTag = tag->pTagBuf1;
-    tag->pTagTmp = tag->pTagBuf2;
     for (i = 0; i < PF_N_TAG; ++i)
         _spawnTagParticle(&tag->pTag[i]);
 }
@@ -201,10 +200,8 @@ static void _initTag(tag_t* tag)
 static void _initBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange)
 {
     int i, j;
-    tagParticle_t* tp;
+    const tagParticle_t* tp;
     
-    bcn->pBcn = bcn->pBcnBuf1;
-    bcn->pBcnTmp = bcn->pBcnBuf2;
     for (i = 0; i < PF_N_TAG; ++i)
     {
         tp = &tag->pTag[i];
@@ -311,7 +308,7 @@ static void _resampleAll(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, f
         {
             while (i < PF_N_TAG && randCdf[i] < weightCdf[j])
             {
-                tp = &tag->pTagTmp[i];
+                tp = &tag->pTagBuf[i];
                 tp2 = &tag->pTag[j];
                 
                 _randomNormal2(&dx, &dy);
@@ -327,9 +324,7 @@ static void _resampleAll(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, f
             ++j;
         }
 
-        tp = tag->pTag;
-        tag->pTag = tag->pTagTmp;
-        tag->pTagTmp = tp;
+        memcpy(tag->pTag, tag->pTagBuf, sizeof(tag->pTagBuf));
 
         for (bcn = firstBcn; bcn != NULL; bcn = bcn->nextBcn)
             _resampleBcn(bcn, tag, range, stdRange, 1);
@@ -346,10 +341,9 @@ static void _resampleAll(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, f
 static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange, uint8_t force)
 {
     int numSpawn, i, j, k;
-    tagParticle_t* tp;
+    const tagParticle_t* tp;
     bcnParticle_t* bp;
     bcnParticle_t* bp2;
-    bcnParticle_t (* bpt)[PF_N_BCN];
     float w, s, ss, ess, dx, dy, dz, dtheta, m;
     float weightCdf[PF_N_BCN];
     float randCdf[PF_N_BCN];
@@ -384,7 +378,7 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
             {
                 while (i < PF_N_BCN && randCdf[i] < weightCdf[j])
                 {
-                    bp = &bcn->pBcnTmp[k][i];
+                    bp = &bcn->pBcnBuf[i];
                     bp2 = &bcn->pBcn[k][j];
                     
                     _randomNormal2(&dx, &dy);
@@ -399,9 +393,7 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
                 ++j;
             }
             
-            bpt = bcn->pBcn;
-            bcn->pBcn = bcn->pBcnTmp;
-            bcn->pBcnTmp = bpt;
+            memcpy(bcn->pBcn[k], bcn->pBcnBuf, sizeof(bcn->pBcnBuf));
             
             tp = &tag->pTag[k];
             for (i = 0; i < numSpawn; ++i)

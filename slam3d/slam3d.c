@@ -61,7 +61,7 @@ int main(void)
             particleFilter_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta);
             _writeTagLoc(tagOutFile, outT, outX, outY, outZ, outTheta);
             haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ);
-//            printf("Applied VIO %d\n", v++);
+            printf("Applied VIO %d\n", v++);
         }
         else if (haveUwb)
         {
@@ -69,7 +69,7 @@ int main(void)
             if (uwbR > 0.0f && uwbR < 30.0f)
                 particleFilter_depositUwb(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD);
             haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR);
-//            printf("Applied UWB %d\n", u++);
+            printf("Applied UWB %d\n", u++);
         }
     }
     printf("Finished localization\n");

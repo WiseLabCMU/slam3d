@@ -36,19 +36,15 @@ extern "C" {
     
     typedef struct
     {
-        tagParticle_t* pTag;
-        tagParticle_t* pTagTmp;
-        tagParticle_t pTagBuf1[PF_N_TAG];
-        tagParticle_t pTagBuf2[PF_N_TAG];
+        tagParticle_t pTag[PF_N_TAG];
+        tagParticle_t pTagBuf[PF_N_TAG];
         
     } tag_t;
     
     typedef struct _bcn
     {
-        bcnParticle_t (* pBcn)[PF_N_BCN];
-        bcnParticle_t (* pBcnTmp)[PF_N_BCN];
-        bcnParticle_t pBcnBuf1[PF_N_TAG][PF_N_BCN];
-        bcnParticle_t pBcnBuf2[PF_N_TAG][PF_N_BCN];
+        bcnParticle_t pBcn[PF_N_TAG][PF_N_BCN];
+        bcnParticle_t pBcnBuf[PF_N_BCN];
         struct _bcn* nextBcn;
         
     } bcn_t;
