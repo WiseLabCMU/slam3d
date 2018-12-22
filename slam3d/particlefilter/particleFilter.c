@@ -61,10 +61,6 @@ void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y,
 {
     float dx, dy, dz;
     
-    pf->lastT = t;
-    pf->lastX = x;
-    pf->lastY = y;
-    pf->lastZ = z;
     if (dist > pf->lastDist)
     {
         pf->lastDist = dist;
@@ -76,6 +72,10 @@ void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y,
         dz = z - pf->lastZ;
         pf->lastDist += sqrtf(dx * dx + dy * dy + dz * dz);
     }
+    pf->lastT = t;
+    pf->lastX = x;
+    pf->lastY = y;
+    pf->lastZ = z;
 }
 
 void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange)
