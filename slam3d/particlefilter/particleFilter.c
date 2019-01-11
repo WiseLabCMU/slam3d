@@ -61,6 +61,21 @@ void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y,
 {
     float dx, dy, dz;
     
+    if (pf->firstT == 0.0)
+    {
+        pf->firstT = t;
+        pf->firstX = x;
+        pf->firstY = y;
+        pf->firstZ = z;
+        pf->firstDist = dist;
+        pf->lastT = t;
+        pf->lastX = x;
+        pf->lastY = y;
+        pf->lastZ = z;
+        pf->lastDist = dist;
+        return;
+    }
+    
     if (dist > pf->lastDist)
     {
         pf->lastDist = dist;
