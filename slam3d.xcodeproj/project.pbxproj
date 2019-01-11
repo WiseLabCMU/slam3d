@@ -12,6 +12,7 @@
 		3EDDF04121E90EFD00C01ED7 /* pfRandom.c in Sources */ = {isa = PBXBuildFile; fileRef = 3EDDF04021E90EFD00C01ED7 /* pfRandom.c */; };
 		3EDDF04421E926E000C01ED7 /* pfInit.c in Sources */ = {isa = PBXBuildFile; fileRef = 3EDDF04321E926E000C01ED7 /* pfInit.c */; };
 		3EDDF04721E9299F00C01ED7 /* pfMeasurement.c in Sources */ = {isa = PBXBuildFile; fileRef = 3EDDF04621E9299F00C01ED7 /* pfMeasurement.c */; };
+		3EDDF04A21E92B6000C01ED7 /* pfResample.c in Sources */ = {isa = PBXBuildFile; fileRef = 3EDDF04921E92B6000C01ED7 /* pfResample.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -37,6 +38,8 @@
 		3EDDF04321E926E000C01ED7 /* pfInit.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = pfInit.c; path = slam3d/particlefilter/pfInit.c; sourceTree = SOURCE_ROOT; };
 		3EDDF04521E9299F00C01ED7 /* pfMeasurement.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = pfMeasurement.h; path = slam3d/particlefilter/pfMeasurement.h; sourceTree = SOURCE_ROOT; };
 		3EDDF04621E9299F00C01ED7 /* pfMeasurement.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = pfMeasurement.c; path = slam3d/particlefilter/pfMeasurement.c; sourceTree = SOURCE_ROOT; };
+		3EDDF04821E92B6000C01ED7 /* pfResample.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = pfResample.h; path = slam3d/particlefilter/pfResample.h; sourceTree = SOURCE_ROOT; };
+		3EDDF04921E92B6000C01ED7 /* pfResample.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = pfResample.c; path = slam3d/particlefilter/pfResample.c; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +89,8 @@
 				3EDDF04321E926E000C01ED7 /* pfInit.c */,
 				3EDDF04521E9299F00C01ED7 /* pfMeasurement.h */,
 				3EDDF04621E9299F00C01ED7 /* pfMeasurement.c */,
+				3EDDF04821E92B6000C01ED7 /* pfResample.h */,
+				3EDDF04921E92B6000C01ED7 /* pfResample.c */,
 			);
 			path = particleFilter;
 			sourceTree = "<group>";
@@ -150,6 +155,7 @@
 				3E6D49AF21B1EB4000C71038 /* particleFilter.c in Sources */,
 				3EDDF04121E90EFD00C01ED7 /* pfRandom.c in Sources */,
 				3E6D49B121B1EB7000C71038 /* slam3d.c in Sources */,
+				3EDDF04A21E92B6000C01ED7 /* pfResample.c in Sources */,
 				3EDDF04421E926E000C01ED7 /* pfInit.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -16,6 +16,7 @@ void pfInit_initTag(tag_t* tag)
 {
     int i;
     
+    pfRandom_init();
     for (i = 0; i < PF_N_TAG; ++i)
         pfInit_spawnTagParticle(&tag->pTag[i]);
 }
