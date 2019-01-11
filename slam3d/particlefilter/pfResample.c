@@ -58,14 +58,9 @@ void pfResample_resample(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, f
         rStep = invN * s;
         rStart = pfRandom_uniform() * rStep;
         
-        i = 0;
-        j = 0;
-        while (i < PF_N_TAG)
-        {
-            while (i < PF_N_TAG && (rStart + rStep * i) < weightCdf[j])
-                pfInit_spawnTagParticleFromOther(&tag->pTagBuf[i++], &tag->pTag[j], HXYZ, htheta);
-            ++j;
-        }
+        for (i = 0, j = 0; i < PF_N_TAG; ++j)
+            for (; i < PF_N_TAG && (rStart + rStep * i) < weightCdf[j]; ++i)
+                pfInit_spawnTagParticleFromOther(&tag->pTagBuf[i], &tag->pTag[j], HXYZ, htheta);
         
         memcpy(tag->pTag, tag->pTagBuf, sizeof(tag->pTagBuf));
         
@@ -113,14 +108,9 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
             rStep = invN * s;
             rStart = pfRandom_uniform() * rStep;
             
-            i = 0;
-            j = 0;
-            while (i < PF_N_BCN)
-            {
-                while (i < PF_N_BCN && (rStart + rStep * i) < weightCdf[j])
-                    pfInit_spawnBcnParticleFromOther(&bcn->pBcnBuf[i++], &bcn->pBcn[k][j], HXYZ);
-                ++j;
-            }
+            for (i = 0, j = 0; i < PF_N_BCN; ++j)
+                for (; i < PF_N_BCN && (rStart + rStep * i) < weightCdf[j]; ++i)
+                    pfInit_spawnBcnParticleFromOther(&bcn->pBcnBuf[i], &bcn->pBcn[k][j], HXYZ);
             
             memcpy(bcn->pBcn[k], bcn->pBcnBuf, sizeof(bcn->pBcnBuf));
             
