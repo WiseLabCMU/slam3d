@@ -11,9 +11,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #include "particleFilter.h"
+#include "pfRandom.h"
 
 #define VIO_STD_XYZ         (1e-3f)
 #define VIO_STD_THETA       (1e-6f)
@@ -37,12 +37,10 @@ static void _spawnBcnParticle(bcnParticle_t* bp, const tagParticle_t* tp, float 
 
 static uint8_t _haveBcn(const particleFilter_t* pf, const bcn_t* bcn);
 static int _floatCmp(const void* a, const void* b);
-static float _randomUniform(void);
-static void _randomNormal2(float* x, float* y);
 
 void particleFilter_init(particleFilter_t* pf)
 {
-    srand((uint32_t)time(NULL));
+    pfRandom_init();
     pf->firstBcn = NULL;
     pf->firstT = 0.0;
     pf->firstX = 0.0f;
@@ -239,8 +237,8 @@ static void _applyVio(tag_t* tag, float dt, float dx, float dy, float dz, float 
 		pDx = dx * c - dy * s;
 		pDy = dx * s + dy * c;
 
-		_randomNormal2(&rx, &ry);
-		_randomNormal2(&rz, &rtheta);
+		pfRandom_normal2(&rx, &ry);
+		pfRandom_normal2(&rz, &rtheta);
 
 		tp->x += pDx + stdXyz * rx;
 		tp->y += pDy + stdXyz * ry;
@@ -311,7 +309,7 @@ static void _resampleAll(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, f
         htheta = sqrtf(-logf(htheta) / ess);
 
         for (i = 0; i < PF_N_TAG; ++i)
-            randCdf[i] = _randomUniform() * s;
+            randCdf[i] = pfRandom_uniform() * s;
         qsort(randCdf, PF_N_TAG, sizeof(float), _floatCmp);
         
         i = 0;
@@ -323,8 +321,8 @@ static void _resampleAll(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, f
                 tp = &tag->pTagBuf[i];
                 tp2 = &tag->pTag[j];
                 
-                _randomNormal2(&dx, &dy);
-                _randomNormal2(&dz, &dtheta);
+                pfRandom_normal2(&dx, &dy);
+                pfRandom_normal2(&dz, &dtheta);
                 tp->w = 1.0f;
                 tp->x = tp2->x + dx * HXYZ;
                 tp->y = tp2->y + dy * HXYZ;
@@ -381,7 +379,7 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
         if (ess / PF_N_BCN < RESAMPLE_THRESH || numSpawn > 0 || force)
         {
             for (i = 0; i < PF_N_BCN; ++i)
-                randCdf[i] = _randomUniform() * s;
+                randCdf[i] = pfRandom_uniform() * s;
             qsort(randCdf, PF_N_BCN, sizeof(float), _floatCmp);
             
             i = 0;
@@ -393,8 +391,8 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
                     bp = &bcn->pBcnBuf[i];
                     bp2 = &bcn->pBcn[k][j];
                     
-                    _randomNormal2(&dx, &dy);
-                    _randomNormal2(&dz, &dtheta);
+                    pfRandom_normal2(&dx, &dy);
+                    pfRandom_normal2(&dz, &dtheta);
                     bp->w = 1.0f;
                     bp->x = bp2->x + dx * HXYZ;
                     bp->y = bp2->y + dy * HXYZ;
@@ -438,15 +436,15 @@ static void _spawnBcnParticle(bcnParticle_t* bp, const tagParticle_t* tp, float 
     rdist = 0.0f;
     for (i = 0; i < 10; ++i)
     {
-        rdistTmp = range + 3 * stdRange * (_randomUniform() * 2 - 1);
+        rdistTmp = range + 3 * stdRange * (pfRandom_uniform() * 2 - 1);
         if (rdistTmp < 0.0f)
             continue;
         rdist = rdistTmp;
         break;
     }
     
-    relev = asinf(_randomUniform() * 2 - 1);
-    razim = _randomUniform() * 2 * (float)M_PI;
+    relev = asinf(pfRandom_uniform() * 2 - 1);
+    razim = pfRandom_uniform() * 2 * (float)M_PI;
     
     c = rdist * cosf(relev);
     dx = c * cosf(razim);
@@ -479,18 +477,4 @@ static int _floatCmp(const void* a, const void* b)
     if (*x > *y)
         return 1;
     return 0;
-}
-
-static float _randomUniform(void)
-{
-	return (float)rand() / RAND_MAX;
-}
-
-static void _randomNormal2(float* x, float* y)
-{
-	float f = sqrtf(-2 * logf(_randomUniform()));
-	float g = _randomUniform() * 2 * (float)M_PI;
-    
-	*x = f * cosf(g);
-	*y = f * sinf(g);
 }

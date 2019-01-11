@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		3E6D49AF21B1EB4000C71038 /* particleFilter.c in Sources */ = {isa = PBXBuildFile; fileRef = 3E6D49AD21B1EB4000C71038 /* particleFilter.c */; };
 		3E6D49B121B1EB7000C71038 /* slam3d.c in Sources */ = {isa = PBXBuildFile; fileRef = 3E6D49B021B1EB6F00C71038 /* slam3d.c */; };
+		3EDDF04121E90EFD00C01ED7 /* pfRandom.c in Sources */ = {isa = PBXBuildFile; fileRef = 3EDDF04021E90EFD00C01ED7 /* pfRandom.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,6 +29,8 @@
 		3E6D49AD21B1EB4000C71038 /* particleFilter.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = particleFilter.c; sourceTree = "<group>"; };
 		3E6D49AE21B1EB4000C71038 /* particleFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = particleFilter.h; sourceTree = "<group>"; };
 		3E6D49B021B1EB6F00C71038 /* slam3d.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = slam3d.c; sourceTree = "<group>"; };
+		3EDDF03F21E90EFD00C01ED7 /* pfRandom.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = pfRandom.h; path = slam3d/particlefilter/pfRandom.h; sourceTree = SOURCE_ROOT; };
+		3EDDF04021E90EFD00C01ED7 /* pfRandom.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = pfRandom.c; path = slam3d/particlefilter/pfRandom.c; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +74,8 @@
 			children = (
 				3E6D49AD21B1EB4000C71038 /* particleFilter.c */,
 				3E6D49AE21B1EB4000C71038 /* particleFilter.h */,
+				3EDDF03F21E90EFD00C01ED7 /* pfRandom.h */,
+				3EDDF04021E90EFD00C01ED7 /* pfRandom.c */,
 			);
 			path = particleFilter;
 			sourceTree = "<group>";
@@ -132,6 +137,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3E6D49AF21B1EB4000C71038 /* particleFilter.c in Sources */,
+				3EDDF04121E90EFD00C01ED7 /* pfRandom.c in Sources */,
 				3E6D49B121B1EB7000C71038 /* slam3d.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
