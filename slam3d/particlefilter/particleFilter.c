@@ -14,12 +14,8 @@
 
 #include "particleFilter.h"
 #include "pfInit.h"
+#include "pfMeasurement.h"
 #include "pfRandom.h"
-
-#define VIO_STD_XYZ         (1e-3f)
-#define VIO_STD_THETA       (1e-6f)
-
-#define MIN_WEIGHT(range)   ((range < 3.0f) ? 0.1f : 0.5f)
 
 #define RESAMPLE_THRESH     (0.5f)
 #define RADIUS_SPAWN_THRESH (1.0f)
@@ -27,8 +23,6 @@
 #define PCT_SPAWN           (0.05f)
 #define HXYZ                (0.1f)
 
-static void _applyVio(tag_t* tag, float dt, float dx, float dy, float dz, float ddist);
-static void _applyUwb(tag_t* tag, bcn_t* bcn, float range, float stdRange);
 static void _resampleAll(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, float stdRange);
 static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange, uint8_t force);
 
@@ -102,10 +96,10 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
     pf->firstY = pf->lastY;
     pf->firstZ = pf->lastZ;
     pf->firstDist = pf->lastDist;
-    _applyVio(&pf->tag, dt, dx, dy, dz, ddist);
+    pfMeasurement_applyVio(&pf->tag, dt, dx, dy, dz, ddist);
     if (_haveBcn(pf, bcn))
     {
-        _applyUwb(&pf->tag, bcn, range, stdRange);
+        pfMeasurement_applyUwb(&pf->tag, bcn, range, stdRange);
         _resampleAll(&pf->tag, bcn, pf->firstBcn, range, stdRange);
     }
     else
@@ -194,60 +188,6 @@ void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, doub
     *x = xsum1 / s1;
     *y = ysum1 / s1;
     *z = zsum1 / s1;
-}
-
-static void _applyVio(tag_t* tag, float dt, float dx, float dy, float dz, float ddist)
-{
-	int i;
-	tagParticle_t* tp;
-	float c, s, pDx, pDy, stdXyz, stdTheta;
-	float rx, ry, rz, rtheta;
-
-    stdXyz = sqrtf(ddist) * VIO_STD_XYZ;
-    stdTheta = sqrtf(dt) * VIO_STD_THETA;
-	for (i = 0; i < PF_N_TAG; ++i)
-	{
-		tp = &tag->pTag[i];
-		c = cosf(tp->theta);
-		s = sinf(tp->theta);
-		pDx = dx * c - dy * s;
-		pDy = dx * s + dy * c;
-
-		pfRandom_normal2(&rx, &ry);
-		pfRandom_normal2(&rz, &rtheta);
-
-		tp->x += pDx + stdXyz * rx;
-		tp->y += pDy + stdXyz * ry;
-		tp->z += dz + stdXyz * rz;
-		tp->theta = fmodf(tp->theta + stdTheta * rtheta, 2 * (float)M_PI);
-	}
-}
-
-static void _applyUwb(tag_t* tag, bcn_t* bcn, float range, float stdRange)
-{
-    int i, j;
-    tagParticle_t* tp;
-    bcnParticle_t* bp;
-    float minWeight, dx, dy, dz, pRange, bcnSum;
-    
-    minWeight = MIN_WEIGHT(range);
-    for (i = 0; i < PF_N_TAG; ++i)
-    {
-        tp = &tag->pTag[i];
-        bcnSum = 0.0f;
-        for (j = 0; j < PF_N_BCN; ++j)
-        {
-            bp = &bcn->pBcn[i][j];
-            dx = tp->x - bp->x;
-            dy = tp->y - bp->y;
-            dz = tp->z - bp->z;
-            pRange = sqrtf(dx * dx + dy * dy + dz * dz);
-            if (fabsf(pRange - range) > 3 * stdRange)
-                bp->w *= minWeight;
-            bcnSum += bp->w;
-        }
-        tp->w *= bcnSum;
-    }
 }
 
 static void _resampleAll(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, float stdRange)
