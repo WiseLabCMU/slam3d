@@ -23,6 +23,7 @@
 #define HXYZ                (0.1f)
 
 static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange, uint8_t force);
+static void _getRandCdf(float* buf, int count, float s);
 static int _floatCmp(const void* a, const void* b);
 
 void pfResample_resample(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, float stdRange)
@@ -59,9 +60,7 @@ void pfResample_resample(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, f
         htheta = htheta < 1 - 1e-10 ? htheta : 1 - 1e-10;
         htheta = sqrtf(-logf(htheta) / ess);
         
-        for (i = 0; i < PF_N_TAG; ++i)
-            randCdf[i] = pfRandom_uniform() * s;
-        qsort(randCdf, PF_N_TAG, sizeof(float), _floatCmp);
+        _getRandCdf(randCdf, PF_N_TAG, s);
         
         i = 0;
         j = 0;
@@ -129,9 +128,7 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
         
         if (ess / PF_N_BCN < RESAMPLE_THRESH || numSpawn > 0 || force)
         {
-            for (i = 0; i < PF_N_BCN; ++i)
-                randCdf[i] = pfRandom_uniform() * s;
-            qsort(randCdf, PF_N_BCN, sizeof(float), _floatCmp);
+            _getRandCdf(randCdf, PF_N_BCN, s);
             
             i = 0;
             j = 0;
@@ -167,6 +164,15 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
                 bcn->pBcn[k][i].w *= m;
         }
     }
+}
+
+static void _getRandCdf(float* buf, int count, float s)
+{
+    int i;
+    
+    for (i = 0; i < count; ++i)
+        buf[i] = pfRandom_uniform() * s;
+    qsort(buf, count, sizeof(buf[0]), _floatCmp);
 }
 
 static int _floatCmp(const void* a, const void* b)
