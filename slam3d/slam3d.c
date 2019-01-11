@@ -40,7 +40,6 @@ int main(void)
     double vioT, uwbT, outT;
     float vioX, vioY, vioZ, uwbR, outX, outY, outZ, outTheta;
     uint8_t uwbB, haveVio, haveUwb;
-    int v, u;
     
     printf("Starting localization\n");
     vioFile = fopen(VIO_FILE, "r");
@@ -50,8 +49,6 @@ int main(void)
     particleFilter_init(&_particleFilter);
     printf("Initialized\n");
     
-    v = 0;
-    u = 0;
     haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ, SKIP_TO_WAYPOINT);
     haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR, SKIP_TO_WAYPOINT);
     while (haveVio || haveUwb)
@@ -62,7 +59,6 @@ int main(void)
             particleFilter_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta);
             _writeTagLoc(tagOutFile, outT, outX, outY, outZ, outTheta);
             haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ, 0);
-//            printf("Applied VIO %d\n", v++);
         }
         else if (haveUwb)
         {
@@ -70,7 +66,6 @@ int main(void)
             if (uwbR > 0.0f && uwbR < 30.0f)
                 particleFilter_depositUwb(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD);
             haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR, 0);
-//            printf("Applied UWB %d\n", u++);
         }
     }
     printf("Finished localization\n");
