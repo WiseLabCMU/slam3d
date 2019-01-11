@@ -17,7 +17,9 @@ extern "C" {
     void pfInit_initTag(tag_t* tag);
     void pfInit_initBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange);
     void pfInit_spawnTagParticle(tagParticle_t* tp);
+    void pfInit_spawnTagParticleFromOther(tagParticle_t* tp, const tagParticle_t* other, float hXyz, float hTheta);
     void pfInit_spawnBcnParticle(bcnParticle_t* bp, const tagParticle_t* tp, float range, float stdRange);
+    void pfInit_spawnBcnParticleFromOther(bcnParticle_t* bp, const bcnParticle_t* other, float hXyz);
     
 #ifdef __cplusplus
 } // extern "C"

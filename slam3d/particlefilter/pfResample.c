@@ -5,9 +5,7 @@
 //  Copyright © 2019 CMU. All rights reserved.
 //
 
-#define _USE_MATH_DEFINES
 #include <math.h>
-#undef _USE_MATH_DEFINES
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,8 +28,7 @@ void pfResample_resample(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, f
 {
     int i, j;
     tagParticle_t* tp;
-    tagParticle_t* tp2;
-    float w, s, ss, csum, ssum, ess, htheta, dx, dy, dz, dtheta, m;
+    float w, s, ss, csum, ssum, ess, htheta, m;
     float weightCdf[PF_N_TAG];
     float randCdf[PF_N_TAG];
     
@@ -67,20 +64,7 @@ void pfResample_resample(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, f
         while (i < PF_N_TAG)
         {
             while (i < PF_N_TAG && randCdf[i] < weightCdf[j])
-            {
-                tp = &tag->pTagBuf[i];
-                tp2 = &tag->pTag[j];
-                
-                pfRandom_normal2(&dx, &dy);
-                pfRandom_normal2(&dz, &dtheta);
-                tp->w = 1.0f;
-                tp->x = tp2->x + dx * HXYZ;
-                tp->y = tp2->y + dy * HXYZ;
-                tp->z = tp2->z + dz * HXYZ;
-                tp->theta = fmodf(tp2->theta + dtheta * htheta, 2 * (float)M_PI);
-                
-                ++i;
-            }
+                pfInit_spawnTagParticleFromOther(&tag->pTagBuf[i++], &tag->pTag[j], HXYZ, htheta);
             ++j;
         }
         
@@ -103,8 +87,7 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
     int numSpawn, i, j, k;
     const tagParticle_t* tp;
     bcnParticle_t* bp;
-    bcnParticle_t* bp2;
-    float w, s, ss, ess, dx, dy, dz, dtheta, m;
+    float w, s, ss, ess, m;
     float weightCdf[PF_N_BCN];
     float randCdf[PF_N_BCN];
     
@@ -135,19 +118,7 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
             while (i < PF_N_BCN)
             {
                 while (i < PF_N_BCN && randCdf[i] < weightCdf[j])
-                {
-                    bp = &bcn->pBcnBuf[i];
-                    bp2 = &bcn->pBcn[k][j];
-                    
-                    pfRandom_normal2(&dx, &dy);
-                    pfRandom_normal2(&dz, &dtheta);
-                    bp->w = 1.0f;
-                    bp->x = bp2->x + dx * HXYZ;
-                    bp->y = bp2->y + dy * HXYZ;
-                    bp->z = bp2->z + dz * HXYZ;
-                    
-                    ++i;
-                }
+                    pfInit_spawnBcnParticleFromOther(&bcn->pBcnBuf[i++], &bcn->pBcn[k][j], HXYZ);
                 ++j;
             }
             

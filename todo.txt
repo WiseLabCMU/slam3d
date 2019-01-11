@@ -1,3 +1,4 @@
+- unify particle type?
 - use stratified sampling
 - implement smoothing
 - allow beacons to move
