@@ -58,28 +58,9 @@ void pfInit_spawnTagParticleFromOther(tagParticle_t* tp, const tagParticle_t* ot
 
 void pfInit_spawnBcnParticle(bcnParticle_t* bp, const tagParticle_t* tp, float range, float stdRange)
 {
-    int i;
-    float rdist, rdistTmp, relev, razim;
-    float c, dx, dy, dz;
+    float dx, dy, dz;
     
-    rdist = 0.0f;
-    for (i = 0; i < 10; ++i)
-    {
-        rdistTmp = range + 3 * stdRange * (pfRandom_uniform() * 2 - 1);
-        if (rdistTmp < 0.0f)
-            continue;
-        rdist = rdistTmp;
-        break;
-    }
-    
-    relev = asinf(pfRandom_uniform() * 2 - 1);
-    razim = pfRandom_uniform() * 2 * (float)M_PI;
-    
-    c = rdist * cosf(relev);
-    dx = c * cosf(razim);
-    dy = c * sinf(razim);
-    dz = rdist * sinf(relev);
-    
+    pfRandom_sphere(&dx, &dy, &dz, range, stdRange);
     bp->w = 1.0f;
     bp->x = tp->x + dx;
     bp->y = tp->y + dy;

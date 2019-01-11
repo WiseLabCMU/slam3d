@@ -15,6 +15,7 @@ extern "C" {
     void pfRandom_init(void);
     float pfRandom_uniform(void);
     void pfRandom_normal2(float* x, float* y);
+    void pfRandom_sphere(float* x, float* y, float* z, float range, float stdRange);
     
 #ifdef __cplusplus
 } // extern "C"
