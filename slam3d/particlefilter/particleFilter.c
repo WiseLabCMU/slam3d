@@ -411,10 +411,12 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
             for (i = 0; i < numSpawn; ++i)
                 _spawnBcnParticle(&bcn->pBcn[k][i], tp, range, stdRange);
         }
-        
-        m = PF_N_BCN / s;
-        for (i = 0; i < PF_N_BCN; ++i)
-            bcn->pBcn[k][i].w *= m;
+        else
+        {
+            m = PF_N_BCN / s;
+            for (i = 0; i < PF_N_BCN; ++i)
+                bcn->pBcn[k][i].w *= m;
+        }
     }
 }
 
