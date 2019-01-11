@@ -1,0 +1,4 @@
+- decide double or float
+- use stratified sampling
+- implement smoothing
+- allow beacons to move
