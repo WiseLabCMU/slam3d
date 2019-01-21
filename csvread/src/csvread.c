@@ -13,16 +13,18 @@
 
 #include "particleFilter.h"
 
-#define VIO_FILE            "/Users/johnmiller/Documents/MATLAB/mag_fld_matlab/BuddySLAM/data_CIC/1515284013.274926_vio.csv"
-#define UWB_FILE            "/Users/johnmiller/Documents/MATLAB/mag_fld_matlab/BuddySLAM/data_CIC/1515284013.274926_uwb_range.csv"
-#define TAG_OUT_FILE        "/Users/johnmiller/Desktop/tag.csv"
-#define BCN_OUT_FILE        "/Users/johnmiller/Desktop/bcn.csv"
-#define LINE_LEN            (1024)
-
+#define DATA_DIR            "sampledata/"
+#define TRACE_DIR           DATA_DIR "cic/0/"
 #define NUM_BCNS            (12)
 #define UWB_STD             (0.1f)
 #define UWB_BIAS            (0.4f)
 #define SKIP_TO_WAYPOINT    (1)
+
+#define VIO_FILE            TRACE_DIR "vio.csv"
+#define UWB_FILE            TRACE_DIR "uwb.csv"
+#define TAG_OUT_FILE        TRACE_DIR "tag.csv"
+#define BCN_OUT_FILE        TRACE_DIR "bcn.csv"
+#define LINE_LEN            (1024)
 
 static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z, uint8_t skipToWaypoint);
 static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r, uint8_t skipToWaypoint);
