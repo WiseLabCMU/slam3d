@@ -1,0 +1,50 @@
+{
+  materials: [
+    {
+      name: 'lambert3SG',
+      parameters: [
+        {
+          baseColor: 'Cabin Texture',
+        },
+        {
+          baseColorTint: [
+            1,
+            1,
+            1,
+            1,
+          ],
+        },
+        {
+          metallic: 0,
+        },
+        {
+          roughness: 1,
+        },
+        {
+          opacity: null,
+        },
+      ],
+      source: 'build/sceneform_sdk/default_materials/obj_material.sfm',
+    },
+  ],
+  model: {
+    attributes: [
+      'Position',
+      'TexCoord',
+      'Orientation',
+    ],
+    collision: {},
+    file: 'sampledata/models/Cabin.obj',
+    name: 'Cabin',
+    recenter: 'root',
+    scale: 0.0005,
+  },
+  samplers: [
+    {
+      file: 'sampledata/models\\Cabin Texture.png',
+      name: 'Cabin Texture',
+      pipeline_name: 'Cabin Texture.png',
+    },
+  ],
+  version: '0.54:1',
+}
