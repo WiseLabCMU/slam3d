@@ -17,9 +17,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="slam3d.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\particlefilter\src\particleFilter.c">
       <Filter>Source Files\particlefilter</Filter>
     </ClCompile>
@@ -34,6 +31,9 @@
     </ClCompile>
     <ClCompile Include="..\particlefilter\src\pfResample.c">
       <Filter>Source Files\particlefilter</Filter>
+    </ClCompile>
+    <ClCompile Include="csvread.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
