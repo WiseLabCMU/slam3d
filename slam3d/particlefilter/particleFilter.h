@@ -25,14 +25,14 @@ extern "C" {
         
     } tagParticle_t;
     
-	typedef struct
-	{
-		float w;
-		float x;
-		float y;
-		float z;
+    typedef struct
+    {
+        float w;
+        float x;
+        float y;
+        float z;
 
-	} bcnParticle_t;
+    } bcnParticle_t;
     
     typedef struct
     {
@@ -49,8 +49,8 @@ extern "C" {
         
     } bcn_t;
 
-	typedef struct
-	{
+    typedef struct
+    {
         double firstT;
         float firstX;
         float firstY;
@@ -64,10 +64,10 @@ extern "C" {
         tag_t tag;
         bcn_t* firstBcn;
 
-	} particleFilter_t;
+    } particleFilter_t;
 
-	void particleFilter_init(particleFilter_t* pf);
-	void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y, float z, float dist);
+    void particleFilter_init(particleFilter_t* pf);
+    void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y, float z, float dist);
     void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange);
     void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, float* y, float* z, float* theta);
     void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z);

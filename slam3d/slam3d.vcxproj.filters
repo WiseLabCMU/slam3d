@@ -9,10 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Source Files\particlefilter">
       <UniqueIdentifier>{fd753e6b-a6b0-4577-8c7c-6b986a5a6ff2}</UniqueIdentifier>
     </Filter>
@@ -24,12 +20,36 @@
     <ClInclude Include="particlefilter\particleFilter.h">
       <Filter>Header Files\particlefilter</Filter>
     </ClInclude>
+    <ClInclude Include="particlefilter\pfInit.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="particlefilter\pfMeasurement.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="particlefilter\pfRandom.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="particlefilter\pfResample.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="slam3d.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="particlefilter\particleFilter.c">
+      <Filter>Source Files\particlefilter</Filter>
+    </ClCompile>
+    <ClCompile Include="particlefilter\pfInit.c">
+      <Filter>Source Files\particlefilter</Filter>
+    </ClCompile>
+    <ClCompile Include="particlefilter\pfMeasurement.c">
+      <Filter>Source Files\particlefilter</Filter>
+    </ClCompile>
+    <ClCompile Include="particlefilter\pfRandom.c">
+      <Filter>Source Files\particlefilter</Filter>
+    </ClCompile>
+    <ClCompile Include="particlefilter\pfResample.c">
       <Filter>Source Files\particlefilter</Filter>
     </ClCompile>
   </ItemGroup>

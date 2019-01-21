@@ -6,6 +6,7 @@
 //
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -81,7 +82,7 @@ int main(void)
     fclose(bcnOutFile);
     
     printf("Done\n");
-	return 0;
+    return 0;
 }
 
 static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z, uint8_t skipToWaypoint)

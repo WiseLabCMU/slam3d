@@ -51,8 +51,8 @@ void pfResample_resample(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, f
         csum /= s;
         ssum /= s;
         htheta = csum * csum + ssum * ssum;
-        htheta = htheta > 1e-10 ? htheta : 1e-10;
-        htheta = htheta < 1 - 1e-10 ? htheta : 1 - 1e-10;
+        htheta = htheta > 1e-10f ? htheta : 1e-10f;
+        htheta = htheta < 1 - 1e-10f ? htheta : 1 - 1e-10f;
         htheta = sqrtf(-logf(htheta) / ess);
         
         rStep = invN * s;
