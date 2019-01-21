@@ -17,11 +17,11 @@ add_library( # Specifies the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
-             ../../particlefilter/src/particleFilter.c
-             ../../particlefilter/src/pfInit.c
-             ../../particlefilter/src/pfMeasurement.c
-             ../../particlefilter/src/pfRandom.c
-             ../../particlefilter/src/pfResample.c )
+             src/particleFilter.c
+             src/pfInit.c
+             src/pfMeasurement.c
+             src/pfRandom.c
+             src/pfResample.c )
 
 # Specifies a path to native header files.
-include_directories(../../particlefilter/include)
+include_directories(include)
