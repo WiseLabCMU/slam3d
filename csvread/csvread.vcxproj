@@ -92,7 +92,7 @@
     <ClCompile Include="..\particlefilter\src\pfMeasurement.c" />
     <ClCompile Include="..\particlefilter\src\pfRandom.c" />
     <ClCompile Include="..\particlefilter\src\pfResample.c" />
-    <ClCompile Include="csvread.c" />
+    <ClCompile Include="src\csvread.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\particlefilter\include\particleFilter.h" />
