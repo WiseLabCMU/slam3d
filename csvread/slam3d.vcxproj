@@ -45,9 +45,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>../particlefilter/include/;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>../particlefilter/include/;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -84,19 +86,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="particlefilter\particleFilter.h" />
-    <ClInclude Include="particlefilter\pfInit.h" />
-    <ClInclude Include="particlefilter\pfMeasurement.h" />
-    <ClInclude Include="particlefilter\pfRandom.h" />
-    <ClInclude Include="particlefilter\pfResample.h" />
+    <ClCompile Include="..\particlefilter\src\particleFilter.c" />
+    <ClCompile Include="..\particlefilter\src\pfInit.c" />
+    <ClCompile Include="..\particlefilter\src\pfMeasurement.c" />
+    <ClCompile Include="..\particlefilter\src\pfRandom.c" />
+    <ClCompile Include="..\particlefilter\src\pfResample.c" />
+    <ClCompile Include="slam3d.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="particlefilter\particleFilter.c" />
-    <ClCompile Include="particlefilter\pfInit.c" />
-    <ClCompile Include="particlefilter\pfMeasurement.c" />
-    <ClCompile Include="particlefilter\pfRandom.c" />
-    <ClCompile Include="particlefilter\pfResample.c" />
-    <ClCompile Include="slam3d.c" />
+    <ClInclude Include="..\particlefilter\include\particleFilter.h" />
+    <ClInclude Include="..\particlefilter\include\pfInit.h" />
+    <ClInclude Include="..\particlefilter\include\pfMeasurement.h" />
+    <ClInclude Include="..\particlefilter\include\pfRandom.h" />
+    <ClInclude Include="..\particlefilter\include\pfResample.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "particlefilter/particleFilter.h"
+#include "particleFilter.h"
 
 #define VIO_FILE            "/Users/johnmiller/Documents/MATLAB/mag_fld_matlab/BuddySLAM/data_CIC/1515284013.274926_vio.csv"
 #define UWB_FILE            "/Users/johnmiller/Documents/MATLAB/mag_fld_matlab/BuddySLAM/data_CIC/1515284013.274926_uwb_range.csv"

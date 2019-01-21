@@ -10,47 +10,47 @@
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
     <Filter Include="Source Files\particlefilter">
-      <UniqueIdentifier>{fd753e6b-a6b0-4577-8c7c-6b986a5a6ff2}</UniqueIdentifier>
+      <UniqueIdentifier>{18e4b748-b529-4a4f-bbd6-c56c0eecac28}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\particlefilter">
-      <UniqueIdentifier>{d47999b9-31e6-418d-b08f-2cff71b90956}</UniqueIdentifier>
+      <UniqueIdentifier>{8f58f570-cf5e-474a-87f9-46c253207cd2}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="particlefilter\particleFilter.h">
-      <Filter>Header Files\particlefilter</Filter>
-    </ClInclude>
-    <ClInclude Include="particlefilter\pfInit.h">
-      <Filter>Header Files\particlefilter</Filter>
-    </ClInclude>
-    <ClInclude Include="particlefilter\pfMeasurement.h">
-      <Filter>Header Files\particlefilter</Filter>
-    </ClInclude>
-    <ClInclude Include="particlefilter\pfRandom.h">
-      <Filter>Header Files\particlefilter</Filter>
-    </ClInclude>
-    <ClInclude Include="particlefilter\pfResample.h">
-      <Filter>Header Files\particlefilter</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="slam3d.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="particlefilter\particleFilter.c">
+    <ClCompile Include="..\particlefilter\src\particleFilter.c">
       <Filter>Source Files\particlefilter</Filter>
     </ClCompile>
-    <ClCompile Include="particlefilter\pfInit.c">
+    <ClCompile Include="..\particlefilter\src\pfInit.c">
       <Filter>Source Files\particlefilter</Filter>
     </ClCompile>
-    <ClCompile Include="particlefilter\pfMeasurement.c">
+    <ClCompile Include="..\particlefilter\src\pfMeasurement.c">
       <Filter>Source Files\particlefilter</Filter>
     </ClCompile>
-    <ClCompile Include="particlefilter\pfRandom.c">
+    <ClCompile Include="..\particlefilter\src\pfRandom.c">
       <Filter>Source Files\particlefilter</Filter>
     </ClCompile>
-    <ClCompile Include="particlefilter\pfResample.c">
+    <ClCompile Include="..\particlefilter\src\pfResample.c">
       <Filter>Source Files\particlefilter</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\particlefilter\include\particleFilter.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\particlefilter\include\pfInit.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\particlefilter\include\pfMeasurement.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\particlefilter\include\pfRandom.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\particlefilter\include\pfResample.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
