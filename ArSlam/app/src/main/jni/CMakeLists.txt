@@ -17,11 +17,12 @@ add_library( # Specifies the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
-             src/particleFilter.c
-             src/pfInit.c
-             src/pfMeasurement.c
-             src/pfRandom.c
-             src/pfResample.c )
+			 slam3d-jni.c
+             ../../../../../particlefilter/src/particleFilter.c
+             ../../../../../particlefilter/src/pfInit.c
+             ../../../../../particlefilter/src/pfMeasurement.c
+             ../../../../../particlefilter/src/pfRandom.c
+             ../../../../../particlefilter/src/pfResample.c )
 
 # Specifies a path to native header files.
-include_directories(include)
+include_directories(../../../../../particlefilter/include)
