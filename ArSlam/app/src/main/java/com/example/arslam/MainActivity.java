@@ -45,14 +45,11 @@ import java.util.concurrent.CompletableFuture;
 
 public class MainActivity extends AppCompatActivity {
 
-    static {
-        System.loadLibrary("slam3d");
-    }
-
     private ArFragment fragment;
     private PointerDrawable pointer = new PointerDrawable();
     private boolean isTracking;
     private boolean isHitting;
+    private Slam3dJni slam3d = new Slam3dJni();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         initializeGallery();
+        slam3d.bar();
     }
 
     private void onUpdate() {
