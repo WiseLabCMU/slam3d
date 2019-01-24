@@ -6,7 +6,7 @@ public class Slam3dJni {
         System.loadLibrary("slam3d");
     }
 
-    private native void foo();
+    private native void particleFilter_init();
 
     public Slam3dJni() {
 
