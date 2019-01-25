@@ -14,7 +14,7 @@
 extern "C" {
 #endif
     
-    void pfResample_resample(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, float stdRange);
+    void pfResample_resample(tag_t* tag, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns);
     
 #ifdef __cplusplus
 } // extern "C"

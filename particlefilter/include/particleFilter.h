@@ -8,8 +8,10 @@
 #ifndef _PARTICLEFILTER_H
 #define _PARTICLEFILTER_H
 
-#define PF_N_TAG	(100)
-#define PF_N_BCN	(1000)
+#include <stdint.h>
+
+#define PF_N_TAG    (100)
+#define PF_N_BCN    (1000)
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,11 +43,11 @@ extern "C" {
         
     } tag_t;
     
-    typedef struct _bcn
+    typedef struct
     {
         bcnParticle_t pBcn[PF_N_TAG][PF_N_BCN];
         bcnParticle_t pBcnBuf[PF_N_BCN];
-        struct _bcn* nextBcn;
+        uint8_t initialized;
         
     } bcn_t;
 
@@ -62,13 +64,13 @@ extern "C" {
         float lastZ;
         float lastDist;
         tag_t tag;
-        bcn_t* firstBcn;
 
     } particleFilter_t;
 
     void particleFilter_init(particleFilter_t* pf);
+    void particleFilter_addBcn(bcn_t* bcn);
     void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y, float z, float dist);
-    void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange);
+    void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns);
     void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, float* y, float* z, float* theta);
     void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z);
 

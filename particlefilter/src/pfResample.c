@@ -22,7 +22,7 @@
 
 static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange, uint8_t force);
 
-void pfResample_resample(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, float stdRange)
+void pfResample_resample(tag_t* tag, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
 {
     int i, j;
     tagParticle_t* tp;
@@ -64,8 +64,9 @@ void pfResample_resample(tag_t* tag, bcn_t* bcn, bcn_t* firstBcn, float range, f
         
         memcpy(tag->pTag, tag->pTagBuf, sizeof(tag->pTagBuf));
         
-        for (bcn = firstBcn; bcn != NULL; bcn = bcn->nextBcn)
-            _resampleBcn(bcn, tag, range, stdRange, 1);
+        for (i = 0; i < numBcns; ++i)
+            if (allBcns[i]->initialized)
+                _resampleBcn(allBcns[i], tag, range, stdRange, 1);
     }
     else
     {

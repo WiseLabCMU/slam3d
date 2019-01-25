@@ -32,6 +32,7 @@ void pfInit_initBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange)
         for (j = 0; j < PF_N_BCN; ++j)
             pfInit_spawnBcnParticle(&bcn->pBcn[i][j], tp, range, stdRange);
     }
+    bcn->initialized = 1;
 }
 
 void pfInit_spawnTagParticle(tagParticle_t* tp)

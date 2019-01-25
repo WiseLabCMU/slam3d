@@ -13,11 +13,8 @@
 #include "pfMeasurement.h"
 #include "pfResample.h"
 
-static uint8_t _haveBcn(const particleFilter_t* pf, const bcn_t* bcn);
-
 void particleFilter_init(particleFilter_t* pf)
 {
-    pf->firstBcn = NULL;
     pf->firstT = 0.0;
     pf->firstX = 0.0f;
     pf->firstY = 0.0f;
@@ -29,6 +26,11 @@ void particleFilter_init(particleFilter_t* pf)
     pf->lastZ = 0.0f;
     pf->lastDist = 0.0f;
     pfInit_initTag(&pf->tag);
+}
+
+void particleFilter_addBcn(bcn_t* bcn)
+{
+    bcn->initialized = 0;
 }
 
 void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y, float z, float dist)
@@ -67,7 +69,7 @@ void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y,
     pf->lastZ = z;
 }
 
-void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange)
+void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
 {
     float dt, dx, dy, dz, ddist;
 
@@ -82,15 +84,13 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
     pf->firstZ = pf->lastZ;
     pf->firstDist = pf->lastDist;
     pfMeasurement_applyVio(&pf->tag, dt, dx, dy, dz, ddist);
-    if (_haveBcn(pf, bcn))
+    if (bcn->initialized)
     {
         pfMeasurement_applyUwb(&pf->tag, bcn, range, stdRange);
-        pfResample_resample(&pf->tag, bcn, pf->firstBcn, range, stdRange);
+        pfResample_resample(&pf->tag, bcn, range, stdRange, allBcns, numBcns);
     }
     else
     {
-        bcn->nextBcn = pf->firstBcn;
-        pf->firstBcn = bcn;
         pfInit_initBcn(bcn, &pf->tag, range, stdRange);
     }
 }
@@ -141,7 +141,7 @@ void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, doub
     const bcnParticle_t* bp;
     float w1, w2, s1, s2, xsum1, xsum2, ysum1, ysum2, zsum1, zsum2;
     
-    if (!_haveBcn(pf, bcn))
+    if (!bcn->initialized)
         return;
     
     s1 = 0.0f;
@@ -173,14 +173,4 @@ void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, doub
     *x = xsum1 / s1;
     *y = ysum1 / s1;
     *z = zsum1 / s1;
-}
-
-static uint8_t _haveBcn(const particleFilter_t* pf, const bcn_t* bcn)
-{
-    bcn_t* bcn2;
-    
-    for (bcn2 = pf->firstBcn; bcn2 != NULL; bcn2 = bcn2->nextBcn)
-        if (bcn2 == bcn)
-            return 1;
-    return 0;
 }
