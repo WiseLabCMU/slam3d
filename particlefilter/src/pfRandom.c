@@ -13,6 +13,8 @@
 
 #include "pfRandom.h"
 
+static float _uniformNonzero(void);
+
 void pfRandom_init(void)
 {
     srand((unsigned int)time(NULL));
@@ -25,8 +27,8 @@ float pfRandom_uniform(void)
 
 void pfRandom_normal2(float* x, float* y)
 {
-    float f = sqrtf(-2 * logf(pfRandom_uniform()));
-    float g = pfRandom_uniform() * 2 * (float)M_PI;
+    float f = sqrtf(-2 * logf(_uniformNonzero()));
+    float g = _uniformNonzero() * 2 * (float)M_PI;
     
     *x = f * cosf(g);
     *y = f * sinf(g);
@@ -54,4 +56,9 @@ void pfRandom_sphere(float* x, float* y, float* z, float range, float stdRange)
     *x = c * cosf(azim);
     *y = c * sinf(azim);
     *z = rad * sinf(elev);
+}
+
+static float _uniformNonzero(void)
+{
+    return (float)(rand() + 1) / (RAND_MAX + 1);
 }
