@@ -7,19 +7,39 @@
 
 #include <jni.h>
 #include <particleFilter.h>
+#include <malloc.h>
 
-JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_init(
-        JNIEnv* env, jobject thiz, particleFilter_t* pf) {
+JNIEXPORT jlong JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_newPf(
+        JNIEnv* env, jobject thiz) {
+    particleFilter_t* pf = (particleFilter_t*)malloc(sizeof(particleFilter_t));
     particleFilter_init(pf);
+    return (jlong)pf;
+}
+
+JNIEXPORT jlong JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_newBcn(
+        JNIEnv* env, jobject thiz) {
+    bcn_t* bcn = (bcn_t*)malloc(sizeof(bcn_t));
+    particleFilter_addBcn(bcn);
+    return (jlong)bcn;
+}
+
+JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_freePf(
+        JNIEnv* env, jobject thiz, jlong pf) {
+    free((particleFilter_t*)pf);
+}
+
+JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_freeBcn(
+        JNIEnv* env, jobject thiz, jlong bcn) {
+    free((bcn_t*)bcn);
 }
 
 JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_depositVio(
-        JNIEnv* env, jobject thiz, particleFilter_t* pf, double t, float x, float y, float z, float dist) {
-    particleFilter_depositVio(pf, t, x, y, z, dist);
+        JNIEnv* env, jobject thiz, jlong pf, jdouble t, jfloat x, jfloat y, jfloat z, jfloat dist) {
+    particleFilter_depositVio((particleFilter_t*)pf, (float)t, (float)x, (float)y, (float)z, (float)dist);
 }
 
 JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_depositUwb(
-        JNIEnv* env, jobject thiz, particleFilter_t* pf, bcn_t* bcn, float range, float stdRange) {
+        JNIEnv* env, jobject thiz, jlong* pf, jlong* bcn, jfloat range, jfloat stdRange) {
     particleFilter_depositUwb(pf, bcn, range, stdRange);
 }
 
