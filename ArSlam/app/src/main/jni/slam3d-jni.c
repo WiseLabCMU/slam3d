@@ -47,8 +47,10 @@ JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_depositU
 }
 
 JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_getTagLoc(
-        JNIEnv* env, jobject thiz, const particleFilter_t* pf, double* t, float* x, float* y, float* z, float* theta) {
-    particleFilter_getTagLoc(pf, t, x, y, z, theta);
+        JNIEnv* env, jobject thiz, jlong pf) {
+    double t;
+    float x, y, z, theta;
+    particleFilter_getTagLoc((const particleFilter_t*)pf, &t, &x, &y, &z, &theta);
 }
 
 JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_getBcnLoc(
