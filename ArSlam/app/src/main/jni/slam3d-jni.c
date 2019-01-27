@@ -46,14 +46,22 @@ JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_depositU
     (*env)->ReleaseLongArrayElements(env, bcnArray, (jlong*)allBcns, 0);
 }
 
-JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_getTagLoc(
+JNIEXPORT jobject JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_getTagLoc(
         JNIEnv* env, jobject thiz, jlong pf) {
     double t;
     float x, y, z, theta;
+    jclass class = (*env)->FindClass(env, "Java/com/example/arslam/Slam3dJni/TagLocation");
+    jmethodID cid = (*env)->GetMethodID(env, class, "<init>", "(DFFFF)V");
     particleFilter_getTagLoc((const particleFilter_t*)pf, &t, &x, &y, &z, &theta);
+    return (*env)->NewObject(env, class, cid, t, x, y, z, theta);
 }
 
-JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_getBcnLoc(
-        JNIEnv* env, jobject thiz, const particleFilter_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z) {
-    particleFilter_getBcnLoc(pf, bcn, t, x, y, z);
+JNIEXPORT jobject JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_getBcnLoc(
+        JNIEnv* env, jobject thiz, jlong pf, jlong bcn) {
+    double t;
+    float x, y, z;
+    jclass class = (*env)->FindClass(env, "Java/com/example/arslam/Slam3dJni/BcnLocation");
+    jmethodID cid = (*env)->GetMethodID(env, class, "<init>", "(DFFF)V");
+    particleFilter_getBcnLoc(pf, bcn, &t, &x, &y, &z);
+    return (*env)->NewObject(env, class, cid, t, x, y, z);
 }
