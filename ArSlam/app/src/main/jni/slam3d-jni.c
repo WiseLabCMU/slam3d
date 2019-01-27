@@ -5,9 +5,9 @@
 //  Copyright © 2019 CMU. All rights reserved.
 //
 
+#include <malloc.h>
 #include <jni.h>
 #include <particleFilter.h>
-#include <malloc.h>
 
 JNIEXPORT jlong JNICALL Java_com_example_arslam_Slam3dJni_particleFilter_newPf(
         JNIEnv* env, jobject thiz) {
