@@ -5,12 +5,12 @@ import java.util.HashMap;
 
 public class Slam3dJni {
 
-    public class TagLocation {
-        public double t;
-        public float x;
-        public float y;
-        public float z;
-        public float theta;
+    public static class TagLocation {
+        public final double t;
+        public final float x;
+        public final float y;
+        public final float z;
+        public final float theta;
 
         public TagLocation(double t, float x, float y, float z, float theta) {
             this.t = t;
@@ -19,13 +19,26 @@ public class Slam3dJni {
             this.z = z;
             this.theta = theta;
         }
+
+        public TagLocation(TagLocation other) {
+            this.t = other.t;
+            this.x = other.x;
+            this.y = other.y;
+            this.z = other.z;
+            this.theta = other.theta;
+        }
+
+        @Override
+        public String toString() {
+            return t + "," + x + "," + y + "," + z + "," + theta;
+        }
     }
 
-    public class BcnLocation {
-        public double t;
-        public float x;
-        public float y;
-        public float z;
+    public static class BcnLocation {
+        public final double t;
+        public final float x;
+        public final float y;
+        public final float z;
 
         public BcnLocation(double t, float x, float y, float z) {
             this.t = t;
@@ -33,9 +46,21 @@ public class Slam3dJni {
             this.y = y;
             this.z = z;
         }
+
+        public BcnLocation(BcnLocation other) {
+            this.t = other.t;
+            this.x = other.x;
+            this.y = other.y;
+            this.z = other.z;
+        }
+
+        @Override
+        public String toString() {
+            return t + "," + x + "," + y + "," + z;
+        }
     }
 
-    public TagLocation tagLocation = new TagLocation(0.0, 0.0f, 0.0f, 0.0f, 0.0f);
+    public TagLocation tagLocation;
     public HashMap<String, BcnLocation> bcnLocations = new HashMap<>();
 
     private long pf;
@@ -56,9 +81,13 @@ public class Slam3dJni {
 
     public Slam3dJni() {
         pf = particleFilter_newPf();
+        tagLocation = particleFilter_getTagLoc(pf);
     }
 
     public void free() {
+        if (pf == 0L) {
+            throw new NullPointerException("Slam3d is not initialized");
+        }
         for (Long bcn : bcnMap.values()) {
             particleFilter_freeBcn(bcn);
         }
@@ -66,16 +95,22 @@ public class Slam3dJni {
         particleFilter_freePf(pf);
         pf = 0L;
 
-        tagLocation = new TagLocation(0.0, 0.0f, 0.0f, 0.0f, 0.0f);
+        tagLocation = null;
         bcnLocations.clear();
     }
 
     public void depositVio(double t, float x, float y, float z) {
+        if (pf == 0L) {
+            throw new NullPointerException("Slam3d is not initialized");
+        }
         particleFilter_depositVio(pf, t, x, y, z, 0.0f);
         tagLocation = particleFilter_getTagLoc(pf);
     }
 
     public void depositUwb(String bcnName, float range, float stdRange) {
+        if (pf == 0L) {
+            throw new NullPointerException("Slam3d is not initialized");
+        }
         if (!bcnMap.containsKey(bcnName)) {
             bcnMap.put(bcnName, particleFilter_newBcn());
         }

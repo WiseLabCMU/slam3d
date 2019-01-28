@@ -1,5 +1,6 @@
 package com.example.arslam;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -25,6 +26,7 @@ import com.google.ar.core.Anchor;
 import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
+import com.google.ar.core.Pose;
 import com.google.ar.core.Trackable;
 import com.google.ar.core.TrackingState;
 import com.google.ar.sceneform.AnchorNode;
@@ -38,7 +40,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -50,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isTracking;
     private boolean isHitting;
     private Slam3dJni slam3d;
+    private ArrayList<Slam3dJni.TagLocation> tagLocations = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +69,8 @@ public class MainActivity extends AppCompatActivity {
         fragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.sceneform_fragment);
         fragment.getArSceneView().getScene().addOnUpdateListener(frameTime -> {
             fragment.onUpdate(frameTime);
-            onUpdate();
+            pointerUpdate();
+            slam3dUpdate();
         });
 
         initializeGallery();
@@ -77,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         slam3d.free();
     }
 
-    private void onUpdate() {
+    private void pointerUpdate() {
         boolean trackingChanged = updateTracking();
         View contentView = findViewById(android.R.id.content);
         if (trackingChanged) {
@@ -96,6 +102,12 @@ public class MainActivity extends AppCompatActivity {
                 contentView.invalidate();
             }
         }
+    }
+
+    private void slam3dUpdate() {
+        Pose pose = fragment.getArSceneView().getArFrame().getAndroidSensorPose();
+        slam3d.depositVio(System.currentTimeMillis() / 1000.0, pose.tx(), pose.ty(), pose.tz());
+        tagLocations.add(new Slam3dJni.TagLocation(slam3d.tagLocation));
     }
 
     private boolean updateTracking() {
@@ -238,6 +250,22 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException ex) {
             throw new IOException("Failed to save bitmap to disk", ex);
         }
+    }
+
+    private void saveTraceToDisk(String filename) throws IOException {
+        File out = new File(filename);
+        if (!out.getParentFile().exists()) {
+            out.getParentFile().mkdirs();
+        }
+        try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplicationContext().openFileOutput(filename, Context.MODE_PRIVATE))) {
+            for (Slam3dJni.TagLocation loc : tagLocations) {
+                outputStreamWriter.write(loc.toString() + "\n");
+                outputStreamWriter.close();
+            }
+        } catch (IOException ex) {
+            throw new IOException("Failed to save trace to disk", ex);
+        }
+        tagLocations.clear();
     }
 
     private void takePhoto() {
