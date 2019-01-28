@@ -68,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         initializeGallery();
-        slam3d.bar();
     }
 
     private void onUpdate() {
