@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private PointerDrawable pointer = new PointerDrawable();
     private boolean isTracking;
     private boolean isHitting;
-    private Slam3dJni slam3d = new Slam3dJni();
+    private Slam3dJni slam3d;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +68,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         initializeGallery();
+        slam3d = new Slam3dJni();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        slam3d.free();
     }
 
     private void onUpdate() {
