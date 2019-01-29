@@ -1,20 +1,13 @@
 package com.example.arslam;
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.PixelCopy;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,21 +23,19 @@ import com.google.ar.core.Pose;
 import com.google.ar.core.Trackable;
 import com.google.ar.core.TrackingState;
 import com.google.ar.sceneform.AnchorNode;
-import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.Renderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class MainActivity extends AppCompatActivity {
@@ -64,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view -> takePhoto());
+        fab.setOnClickListener(view -> pressSave());
 
         fragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.sceneform_fragment);
         fragment.getArSceneView().getScene().addOnUpdateListener(frameTime -> {
@@ -230,26 +221,16 @@ public class MainActivity extends AppCompatActivity {
         node.select();
     }
 
-    private String generateFilename() {
+    private String generateTagFilename() {
         String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                + File.separator + "Sceneform/" + date + "_screenshot.jpg";
+                + File.separator + "arslam/" + date + "_tag.csv";
     }
 
-    private void saveBitmapToDisk(Bitmap bitmap, String filename) throws IOException {
-        File out = new File(filename);
-        if (!out.getParentFile().exists()) {
-            out.getParentFile().mkdirs();
-        }
-        try (FileOutputStream outputStream = new FileOutputStream(filename);
-             ByteArrayOutputStream outputData = new ByteArrayOutputStream()) {
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputData);
-            outputData.writeTo(outputStream);
-            outputStream.flush();
-            outputStream.close();
-        } catch (IOException ex) {
-            throw new IOException("Failed to save bitmap to disk", ex);
-        }
+    private String generateBcnFilename() {
+        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                + File.separator + "arslam/" + date + "_bcn.csv";
     }
 
     private void saveTraceToDisk(String filename) throws IOException {
@@ -257,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
         if (!out.getParentFile().exists()) {
             out.getParentFile().mkdirs();
         }
-        try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplicationContext().openFileOutput(filename, Context.MODE_PRIVATE))) {
+        try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(MainActivity.this.openFileOutput(filename, Context.MODE_PRIVATE))) {
             for (Slam3dJni.TagLocation loc : tagLocations) {
                 outputStreamWriter.write(loc.toString() + "\n");
                 outputStreamWriter.close();
@@ -268,44 +249,33 @@ public class MainActivity extends AppCompatActivity {
         tagLocations.clear();
     }
 
-    private void takePhoto() {
-        final String filename = generateFilename();
-        ArSceneView view = fragment.getArSceneView();
-
-        // Create a bitmap the size of the scene view.
-        final Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
-
-        // Create a handler thread to offload the processing of the image.
-        final HandlerThread handlerThread = new HandlerThread("PixelCopier");
-        handlerThread.start();
-
-        // Make the request to copy.
-        PixelCopy.request(view, bitmap, (copyResult) -> {
-            if (copyResult == PixelCopy.SUCCESS) {
-                try {
-                    saveBitmapToDisk(bitmap, filename);
-                } catch (IOException e) {
-                    Toast toast = Toast.makeText(MainActivity.this, e.toString(), Toast.LENGTH_LONG);
-                    toast.show();
-                    return;
-                }
-                Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Photo saved", Snackbar.LENGTH_LONG);
-                snackbar.setAction("Open in Photos", v-> {
-                    File photoFile = new File(filename);
-                    Uri photoURI = FileProvider.getUriForFile(MainActivity.this,
-                            MainActivity.this.getPackageName() + ".ar.codelab.name.provider",
-                            photoFile);
-                    Intent intent = new Intent(Intent.ACTION_VIEW, photoURI);
-                    intent.setDataAndType(photoURI, "image/*");
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    startActivity(intent);
-                });
-                snackbar.show();
-            } else {
-                Toast toast = Toast.makeText(MainActivity.this, "Failed to copyPixels: " + copyResult, Toast.LENGTH_LONG);
-                toast.show();
+    private void saveBcnToDisk(String filename) throws IOException {
+        File out = new File(filename);
+        if (!out.getParentFile().exists()) {
+            out.getParentFile().mkdirs();
+        }
+        try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(MainActivity.this.openFileOutput(filename, Context.MODE_PRIVATE))) {
+            for (Map.Entry<String, Slam3dJni.BcnLocation> entry : slam3d.bcnLocations.entrySet()) {
+                outputStreamWriter.write(entry.getKey() + "," + entry.getValue().toString() + "\n");
+                outputStreamWriter.close();
             }
-            handlerThread.quitSafely();
-        }, new Handler(handlerThread.getLooper()));
+        } catch (IOException ex) {
+            throw new IOException("Failed to save bcns to disk", ex);
+        }
+    }
+
+    private void pressSave() {
+        final String tagFilename = generateTagFilename();
+        final String bcnFilename = generateBcnFilename();
+        try {
+            saveTraceToDisk(tagFilename);
+            saveBcnToDisk(bcnFilename);
+        } catch (IOException e) {
+            Toast toast = Toast.makeText(MainActivity.this, e.toString(), Toast.LENGTH_LONG);
+            toast.show();
+            return;
+        }
+        Toast toast = Toast.makeText(MainActivity.this, "Saved trace", Toast.LENGTH_LONG);
+        toast.show();
     }
 }

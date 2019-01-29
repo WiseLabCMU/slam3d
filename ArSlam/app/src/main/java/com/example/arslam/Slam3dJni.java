@@ -1,6 +1,5 @@
 package com.example.arslam;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Slam3dJni {
@@ -66,22 +65,22 @@ public class Slam3dJni {
     private long pf;
     private HashMap<String, Long> bcnMap = new HashMap<>();
 
-    private static native long particleFilter_newPf();
-    private static native long particleFilter_newBcn();
-    private static native void particleFilter_freePf(long pf);
-    private static native void particleFilter_freeBcn(long bcn);
-    private static native void particleFilter_depositVio(long pf, double t, float x, float y, float z, float dist);
-    private static native void particleFilter_depositUwb(long pf, long bcn, float range, float stdRange, ArrayList<Long> bcnArray);
-    private static native TagLocation particleFilter_getTagLoc(long pf);
-    private static native BcnLocation particleFilter_getBcnLoc(long pf, long bcn);
+    private static native long particleFilterNewPf();
+    private static native long particleFilterNewBcn();
+    private static native void particleFilterFreePf(long pf);
+    private static native void particleFilterFreeBcn(long bcn);
+    private static native void particleFilterDepositVio(long pf, double t, float x, float y, float z, float dist);
+    private static native void particleFilterDepositUwb(long pf, long bcn, float range, float stdRange, long[] bcnArray);
+    private static native TagLocation particleFilterGetTagLoc(long pf);
+    private static native BcnLocation particleFilterGetBcnLoc(long pf, long bcn);
 
     static {
         System.loadLibrary("slam3d");
     }
 
     public Slam3dJni() {
-        pf = particleFilter_newPf();
-        tagLocation = particleFilter_getTagLoc(pf);
+        pf = particleFilterNewPf();
+        tagLocation = particleFilterGetTagLoc(pf);
     }
 
     public void free() {
@@ -89,10 +88,10 @@ public class Slam3dJni {
             throw new NullPointerException("Slam3d is not initialized");
         }
         for (Long bcn : bcnMap.values()) {
-            particleFilter_freeBcn(bcn);
+            particleFilterFreeBcn(bcn);
         }
         bcnMap.clear();
-        particleFilter_freePf(pf);
+        particleFilterFreePf(pf);
         pf = 0L;
 
         tagLocation = null;
@@ -103,8 +102,8 @@ public class Slam3dJni {
         if (pf == 0L) {
             throw new NullPointerException("Slam3d is not initialized");
         }
-        particleFilter_depositVio(pf, t, x, y, z, 0.0f);
-        tagLocation = particleFilter_getTagLoc(pf);
+        particleFilterDepositVio(pf, t, x, y, z, 0.0f);
+        tagLocation = particleFilterGetTagLoc(pf);
     }
 
     public void depositUwb(String bcnName, float range, float stdRange) {
@@ -112,12 +111,17 @@ public class Slam3dJni {
             throw new NullPointerException("Slam3d is not initialized");
         }
         if (!bcnMap.containsKey(bcnName)) {
-            bcnMap.put(bcnName, particleFilter_newBcn());
+            bcnMap.put(bcnName, particleFilterNewBcn());
         }
-        particleFilter_depositUwb(pf, bcnMap.get(bcnName), range, stdRange, new ArrayList<>(bcnMap.values()));
-        tagLocation = particleFilter_getTagLoc(pf);
+        long[] bcnArray = new long[bcnMap.size()];
+        int i = 0;
+        for (Long bcn : bcnMap.values()) {
+            bcnArray[i++] = bcn;
+        }
+        particleFilterDepositUwb(pf, bcnMap.get(bcnName), range, stdRange, bcnArray);
+        tagLocation = particleFilterGetTagLoc(pf);
         for (String bcn : bcnMap.keySet()) {
-            bcnLocations.put(bcn, particleFilter_getBcnLoc(pf, bcnMap.get(bcn)));
+            bcnLocations.put(bcn, particleFilterGetBcnLoc(pf, bcnMap.get(bcn)));
         }
     }
 
