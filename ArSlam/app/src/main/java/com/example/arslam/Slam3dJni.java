@@ -1,6 +1,7 @@
 package com.example.arslam;
 
 import java.util.HashMap;
+import java.util.Locale;
 
 public class Slam3dJni {
 
@@ -29,7 +30,7 @@ public class Slam3dJni {
 
         @Override
         public String toString() {
-            return t + "," + x + "," + y + "," + z + "," + theta;
+            return String.format(Locale.US, "%.3f", t) + "," + x + "," + y + "," + z + "," + theta;
         }
     }
 
@@ -55,7 +56,7 @@ public class Slam3dJni {
 
         @Override
         public String toString() {
-            return t + "," + x + "," + y + "," + z;
+            return String.format(Locale.US, "%.3f", t) + "," + x + "," + y + "," + z;
         }
     }
 

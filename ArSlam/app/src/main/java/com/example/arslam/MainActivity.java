@@ -3,6 +3,7 @@ package com.example.arslam;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -96,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void slam3dUpdate() {
         Pose pose = fragment.getArSceneView().getArFrame().getAndroidSensorPose();
-        slam3d.depositVio(System.currentTimeMillis() / 1000.0, pose.tx(), pose.ty(), pose.tz());
+        slam3d.depositVio(SystemClock.elapsedRealtime() / 1000.0, pose.tx(), pose.ty(), pose.tz());
         tagLocations.add(new Slam3dJni.TagLocation(slam3d.tagLocation));
     }
 
