@@ -1,18 +1,28 @@
 package com.example.arslam;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
@@ -45,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isTracking;
     private boolean isHitting;
     private Slam3dJni slam3d;
+    private BluetoothAdapter bluetoothAdapter;
     private ArrayList<Slam3dJni.TagLocation> tagLocations = new ArrayList<>();
 
     @Override
@@ -66,6 +77,13 @@ public class MainActivity extends AppCompatActivity {
 
         initializeGallery();
         slam3d = new Slam3dJni();
+
+        final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        bluetoothAdapter = bluetoothManager.getAdapter();
+        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, 0);
+        }
     }
 
     @Override
@@ -147,7 +165,16 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_selectDevice) {
+            AlertDialog alertDialog = new AlertDialog.Builder(this)
+                    .setTitle("Paired Devices:")
+                    .setCancelable(false)
+                    .setSingleChoiceItems(R.array.toppings, -1, (dialog, which) ->
+                                    Log.i("HELLO", "Checked " + which))
+                    .setPositiveButton("OK", (dialog, which) -> Log.i("DONE", "Selected " + which))
+                    .setNegativeButton("Cancel", (dialog, which) -> {})
+                    .create();
+            alertDialog.show();
             return true;
         }
 
