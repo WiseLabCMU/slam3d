@@ -238,13 +238,10 @@ public class MainActivity extends AppCompatActivity {
         if (!out.getParentFile().exists()) {
             out.getParentFile().mkdirs();
         }
-        FileOutputStream stream = new FileOutputStream(out);
-        try {
+        try (FileOutputStream stream = new FileOutputStream(out)) {
             for (Slam3dJni.TagLocation loc : tagLocations) {
                 stream.write((loc.toString() + "\n").getBytes());
             }
-        } finally {
-            stream.close();
         }
         tagLocations.clear();
     }
@@ -254,13 +251,10 @@ public class MainActivity extends AppCompatActivity {
         if (!out.getParentFile().exists()) {
             out.getParentFile().mkdirs();
         }
-        FileOutputStream stream = new FileOutputStream(out);
-        try {
+        try (FileOutputStream stream = new FileOutputStream(out)) {
             for (Map.Entry<String, Slam3dJni.BcnLocation> entry : slam3d.bcnLocations.entrySet()) {
                 stream.write((entry.getKey() + "," + entry.getValue().toString() + "\n").getBytes());
             }
-        } finally {
-            stream.close();
         }
     }
 
