@@ -50,7 +50,7 @@ JNIEXPORT jobject JNICALL Java_com_example_arslam_Slam3dJni_particleFilterGetTag
         JNIEnv* env, jclass clazz, jlong pf) {
     double t;
     float x, y, z, theta;
-    jclass class = (*env)->FindClass(env, "Java/com/example/arslam/Slam3dJni/TagLocation");
+    jclass class = (*env)->FindClass(env, "com/example/arslam/Slam3dJni$TagLocation");
     jmethodID cid = (*env)->GetMethodID(env, class, "<init>", "(DFFFF)V");
     particleFilter_getTagLoc((const particleFilter_t*)pf, &t, &x, &y, &z, &theta);
     return (*env)->NewObject(env, class, cid, t, x, y, z, theta);
@@ -60,7 +60,7 @@ JNIEXPORT jobject JNICALL Java_com_example_arslam_Slam3dJni_particleFilterGetBcn
         JNIEnv* env, jclass clazz, jlong pf, jlong bcn) {
     double t;
     float x, y, z;
-    jclass class = (*env)->FindClass(env, "Java/com/example/arslam/Slam3dJni/BcnLocation");
+    jclass class = (*env)->FindClass(env, "com/example/arslam/Slam3dJni$BcnLocation");
     jmethodID cid = (*env)->GetMethodID(env, class, "<init>", "(DFFF)V");
     particleFilter_getBcnLoc(pf, bcn, &t, &x, &y, &z);
     return (*env)->NewObject(env, class, cid, t, x, y, z);

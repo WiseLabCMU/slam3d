@@ -29,6 +29,8 @@ import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
@@ -223,13 +225,13 @@ public class MainActivity extends AppCompatActivity {
 
     private String generateTagFilename() {
         String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
-        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
                 + File.separator + "arslam/" + date + "_tag.csv";
     }
 
     private String generateBcnFilename() {
         String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
-        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
                 + File.separator + "arslam/" + date + "_bcn.csv";
     }
 
@@ -238,13 +240,13 @@ public class MainActivity extends AppCompatActivity {
         if (!out.getParentFile().exists()) {
             out.getParentFile().mkdirs();
         }
-        try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(MainActivity.this.openFileOutput(filename, Context.MODE_PRIVATE))) {
+        FileOutputStream stream = new FileOutputStream(out);
+        try {
             for (Slam3dJni.TagLocation loc : tagLocations) {
-                outputStreamWriter.write(loc.toString() + "\n");
-                outputStreamWriter.close();
+                stream.write((loc.toString() + "\n").getBytes());
             }
-        } catch (IOException ex) {
-            throw new IOException("Failed to save trace to disk", ex);
+        } finally {
+            stream.close();
         }
         tagLocations.clear();
     }
@@ -254,13 +256,13 @@ public class MainActivity extends AppCompatActivity {
         if (!out.getParentFile().exists()) {
             out.getParentFile().mkdirs();
         }
-        try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(MainActivity.this.openFileOutput(filename, Context.MODE_PRIVATE))) {
+        FileOutputStream stream = new FileOutputStream(out);
+        try {
             for (Map.Entry<String, Slam3dJni.BcnLocation> entry : slam3d.bcnLocations.entrySet()) {
-                outputStreamWriter.write(entry.getKey() + "," + entry.getValue().toString() + "\n");
-                outputStreamWriter.close();
+                stream.write((entry.getKey() + "," + entry.getValue().toString() + "\n").getBytes());
             }
-        } catch (IOException ex) {
-            throw new IOException("Failed to save bcns to disk", ex);
+        } finally {
+            stream.close();
         }
     }
 
