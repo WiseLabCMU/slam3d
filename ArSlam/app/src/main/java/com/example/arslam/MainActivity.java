@@ -1,13 +1,27 @@
 package com.example.arslam;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.ParcelUuid;
 import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
@@ -17,6 +31,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -49,11 +64,23 @@ public class MainActivity extends AppCompatActivity {
     private PointerDrawable pointer = new PointerDrawable();
     private boolean isTracking;
     private boolean isHitting;
-    private Slam3dJni slam3d;
+
+    private AlertDialog selectDeviceDialog;
+    private List<BluetoothDevice> discoveredDevices = new ArrayList<>();
+    private ArrayAdapter<String> discoveredDeviceNames;
     private BluetoothAdapter bluetoothAdapter;
-    private BluetoothDevice connectedDevice;
-    private BluetoothDevice selectedDevice;
+    private BluetoothLeScanner leScanner;
+    private ScanSettings scanSettings;
+    private List<ScanFilter> scanFilters;
+    private Handler scanHandler;
+    private BluetoothGatt deviceGatt;
+
+    private Slam3dJni slam3d;
     private ArrayList<Slam3dJni.TagLocation> tagLocations = new ArrayList<>();
+
+    private static final ParcelUuid NETWORK_NODE_UUID = ParcelUuid.fromString("680c21d9-c946-4c1f-9c11-baa1c21329e7");
+    private static final long SCAN_PERIOD = 10000L;
+    private static final int REQUEST_ENABLE_BT = 1;
     private static final String LOG_TAG = "MainActivity";
 
     @Override
@@ -76,19 +103,148 @@ public class MainActivity extends AppCompatActivity {
         initializeGallery();
         slam3d = new Slam3dJni();
 
+        scanHandler = new Handler();
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(this, "BLE Not Supported", Toast.LENGTH_LONG).show();
+            finish();
+        }
         final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
+
+        discoveredDeviceNames = new ArrayAdapter<>(this, android.R.layout.select_dialog_singlechoice);
+        selectDeviceDialog = new AlertDialog.Builder(this)
+                .setTitle("Detected Devices:")
+                .setCancelable(false)
+                .setAdapter(discoveredDeviceNames, null)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    if (which >= 0) {
+                        BluetoothDevice selectedDevice = discoveredDevices.get(which);
+                        if (selectedDevice != null) {
+                            if (deviceGatt != null) {
+                                deviceGatt.close();
+                            }
+                            Log.i(LOG_TAG, "Connecting to " + selectedDevice.getName());
+                            scanLeDevice(false);
+                            deviceGatt = selectedDevice.connectGatt(this, false, gattCallback);
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .create();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, 0);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        } else {
+            leScanner = bluetoothAdapter.getBluetoothLeScanner();
+            scanSettings = new ScanSettings.Builder()
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                    .build();
+            scanFilters = new ArrayList<>();
+            scanFilters.add(new ScanFilter.Builder()
+                    .setServiceUuid(NETWORK_NODE_UUID)
+                    .build());
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (bluetoothAdapter != null && bluetoothAdapter.isEnabled()) {
+            scanLeDevice(false);
         }
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
+        if (deviceGatt != null) {
+            deviceGatt.close();
+            deviceGatt = null;
+        }
         slam3d.free();
+        super.onDestroy();
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (resultCode == Activity.RESULT_CANCELED) {
+                finish();
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void scanLeDevice(boolean enable) {
+        if (enable) {
+            scanHandler.postDelayed(() -> leScanner.stopScan(leScanCallback), SCAN_PERIOD);
+            leScanner.startScan(scanFilters, scanSettings, leScanCallback);
+        } else {
+            leScanner.stopScan(leScanCallback);
+        }
+    }
+
+    private ScanCallback leScanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            Log.i(LOG_TAG, "callbackType: " + String.valueOf(callbackType));
+            Log.i(LOG_TAG, "result: " + result.toString());
+            addScannedDevice(result.getDevice());
+        }
+
+        @Override
+        public void onBatchScanResults(List<ScanResult> results) {
+            for (ScanResult result : results) {
+                Log.i(LOG_TAG, "ScanResult - Results: " + result.toString());
+                addScannedDevice(result.getDevice());
+            }
+        }
+
+        @Override
+        public void onScanFailed(int errorCode) {
+            Log.e(LOG_TAG, "Scan Failed. Error Code: " + errorCode);
+        }
+    };
+
+    private void addScannedDevice(BluetoothDevice device) {
+        discoveredDevices.add(device);
+        discoveredDeviceNames.add(device.getName());
+        ((ArrayAdapter)selectDeviceDialog.getListView().getAdapter()).notifyDataSetChanged();
+    }
+
+    private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            Log.i(LOG_TAG, "onConnectionStateChange: Status: " + status);
+            switch (newState) {
+                case BluetoothProfile.STATE_CONNECTED:
+                    Log.i(LOG_TAG, "STATE_CONNECTED");
+                    gatt.discoverServices();
+                    break;
+                case BluetoothProfile.STATE_DISCONNECTED:
+                    Log.e(LOG_TAG, "STATE_DISCONNECTED");
+                    break;
+                default:
+                    Log.e(LOG_TAG, "STATE_OTHER");
+            }
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            List<BluetoothGattService> services = gatt.getServices();
+            Log.i(LOG_TAG, "onServicesDiscovered: " + services.toString());
+            //TODO read characteristics
+        }
+
+        @Override
+        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            Log.i(LOG_TAG, "onCharacteristicRead: " + characteristic.toString());
+        }
+    };
 
     private void pointerUpdate() {
         boolean trackingChanged = updateTracking();
@@ -159,36 +315,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_selectDevice) {
-            selectedDevice = connectedDevice;
-            List<BluetoothDevice> bondedDevices = new ArrayList<>(bluetoothAdapter.getBondedDevices());
-            String[] bondedDeviceNames = new String[bondedDevices.size()];
-            int i = 0;
-            int selectedId = -1;
-            for (BluetoothDevice device : bondedDevices) {
-                if (device.equals(selectedDevice)) {
-                    selectedId = i;
-                }
-                bondedDeviceNames[i++] = device.getName();
-            }
-            AlertDialog alertDialog = new AlertDialog.Builder(this)
-                    .setTitle("Paired Devices:")
-                    .setCancelable(false)
-                    .setSingleChoiceItems(bondedDeviceNames, selectedId, (dialog, which) -> {
-                        selectedDevice = bondedDevices.get(which);
-                    })
-                    .setPositiveButton("OK", (dialog, which) -> {
-                        if (selectedDevice != null) {
-                            Log.i(LOG_TAG, "Connecting to " + selectedDevice.getName());
-                            //TODO connect to selectedDevice
-                            connectedDevice = selectedDevice;
-                        }
-                    })
-                    .setNegativeButton("Cancel", (dialog, which) -> {})
-                    .create();
-            alertDialog.show();
+            scanLeDevice(true);
+            selectDeviceDialog.show();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
