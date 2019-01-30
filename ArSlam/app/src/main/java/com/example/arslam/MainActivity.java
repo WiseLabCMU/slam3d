@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -83,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Slam3dJni.TagLocation> tagLocations = new ArrayList<>();
 
     private static final ParcelUuid NETWORK_NODE_UUID = ParcelUuid.fromString("680c21d9-c946-4c1f-9c11-baa1c21329e7");
+    private static final UUID LOCATION_DATA_UUID = UUID.fromString("003bbdf2-c634-4b3d-ab56-7ec889b89a37");
     private static final long SCAN_PERIOD = 10000L;
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 2;
@@ -263,12 +265,23 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             List<BluetoothGattService> services = gatt.getServices();
-            if (services != null) {
-                for (BluetoothGattService service : services) {
-                    if (service != null) {
-                        Log.i(LOG_TAG, "onServicesDiscovered: " + service.getUuid().toString());
-                        Log.i(LOG_TAG, "Characteristics: " + service.getCharacteristics().toString());
-                        //TODO read characteristics
+            if (services == null) {
+                return;
+            }
+            for (BluetoothGattService service : services) {
+                if (service == null) {
+                    continue;
+                }
+                List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
+                if (characteristics == null) {
+                    continue;
+                }
+                for (BluetoothGattCharacteristic characteristic : characteristics) {
+                    if (characteristic == null) {
+                        continue;
+                    }
+                    if (characteristic.getUuid().equals(LOCATION_DATA_UUID)) {
+                        deviceGatt.readCharacteristic(characteristic);
                     }
                 }
             }
