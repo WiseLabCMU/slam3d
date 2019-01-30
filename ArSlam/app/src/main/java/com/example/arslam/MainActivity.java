@@ -214,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void placeObject(ArFragment fragment, Anchor anchor, Uri model) {
-        CompletableFuture<Void> renderableFuture = ModelRenderable.builder()
+        ModelRenderable.builder()
                 .setSource(fragment.getContext(), model)
                 .build()
                 .thenAccept(renderable -> addNodeToScene(fragment, anchor, renderable))
