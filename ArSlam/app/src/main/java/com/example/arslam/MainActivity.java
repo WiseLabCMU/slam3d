@@ -1,5 +1,6 @@
 package com.example.arslam;
 
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -12,9 +13,11 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -23,6 +26,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.ParcelUuid;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -81,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
     private static final ParcelUuid NETWORK_NODE_UUID = ParcelUuid.fromString("680c21d9-c946-4c1f-9c11-baa1c21329e7");
     private static final long SCAN_PERIOD = 10000L;
     private static final int REQUEST_ENABLE_BT = 1;
+    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 2;
     private static final String LOG_TAG = "MainActivity";
 
     @Override
@@ -111,12 +116,13 @@ public class MainActivity extends AppCompatActivity {
         final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
 
+        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+
         discoveredDeviceNames = new ArrayAdapter<>(this, android.R.layout.select_dialog_singlechoice);
         selectDeviceDialog = new AlertDialog.Builder(this)
                 .setTitle("Detected Devices:")
                 .setCancelable(false)
-                .setAdapter(discoveredDeviceNames, null)
-                .setPositiveButton("OK", (dialog, which) -> {
+                .setAdapter(discoveredDeviceNames, (dialog, which) -> {
                     if (which >= 0) {
                         BluetoothDevice selectedDevice = discoveredDevices.get(which);
                         if (selectedDevice != null) {
@@ -125,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             Log.i(LOG_TAG, "Connecting to " + selectedDevice.getName());
                             scanLeDevice(false);
-                            deviceGatt = selectedDevice.connectGatt(this, false, gattCallback);
+                            deviceGatt = selectedDevice.connectGatt(MainActivity.this, false, gattCallback);
                         }
                     }
                 })
@@ -145,9 +151,6 @@ public class MainActivity extends AppCompatActivity {
                     .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                     .build();
             scanFilters = new ArrayList<>();
-            scanFilters.add(new ScanFilter.Builder()
-                    .setServiceUuid(NETWORK_NODE_UUID)
-                    .build());
         }
     }
 
@@ -179,6 +182,15 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        if (requestCode == PERMISSION_REQUEST_COARSE_LOCATION) {
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                finish();
+            }
+        }
+    }
+
     private void scanLeDevice(boolean enable) {
         if (enable) {
             scanHandler.postDelayed(() -> leScanner.stopScan(leScanCallback), SCAN_PERIOD);
@@ -191,16 +203,16 @@ public class MainActivity extends AppCompatActivity {
     private ScanCallback leScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            Log.i(LOG_TAG, "callbackType: " + String.valueOf(callbackType));
-            Log.i(LOG_TAG, "result: " + result.toString());
-            addScannedDevice(result.getDevice());
+//            Log.i(LOG_TAG, "callbackType: " + String.valueOf(callbackType));
+//            Log.i(LOG_TAG, "result: " + result.toString());
+            addScannedDevice(result);
         }
 
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
             for (ScanResult result : results) {
-                Log.i(LOG_TAG, "ScanResult - Results: " + result.toString());
-                addScannedDevice(result.getDevice());
+//                Log.i(LOG_TAG, "ScanResult - Results: " + result.toString());
+                addScannedDevice(result);
             }
         }
 
@@ -210,10 +222,25 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private void addScannedDevice(BluetoothDevice device) {
+    private void addScannedDevice(ScanResult result) {
+        BluetoothDevice device = result.getDevice();
+        if (discoveredDevices.contains(device)) {
+            return;
+        }
+        if (device == null || device.getName() == null) {
+            return;
+        }
+        ScanRecord scanRecord = result.getScanRecord();
+        if (scanRecord == null) {
+            return;
+        }
+        Map<ParcelUuid, byte[]> serviceData = scanRecord.getServiceData();
+        if (serviceData == null || !serviceData.containsKey(NETWORK_NODE_UUID)) {
+            return;
+        }
         discoveredDevices.add(device);
         discoveredDeviceNames.add(device.getName());
-        ((ArrayAdapter)selectDeviceDialog.getListView().getAdapter()).notifyDataSetChanged();
+        ((ArrayAdapter) selectDeviceDialog.getListView().getAdapter()).notifyDataSetChanged();
     }
 
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
@@ -236,8 +263,15 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             List<BluetoothGattService> services = gatt.getServices();
-            Log.i(LOG_TAG, "onServicesDiscovered: " + services.toString());
-            //TODO read characteristics
+            if (services != null) {
+                for (BluetoothGattService service : services) {
+                    if (service != null) {
+                        Log.i(LOG_TAG, "onServicesDiscovered: " + service.getUuid().toString());
+                        Log.i(LOG_TAG, "Characteristics: " + service.getCharacteristics().toString());
+                        //TODO read characteristics
+                    }
+                }
+            }
         }
 
         @Override
@@ -315,8 +349,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_selectDevice) {
-            scanLeDevice(true);
             selectDeviceDialog.show();
+            scanLeDevice(true);
             return true;
         }
         return super.onOptionsItemSelected(item);
