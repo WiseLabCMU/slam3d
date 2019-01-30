@@ -125,6 +125,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean updateHitTest() {
+        if (!isTracking)
+            return false;
         Frame frame = fragment.getArSceneView().getArFrame();
         android.graphics.Point pt = getScreenCenter();
         List<HitResult> hits;
@@ -222,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
         Frame frame = fragment.getArSceneView().getArFrame();
         android.graphics.Point pt = getScreenCenter();
         List<HitResult> hits;
-        if (frame != null) {
+        if (frame != null && isTracking) {
             hits = frame.hitTest(pt.x, pt.y);
             for (HitResult hit : hits) {
                 Trackable trackable = hit.getTrackable();
