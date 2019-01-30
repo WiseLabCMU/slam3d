@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
             AlertDialog alertDialog = new AlertDialog.Builder(this)
                     .setTitle("Paired Devices:")
                     .setCancelable(false)
-                    .setSingleChoiceItems(R.array.toppings, -1, (dialog, which) ->
+                    .setSingleChoiceItems(new String[]{"stuff", "more stuff"}, -1, (dialog, which) ->
                                     Log.i("HELLO", "Checked " + which))
                     .setPositiveButton("OK", (dialog, which) -> Log.i("DONE", "Selected " + which))
                     .setNegativeButton("Cancel", (dialog, which) -> {})
