@@ -1,6 +1,7 @@
 package com.example.arslam;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
@@ -41,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -51,7 +51,10 @@ public class MainActivity extends AppCompatActivity {
     private boolean isHitting;
     private Slam3dJni slam3d;
     private BluetoothAdapter bluetoothAdapter;
+    private BluetoothDevice connectedDevice;
+    private BluetoothDevice selectedDevice;
     private ArrayList<Slam3dJni.TagLocation> tagLocations = new ArrayList<>();
+    private static final String LOG_TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -154,12 +157,30 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_selectDevice) {
+            selectedDevice = connectedDevice;
+            List<BluetoothDevice> bondedDevices = new ArrayList<>(bluetoothAdapter.getBondedDevices());
+            String[] bondedDeviceNames = new String[bondedDevices.size()];
+            int i = 0;
+            int selectedId = -1;
+            for (BluetoothDevice device : bondedDevices) {
+                if (device.equals(selectedDevice)) {
+                    selectedId = i;
+                }
+                bondedDeviceNames[i++] = device.getName();
+            }
             AlertDialog alertDialog = new AlertDialog.Builder(this)
                     .setTitle("Paired Devices:")
                     .setCancelable(false)
-                    .setSingleChoiceItems(new String[]{"stuff", "more stuff"}, -1, (dialog, which) ->
-                                    Log.i("HELLO", "Checked " + which))
-                    .setPositiveButton("OK", (dialog, which) -> Log.i("DONE", "Selected " + which))
+                    .setSingleChoiceItems(bondedDeviceNames, selectedId, (dialog, which) -> {
+                        selectedDevice = bondedDevices.get(which);
+                        Log.i(LOG_TAG, "Selected  " + selectedDevice.getName());
+                    })
+                    .setPositiveButton("OK", (dialog, which) -> {
+                        if (selectedDevice != null && !selectedDevice.equals(connectedDevice)) {
+                            connectedDevice = selectedDevice;
+                            Log.i(LOG_TAG, "Connecting to " + connectedDevice.getName());
+                        }
+                    })
                     .setNegativeButton("Cancel", (dialog, which) -> {})
                     .create();
             alertDialog.show();
