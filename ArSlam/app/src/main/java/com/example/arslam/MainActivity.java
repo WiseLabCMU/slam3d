@@ -175,12 +175,12 @@ public class MainActivity extends AppCompatActivity {
                     .setCancelable(false)
                     .setSingleChoiceItems(bondedDeviceNames, selectedId, (dialog, which) -> {
                         selectedDevice = bondedDevices.get(which);
-                        Log.i(LOG_TAG, "Selected  " + selectedDevice.getName());
                     })
                     .setPositiveButton("OK", (dialog, which) -> {
-                        if (selectedDevice != null && !selectedDevice.equals(connectedDevice)) {
+                        if (selectedDevice != null) {
+                            Log.i(LOG_TAG, "Connecting to " + selectedDevice.getName());
+                            //TODO connect to selectedDevice
                             connectedDevice = selectedDevice;
-                            Log.i(LOG_TAG, "Connecting to " + connectedDevice.getName());
                         }
                     })
                     .setNegativeButton("Cancel", (dialog, which) -> {})
