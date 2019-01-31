@@ -49,6 +49,9 @@ import com.google.ar.core.Pose;
 import com.google.ar.core.Trackable;
 import com.google.ar.core.TrackingState;
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.math.Quaternion;
+import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.Renderable;
 import com.google.ar.sceneform.ux.ArFragment;
@@ -88,11 +91,13 @@ public class MainActivity extends AppCompatActivity {
     private static final long RANGE_PERIOD = 1000L;
 
     private Slam3dJni slam3d;
-    private ArrayList<Slam3dJni.TagLocation> tagLocations = new ArrayList<>();
+//    private ArrayList<Slam3dJni.TagLocation> tagLocations = new ArrayList<>();
+
+    private Node baseNode = new Node();
 
     private static final ParcelUuid NETWORK_NODE_UUID = ParcelUuid.fromString("680c21d9-c946-4c1f-9c11-baa1c21329e7");
     private static final UUID LOCATION_DATA_UUID = UUID.fromString("003bbdf2-c634-4b3d-ab56-7ec889b89a37");
-    private static final UUID CLIENT_CHARACTERISTIC_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+//    private static final UUID CLIENT_CHARACTERISTIC_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
     private static final long SCAN_PERIOD = 10000L;
     private static final int REQUEST_ENABLE_BT = 1;
@@ -317,14 +322,14 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        @Override
-        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            HashMap<String, Pair<Float, Float>> ranges = decodeCharacteristic(characteristic);
-            Log.i(LOG_TAG, "got ranges: " + ranges.toString() + " " + characteristic.getProperties());
-            for (Map.Entry<String, Pair<Float, Float>> range : ranges.entrySet()) {
-                slam3d.depositUwb(range.getKey(), range.getValue().first, 0.1f);
-            }
-        }
+//        @Override
+//        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+//            HashMap<String, Pair<Float, Float>> ranges = decodeCharacteristic(characteristic);
+//            Log.i(LOG_TAG, "got ranges: " + ranges.toString() + " " + characteristic.getProperties());
+//            for (Map.Entry<String, Pair<Float, Float>> range : ranges.entrySet()) {
+//                slam3d.depositUwb(range.getKey(), range.getValue().first, 0.1f);
+//            }
+//        }
     };
 
     private HashMap<String, Pair<Float, Float>> decodeCharacteristic(BluetoothGattCharacteristic characteristic) {
@@ -396,11 +401,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void slam3dUpdate() {
-        Pose pose = fragment.getArSceneView().getArFrame().getAndroidSensorPose();
-        slam3d.depositVio(SystemClock.elapsedRealtime() / 1000.0, pose.tx(), pose.ty(), pose.tz());
-        tagLocations.add(new Slam3dJni.TagLocation(slam3d.tagLocation));
-        Log.i(LOG_TAG, "Location: " + slam3d.tagLocation.toString());
-    }
+        Pose arPose = fragment.getArSceneView().getArFrame().getAndroidSensorPose();
+        slam3d.depositVio(SystemClock.elapsedRealtime() / 1000.0, arPose.tx(), arPose.ty(), arPose.tz());
+//        tagLocations.add(new Slam3dJni.TagLocation(slam3d.tagLocation));
+//        Log.i(LOG_TAG, "Location: " + slam3d.tagLocation.toString());
+        //TODO THETA DOESN'T WORK WITH OUR DEFINITION OF X Y AND Z!!
+        Pose devicePose = new Pose(new float[]{slam3d.tagLocation.x, slam3d.tagLocation.y, slam3d.tagLocation.z}, ).inverse();
+        baseNode.setWorldPosition(new Vector3(0.0f, 0.0f, 0.0f));
+        baseNode.setWorldRotation(new Quaternion(0.0f, 0.0f, 0.0f, 1.0f));
+\    }
 
     private boolean updateTracking() {
         Frame frame = fragment.getArSceneView().getArFrame();
@@ -518,55 +527,55 @@ public class MainActivity extends AppCompatActivity {
         node.select();
     }
 
-    private String generateTagFilename() {
-        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
-        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-                + File.separator + "arslam/" + date + "_tag.csv";
-    }
+//    private String generateTagFilename() {
+//        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
+//        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+//                + File.separator + "arslam/" + date + "_tag.csv";
+//    }
+//
+//    private String generateBcnFilename() {
+//        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
+//        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+//                + File.separator + "arslam/" + date + "_bcn.csv";
+//    }
 
-    private String generateBcnFilename() {
-        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
-        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-                + File.separator + "arslam/" + date + "_bcn.csv";
-    }
-
-    private void saveTraceToDisk(String filename) throws IOException {
-        File out = new File(filename);
-        if (!out.getParentFile().exists()) {
-            out.getParentFile().mkdirs();
-        }
-        try (FileOutputStream stream = new FileOutputStream(out)) {
-            for (Slam3dJni.TagLocation loc : tagLocations) {
-                stream.write((loc.toString() + "\n").getBytes());
-            }
-        }
-        tagLocations.clear();
-    }
-
-    private void saveBcnToDisk(String filename) throws IOException {
-        File out = new File(filename);
-        if (!out.getParentFile().exists()) {
-            out.getParentFile().mkdirs();
-        }
-        try (FileOutputStream stream = new FileOutputStream(out)) {
-            for (Map.Entry<String, Slam3dJni.BcnLocation> entry : slam3d.bcnLocations.entrySet()) {
-                stream.write((entry.getKey() + "," + entry.getValue().toString() + "\n").getBytes());
-            }
-        }
-    }
+//    private void saveTraceToDisk(String filename) throws IOException {
+//        File out = new File(filename);
+//        if (!out.getParentFile().exists()) {
+//            out.getParentFile().mkdirs();
+//        }
+//        try (FileOutputStream stream = new FileOutputStream(out)) {
+//            for (Slam3dJni.TagLocation loc : tagLocations) {
+//                stream.write((loc.toString() + "\n").getBytes());
+//            }
+//        }
+//        tagLocations.clear();
+//    }
+//
+//    private void saveBcnToDisk(String filename) throws IOException {
+//        File out = new File(filename);
+//        if (!out.getParentFile().exists()) {
+//            out.getParentFile().mkdirs();
+//        }
+//        try (FileOutputStream stream = new FileOutputStream(out)) {
+//            for (Map.Entry<String, Slam3dJni.BcnLocation> entry : slam3d.bcnLocations.entrySet()) {
+//                stream.write((entry.getKey() + "," + entry.getValue().toString() + "\n").getBytes());
+//            }
+//        }
+//    }
 
     private void pressSave() {
-        final String tagFilename = generateTagFilename();
-        final String bcnFilename = generateBcnFilename();
-        try {
-            saveTraceToDisk(tagFilename);
-            saveBcnToDisk(bcnFilename);
-        } catch (IOException e) {
-            Toast toast = Toast.makeText(MainActivity.this, e.toString(), Toast.LENGTH_LONG);
-            toast.show();
-            return;
-        }
-        Toast toast = Toast.makeText(MainActivity.this, "Saved trace", Toast.LENGTH_LONG);
-        toast.show();
+//        final String tagFilename = generateTagFilename();
+//        final String bcnFilename = generateBcnFilename();
+//        try {
+//            saveTraceToDisk(tagFilename);
+//            saveBcnToDisk(bcnFilename);
+//        } catch (IOException e) {
+//            Toast toast = Toast.makeText(MainActivity.this, e.toString(), Toast.LENGTH_LONG);
+//            toast.show();
+//            return;
+//        }
+//        Toast toast = Toast.makeText(MainActivity.this, "Saved trace", Toast.LENGTH_LONG);
+//        toast.show();
     }
 }
