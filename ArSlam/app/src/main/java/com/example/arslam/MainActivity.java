@@ -258,26 +258,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addObject(Uri model) {
-        Frame frame = fragment.getArSceneView().getArFrame();
-        android.graphics.Point pt = getScreenCenter();
-        List<HitResult> hits;
-        if (frame != null && isTracking) {
-            hits = frame.hitTest(pt.x, pt.y);
-            for (HitResult hit : hits) {
-                Trackable trackable = hit.getTrackable();
-                if (trackable instanceof Plane && ((Plane) trackable).isPoseInPolygon(hit.getHitPose())) {
-                    placeObject(fragment, hit.createAnchor(), model);
-                    break;
-                }
-            }
-        }
+        placeObject(fragment, model);
     }
 
-    private void placeObject(ArFragment fragment, Anchor anchor, Uri model) {
+    private void placeObject(ArFragment fragment, Uri model) {
         ModelRenderable.builder()
                 .setSource(fragment.getContext(), model)
                 .build()
-                .thenAccept(renderable -> addNodeToScene(fragment, anchor, renderable))
+                .thenAccept(renderable -> addNodeToScene(fragment, renderable))
                 .exceptionally((throwable -> {
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setMessage(throwable.getMessage()).setTitle("Error!");
@@ -287,12 +275,11 @@ public class MainActivity extends AppCompatActivity {
                 }));
     }
 
-    private void addNodeToScene(ArFragment fragment, Anchor anchor, Renderable renderable) {
-        AnchorNode anchorNode = new AnchorNode(anchor);
+    private void addNodeToScene(ArFragment fragment, Renderable renderable) {
         TransformableNode node = new TransformableNode(fragment.getTransformationSystem());
         node.setRenderable(renderable);
-        node.setParent(anchorNode);
-        fragment.getArSceneView().getScene().addChild(anchorNode);
+        node.setParent(baseNode);
+        fragment.getArSceneView().getScene().addChild(baseNode);
         node.select();
     }
 

@@ -70,6 +70,9 @@ public class PoseManager {
         if (theirDeviceToTheirWorld == null) {
             theirDeviceToTheirWorld = Pose.IDENTITY;
         }
+        if (ourDeviceToOurVio == null) {
+            ourDeviceToOurVio = Pose.IDENTITY;
+        }
         //TODO figure out rotation
         Quaternion q = Quaternion.axisAngle(new Vector3(0.0f, 0.0f, 1.0f), (float)Math.toDegrees(slam3d.tagLocation.theta));
         Pose additionalRotation = Pose.makeRotation(q.x, q.y, q.z, q.w);
