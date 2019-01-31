@@ -20,6 +20,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,7 +33,8 @@ import java.util.UUID;
 public class BluetoothSystemManager {
 
     public static abstract class RangeCallback {
-        abstract void onUwbRange(String bcnName, float range, float quality);
+        abstract public void onBleConnect(String deviceName);
+        abstract public void onUwbRange(String bcnName, float range, float quality);
     }
 
     private List<BluetoothDevice> discoveredDevices = new ArrayList<>();
@@ -160,6 +162,7 @@ public class BluetoothSystemManager {
             switch (newState) {
                 case BluetoothProfile.STATE_CONNECTED:
                     Log.i(LOG_TAG, "STATE_CONNECTED");
+                    rangeCallback.onBleConnect(gatt.getDevice().getName());
 //                    gatt.requestMtu(512);
                     gatt.discoverServices();
                     break;

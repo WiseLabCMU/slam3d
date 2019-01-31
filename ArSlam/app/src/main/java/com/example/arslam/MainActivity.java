@@ -95,7 +95,13 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
         this.bluetoothManager = new BluetoothSystemManager(this, new BluetoothSystemManager.RangeCallback() {
             @Override
-            void onUwbRange(String bcnName, float range, float quality) {
+            public void onBleConnect(String deviceName) {
+                Log.i(LOG_TAG, "connected");
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "BLE Connected: " + deviceName, Toast.LENGTH_LONG).show());
+            }
+
+            @Override
+            public void onUwbRange(String bcnName, float range, float quality) {
                 poseManager.depositUwb(bcnName, range, 0.1f);
             }
         });

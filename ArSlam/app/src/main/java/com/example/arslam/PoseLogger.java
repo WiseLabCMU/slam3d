@@ -45,6 +45,7 @@ public class PoseLogger {
             out.getParentFile().mkdirs();
         }
         try (FileOutputStream stream = new FileOutputStream(out)) {
+            stream.write("t,x,y,z,theta\n".getBytes());
             for (Slam3dJni.TagLocation loc : tag) {
                 stream.write((loc.toString() + "\n").getBytes());
             }
@@ -58,6 +59,7 @@ public class PoseLogger {
             out.getParentFile().mkdirs();
         }
         try (FileOutputStream stream = new FileOutputStream(out)) {
+            stream.write("t,x,y,z,theta\n".getBytes());
             for (Slam3dJni.TagLocation loc : vio) {
                 stream.write((loc.toString() + "\n").getBytes());
             }
@@ -71,6 +73,7 @@ public class PoseLogger {
             out.getParentFile().mkdirs();
         }
         try (FileOutputStream stream = new FileOutputStream(out)) {
+            stream.write("b,t,x,y,z\n".getBytes());
             for (Map.Entry<String, Slam3dJni.BcnLocation> entry : bcns.entrySet()) {
                 stream.write((entry.getKey() + "," + entry.getValue().toString() + "\n").getBytes());
             }
