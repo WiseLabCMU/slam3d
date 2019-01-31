@@ -8,23 +8,28 @@ import java.io.IOException;
 
 public class PoseManager {
 
-    private static final Pose arCoreToSlam3dPose;
+    private static final Pose theirDeviceToOurDevice = Pose.IDENTITY;
+    private static final Pose theirWorldToOurVio;
+    private Pose theirDeviceToTheirWorld;
+    private Pose ourWorldToTheirWorld;
 
     private Slam3dJni slam3d;
     private PoseLogger logger;
 
     static {
         Quaternion q = Quaternion.axisAngle(new Vector3(1.0f, 0.0f, 0.0f), 90.0f);
-        arCoreToSlam3dPose = Pose.makeRotation(q.x, q.y, q.z, q.w);
+        theirWorldToOurVio = Pose.makeRotation(q.x, q.y, q.z, q.w);
     }
 
     public PoseManager() {
         slam3d = new Slam3dJni();
+        updatePose();
     }
 
     public PoseManager(String tagFilename, String vioFilename, String bcnFilename) {
         slam3d = new Slam3dJni();
         logger = new PoseLogger(tagFilename, vioFilename, bcnFilename);
+        updatePose();
     }
 
     public void free() {
@@ -36,21 +41,36 @@ public class PoseManager {
         }
         slam3d.free();
         slam3d = null;
+        theirDeviceToTheirWorld = null;
+        ourWorldToTheirWorld = null;
     }
 
     public void depositArCore(long elapsedRealtimeMillis, Pose arCorePose) {
-        Pose vio = arCoreToSlam3dPose.compose(arCorePose);
-        slam3d.depositVio(elapsedRealtimeMillis / 1000.0, vio.tx(), vio.ty(), vio.tz());
-
+        theirDeviceToTheirWorld = arCorePose;
+        Pose ourDeviceToOurVio = theirWorldToOurVio.compose(theirDeviceToTheirWorld.compose(theirDeviceToOurDevice.inverse()));
+        slam3d.depositVio(elapsedRealtimeMillis / 1000.0, ourDeviceToOurVio.tx(), ourDeviceToOurVio.ty(), ourDeviceToOurVio.tz());
+        updatePose();
         if (logger != null) {
-            logger.logVio(elapsedRealtimeMillis, vio);
+            logger.logVio(elapsedRealtimeMillis, ourDeviceToOurVio);
             logger.logTag(slam3d.tagLocation);
         }
     }
 
     public void depositUwb(String bcnName, float range, float stdRange) {
         slam3d.depositUwb(bcnName, range, stdRange);
+        updatePose();
     }
 
+    public Pose getPoseToDraw(Pose ourWorldPose) {
+        return ourWorldToTheirWorld.compose(ourWorldPose);
+    }
 
+    private void updatePose() {
+        if (theirDeviceToTheirWorld == null) {
+            theirDeviceToTheirWorld = Pose.IDENTITY;
+        }
+        //TODO fill in with current location
+        Pose ourDeviceToOurWorld = Pose.IDENTITY;
+        ourWorldToTheirWorld = theirDeviceToTheirWorld.compose(theirDeviceToOurDevice.inverse().compose(ourDeviceToOurWorld.inverse()));
+    }
 }
