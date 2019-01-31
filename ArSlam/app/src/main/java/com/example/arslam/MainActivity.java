@@ -91,7 +91,8 @@ public class MainActivity extends AppCompatActivity {
     private static final long RANGE_PERIOD = 1000L;
 
     private Slam3dJni slam3d;
-//    private ArrayList<Slam3dJni.TagLocation> tagLocations = new ArrayList<>();
+    private ArrayList<Slam3dJni.TagLocation> tagLocations = new ArrayList<>();
+    private ArrayList<Slam3dJni.TagLocation> arCoreLocations = new ArrayList<>();
 
     private Node baseNode = new Node();
 
@@ -401,15 +402,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void slam3dUpdate() {
-        Pose arPose = fragment.getArSceneView().getArFrame().getAndroidSensorPose();
-        slam3d.depositVio(SystemClock.elapsedRealtime() / 1000.0, arPose.tx(), arPose.ty(), arPose.tz());
-//        tagLocations.add(new Slam3dJni.TagLocation(slam3d.tagLocation));
-//        Log.i(LOG_TAG, "Location: " + slam3d.tagLocation.toString());
-        //TODO THETA DOESN'T WORK WITH OUR DEFINITION OF X Y AND Z!!
-        Pose devicePose = new Pose(new float[]{slam3d.tagLocation.x, slam3d.tagLocation.y, slam3d.tagLocation.z}, ).inverse();
+        Pose vio = PoseManager.arCoreToSlam3d(fragment.getArSceneView().getArFrame().getAndroidSensorPose());
+        slam3d.depositVio(SystemClock.elapsedRealtime() / 1000.0, vio.tx(), vio.ty(), vio.tz());
+        tagLocations.add(new Slam3dJni.TagLocation(slam3d.tagLocation));
+        arCoreLocations.add(new Slam3dJni.TagLocation(slam3d.tagLocation.t, vio.tx(), vio.ty(), vio.tz(), slam3d.tagLocation.theta));
+        Log.i(LOG_TAG, "Location: " + slam3d.tagLocation.toString());
         baseNode.setWorldPosition(new Vector3(0.0f, 0.0f, 0.0f));
         baseNode.setWorldRotation(new Quaternion(0.0f, 0.0f, 0.0f, 1.0f));
-\    }
+    }
 
     private boolean updateTracking() {
         Frame frame = fragment.getArSceneView().getArFrame();
@@ -527,55 +527,76 @@ public class MainActivity extends AppCompatActivity {
         node.select();
     }
 
-//    private String generateTagFilename() {
-//        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
-//        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-//                + File.separator + "arslam/" + date + "_tag.csv";
-//    }
-//
-//    private String generateBcnFilename() {
-//        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
-//        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-//                + File.separator + "arslam/" + date + "_bcn.csv";
-//    }
+    private String generateTagFilename() {
+        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+                + File.separator + "arslam/" + date + "_tag.csv";
+    }
 
-//    private void saveTraceToDisk(String filename) throws IOException {
-//        File out = new File(filename);
-//        if (!out.getParentFile().exists()) {
-//            out.getParentFile().mkdirs();
-//        }
-//        try (FileOutputStream stream = new FileOutputStream(out)) {
-//            for (Slam3dJni.TagLocation loc : tagLocations) {
-//                stream.write((loc.toString() + "\n").getBytes());
-//            }
-//        }
-//        tagLocations.clear();
-//    }
-//
-//    private void saveBcnToDisk(String filename) throws IOException {
-//        File out = new File(filename);
-//        if (!out.getParentFile().exists()) {
-//            out.getParentFile().mkdirs();
-//        }
-//        try (FileOutputStream stream = new FileOutputStream(out)) {
-//            for (Map.Entry<String, Slam3dJni.BcnLocation> entry : slam3d.bcnLocations.entrySet()) {
-//                stream.write((entry.getKey() + "," + entry.getValue().toString() + "\n").getBytes());
-//            }
-//        }
-//    }
+    private String generateVioFilename() {
+        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+                + File.separator + "arslam/" + date + "_vio.csv";
+    }
+
+    private String generateBcnFilename() {
+        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+                + File.separator + "arslam/" + date + "_bcn.csv";
+    }
+
+    private void saveTraceToDisk(String filename) throws IOException {
+        File out = new File(filename);
+        if (!out.getParentFile().exists()) {
+            out.getParentFile().mkdirs();
+        }
+        try (FileOutputStream stream = new FileOutputStream(out)) {
+            for (Slam3dJni.TagLocation loc : tagLocations) {
+                stream.write((loc.toString() + "\n").getBytes());
+            }
+        }
+        tagLocations.clear();
+    }
+
+    private void saveVioToDisk(String filename) throws IOException {
+        File out = new File(filename);
+        if (!out.getParentFile().exists()) {
+            out.getParentFile().mkdirs();
+        }
+        try (FileOutputStream stream = new FileOutputStream(out)) {
+            for (Slam3dJni.TagLocation loc : arCoreLocations) {
+                stream.write((loc.toString() + "\n").getBytes());
+            }
+        }
+        arCoreLocations.clear();
+    }
+
+    private void saveBcnToDisk(String filename) throws IOException {
+        File out = new File(filename);
+        if (!out.getParentFile().exists()) {
+            out.getParentFile().mkdirs();
+        }
+        try (FileOutputStream stream = new FileOutputStream(out)) {
+            for (Map.Entry<String, Slam3dJni.BcnLocation> entry : slam3d.bcnLocations.entrySet()) {
+                stream.write((entry.getKey() + "," + entry.getValue().toString() + "\n").getBytes());
+            }
+        }
+    }
 
     private void pressSave() {
-//        final String tagFilename = generateTagFilename();
-//        final String bcnFilename = generateBcnFilename();
-//        try {
-//            saveTraceToDisk(tagFilename);
-//            saveBcnToDisk(bcnFilename);
-//        } catch (IOException e) {
-//            Toast toast = Toast.makeText(MainActivity.this, e.toString(), Toast.LENGTH_LONG);
-//            toast.show();
-//            return;
-//        }
-//        Toast toast = Toast.makeText(MainActivity.this, "Saved trace", Toast.LENGTH_LONG);
-//        toast.show();
+        final String tagFilename = generateTagFilename();
+        final String vioFilename = generateVioFilename();
+        final String bcnFilename = generateBcnFilename();
+        try {
+            saveTraceToDisk(tagFilename);
+            saveVioToDisk(vioFilename);
+            saveBcnToDisk(bcnFilename);
+        } catch (IOException e) {
+            Toast toast = Toast.makeText(MainActivity.this, e.toString(), Toast.LENGTH_LONG);
+            toast.show();
+            return;
+        }
+        Toast toast = Toast.makeText(MainActivity.this, "Saved trace", Toast.LENGTH_LONG);
+        toast.show();
     }
 }
