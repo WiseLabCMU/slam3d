@@ -26,3 +26,7 @@ add_library( # Specifies the name of the library.
 
 # Specifies a path to native header files.
 include_directories(../../../../../particlefilter/include)
+
+target_link_libraries(slam3d
+        android
+        log)

@@ -5,9 +5,12 @@
 //  Copyright © 2019 CMU. All rights reserved.
 //
 
+#include <android/log.h>
 #include <malloc.h>
 #include <jni.h>
 #include <particleFilter.h>
+
+#define APPNAME "ArSlam"
 
 JNIEXPORT jlong JNICALL Java_com_example_arslam_Slam3dJni_particleFilterNewPf(
         JNIEnv* env, jclass clazz) {
@@ -62,6 +65,6 @@ JNIEXPORT jobject JNICALL Java_com_example_arslam_Slam3dJni_particleFilterGetBcn
     float x, y, z;
     jclass class = (*env)->FindClass(env, "com/example/arslam/Slam3dJni$BcnLocation");
     jmethodID cid = (*env)->GetMethodID(env, class, "<init>", "(DFFF)V");
-    particleFilter_getBcnLoc(pf, bcn, &t, &x, &y, &z);
+    particleFilter_getBcnLoc((const particleFilter_t*)pf, (const bcn_t*)bcn, &t, &x, &y, &z);
     return (*env)->NewObject(env, class, cid, t, x, y, z);
 }

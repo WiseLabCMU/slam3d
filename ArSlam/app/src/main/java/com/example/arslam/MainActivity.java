@@ -330,7 +330,7 @@ public class MainActivity extends AppCompatActivity {
     private HashMap<String, Pair<Float, Float>> decodeCharacteristic(BluetoothGattCharacteristic characteristic) {
         HashMap<String, Pair<Float, Float>> ranges = new HashMap<>();
         int offset = 0;
-        Log.i(LOG_TAG, "total bytes " + characteristic.getValue().length);
+//        Log.i(LOG_TAG, "total bytes " + characteristic.getValue().length);
         Integer type = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, offset);
         if (type == null) {
             return ranges;
@@ -338,11 +338,11 @@ public class MainActivity extends AppCompatActivity {
         offset += 1;
         if (type == 2) {
             offset += 13;
-            Log.i(LOG_TAG, "position type");
+//            Log.i(LOG_TAG, "position type");
         } else if (type != 1) {
             return ranges;
         } else {
-            Log.i(LOG_TAG, "range type");
+//            Log.i(LOG_TAG, "range type");
         }
         Integer distanceCount = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, offset);
         if (distanceCount == null) {
@@ -353,17 +353,17 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < distanceCount; ++i) {
             Integer nodeId = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
             if (nodeId == null) {
-                Log.i(LOG_TAG, "null nodeId");
+//                Log.i(LOG_TAG, "null nodeId");
             }
             offset += 2;
             Integer range = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_SINT32, offset);
             if (range == null) {
-                Log.i(LOG_TAG, "null range");
+//                Log.i(LOG_TAG, "null range");
             }
             offset += 4;
             Integer quality = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_SINT8, offset);
             if (quality == null) {
-                Log.i(LOG_TAG, "null quality");
+//                Log.i(LOG_TAG, "null quality");
             }
             offset += 1;
             if (nodeId == null || range == null || quality == null) {
@@ -399,6 +399,7 @@ public class MainActivity extends AppCompatActivity {
         Pose pose = fragment.getArSceneView().getArFrame().getAndroidSensorPose();
         slam3d.depositVio(SystemClock.elapsedRealtime() / 1000.0, pose.tx(), pose.ty(), pose.tz());
         tagLocations.add(new Slam3dJni.TagLocation(slam3d.tagLocation));
+        Log.i(LOG_TAG, "Location: " + slam3d.tagLocation.toString());
     }
 
     private boolean updateTracking() {

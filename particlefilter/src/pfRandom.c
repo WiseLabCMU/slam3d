@@ -60,5 +60,5 @@ void pfRandom_sphere(float* x, float* y, float* z, float range, float stdRange)
 
 static float _uniformNonzero(void)
 {
-    return (float)(rand() + 1) / (RAND_MAX + 1);
+    return (float)(rand() + 1) / ((float)RAND_MAX + 1);
 }
