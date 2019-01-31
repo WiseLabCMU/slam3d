@@ -123,7 +123,6 @@ public class Slam3dJni {
         for (Long bcn : bcnMap.values()) {
             bcnArray[i++] = bcn;
         }
-//        Log.i(LOG_TAG, "range: " + range + ", stdRange: " + stdRange);
         particleFilterDepositUwb(pf, bcnMap.get(bcnName), range, stdRange, bcnArray);
         tagLocation = particleFilterGetTagLoc(pf);
         for (String bcn : bcnMap.keySet()) {

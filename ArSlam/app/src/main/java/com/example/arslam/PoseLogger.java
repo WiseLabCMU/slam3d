@@ -30,7 +30,7 @@ public class PoseLogger {
     }
 
     public void logVio(long elapsedRealtimeMillis, Pose vioPose) {
-        this.vio.add(new Slam3dJni.TagLocation(elapsedRealtimeMillis / 1000.0f, vioPose.tx(), vioPose.ty(), vioPose.tz(), 0.0f));
+        this.vio.add(new Slam3dJni.TagLocation(elapsedRealtimeMillis / 1000.0, vioPose.tx(), vioPose.ty(), vioPose.tz(), 0.0f));
     }
 
     public void writeLogs(HashMap<String, Slam3dJni.BcnLocation> bcns) throws IOException {

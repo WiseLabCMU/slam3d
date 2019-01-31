@@ -38,7 +38,7 @@ JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilterFreeBcn(
 
 JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilterDepositVio(
         JNIEnv* env, jclass clazz, jlong pf, jdouble t, jfloat x, jfloat y, jfloat z, jfloat dist) {
-    particleFilter_depositVio((particleFilter_t*)pf, (float)t, (float)x, (float)y, (float)z, (float)dist);
+    particleFilter_depositVio((particleFilter_t*)pf, (double)t, (float)x, (float)y, (float)z, (float)dist);
 }
 
 JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilterDepositUwb(

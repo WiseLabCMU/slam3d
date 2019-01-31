@@ -40,7 +40,7 @@ public class PoseManager {
 
     public void depositArCore(long elapsedRealtimeMillis, Pose arCorePose) {
         Pose vio = arCoreToSlam3dPose.compose(arCorePose);
-        slam3d.depositVio(elapsedRealtimeMillis / 1000.0f, vio.tx(), vio.ty(), vio.tz());
+        slam3d.depositVio(elapsedRealtimeMillis / 1000.0, vio.tx(), vio.ty(), vio.tz());
 
         if (logger != null) {
             logger.logVio(elapsedRealtimeMillis, vio);
