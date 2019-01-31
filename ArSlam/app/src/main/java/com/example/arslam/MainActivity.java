@@ -276,11 +276,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addNodeToScene(ArFragment fragment, Renderable renderable) {
-        TransformableNode node = new TransformableNode(fragment.getTransformationSystem());
-        node.setRenderable(renderable);
-        node.setParent(baseNode);
+//        TransformableNode node = new TransformableNode(fragment.getTransformationSystem());
+        baseNode.setRenderable(renderable);
+//        node.setParent(baseNode);
         fragment.getArSceneView().getScene().addChild(baseNode);
-        node.select();
+//        node.select();
     }
 
     private String generateTagFilename() {

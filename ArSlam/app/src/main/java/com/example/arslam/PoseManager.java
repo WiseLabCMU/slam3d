@@ -84,6 +84,8 @@ public class PoseManager {
 
         float[] t = new float[]{slam3d.tagLocation.x, slam3d.tagLocation.y, slam3d.tagLocation.z};
         Pose ourDeviceToOurWorld = new Pose(t, ourRotationOurDevice.getRotationQuaternion());
+
+        ourDeviceToOurWorld = ourDeviceToOurVio;
         ourWorldToTheirWorld = theirDeviceToTheirWorld.compose(theirDeviceToOurDevice.inverse().compose(ourDeviceToOurWorld.inverse()));
     }
 }
