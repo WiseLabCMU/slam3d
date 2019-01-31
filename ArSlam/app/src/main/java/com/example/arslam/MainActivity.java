@@ -176,8 +176,9 @@ public class MainActivity extends AppCompatActivity {
     private void slam3dUpdate() {
         Pose arCorePose = fragment.getArSceneView().getArFrame().getAndroidSensorPose();
         poseManager.depositArCore(SystemClock.elapsedRealtime(), arCorePose);
-        baseNode.setWorldPosition(new Vector3(0.0f, 0.0f, 0.0f));
-        baseNode.setWorldRotation(new Quaternion(0.0f, 0.0f, 0.0f, 1.0f));
+        Pose baseNodePose = poseManager.getPoseToDraw(Pose.IDENTITY);
+        baseNode.setWorldPosition(new Vector3(baseNodePose.tx(), baseNodePose.ty(), baseNodePose.tz()));
+        baseNode.setWorldRotation(new Quaternion(baseNodePose.qx(), baseNodePose.qy(), baseNodePose.qz(), baseNodePose.qw()));
     }
 
     private boolean updateTracking() {
