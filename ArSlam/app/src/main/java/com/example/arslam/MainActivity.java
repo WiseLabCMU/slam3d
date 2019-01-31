@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -289,9 +290,35 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            Log.i(LOG_TAG, "onCharacteristicRead: " + characteristic.toString());
+            Log.i(LOG_TAG, "onCharacteristicRead: " + decodeCharacteristic(characteristic));
         }
     };
+
+    private HashMap<String, Float> decodeCharacteristic(BluetoothGattCharacteristic characteristic) {
+        HashMap<String, Float> ranges = new HashMap<>();
+        if (characteristic.getValue().length == 0) {
+            return ranges;
+        }
+        int offset = 0;
+        Integer type = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, offset);
+        offset += 1;
+        if (type == 2) {
+            offset += 13;
+        } else if (type != 1) {
+            return ranges;
+        }
+        Integer distanceCount = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, offset);
+        offset += 1;
+        for (int i = 0; i < distanceCount; ++i) {
+            Integer nodeId = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
+            offset += 2;
+            Integer range = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_SINT32, offset);
+            offset += 4;
+            offset += 1; // quality factor
+            ranges.put(nodeId.toString(), range / 1000.0f);
+        }
+        return ranges;
+    }
 
     private void pointerUpdate() {
         boolean trackingChanged = updateTracking();
