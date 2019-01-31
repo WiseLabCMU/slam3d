@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
@@ -17,7 +18,6 @@ import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -80,12 +80,15 @@ public class MainActivity extends AppCompatActivity {
     private List<ScanFilter> scanFilters;
     private Handler scanHandler;
     private BluetoothGatt deviceGatt;
+    private BluetoothGattCharacteristic testCharacteristic;
 
     private Slam3dJni slam3d;
     private ArrayList<Slam3dJni.TagLocation> tagLocations = new ArrayList<>();
 
     private static final ParcelUuid NETWORK_NODE_UUID = ParcelUuid.fromString("680c21d9-c946-4c1f-9c11-baa1c21329e7");
     private static final UUID LOCATION_DATA_UUID = UUID.fromString("003bbdf2-c634-4b3d-ab56-7ec889b89a37");
+    private static final UUID CLIENT_CHARACTERISTIC_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+
     private static final long SCAN_PERIOD = 10000L;
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 2;
@@ -134,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             Log.i(LOG_TAG, "Connecting to " + selectedDevice.getName());
                             scanLeDevice(false);
-                            deviceGatt = selectedDevice.connectGatt(MainActivity.this, false, gattCallback);
+                            deviceGatt = selectedDevice.connectGatt(MainActivity.this, true, gattCallback);
                         }
                     }
                 })
@@ -206,15 +209,12 @@ public class MainActivity extends AppCompatActivity {
     private ScanCallback leScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-//            Log.i(LOG_TAG, "callbackType: " + String.valueOf(callbackType));
-//            Log.i(LOG_TAG, "result: " + result.toString());
             addScannedDevice(result);
         }
 
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
             for (ScanResult result : results) {
-//                Log.i(LOG_TAG, "ScanResult - Results: " + result.toString());
                 addScannedDevice(result);
             }
         }
@@ -282,7 +282,8 @@ public class MainActivity extends AppCompatActivity {
                         continue;
                     }
                     if (characteristic.getUuid().equals(LOCATION_DATA_UUID)) {
-                        deviceGatt.readCharacteristic(characteristic);
+                        testCharacteristic = characteristic;
+                        gatt.readCharacteristic(characteristic);
                     }
                 }
             }
@@ -290,7 +291,20 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            Log.i(LOG_TAG, "onCharacteristicRead: " + decodeCharacteristic(characteristic));
+            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG);
+            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            gatt.writeDescriptor(descriptor);
+        }
+
+        @Override
+        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            Log.i(LOG_TAG, "descriptor write status: " + status);
+            gatt.setCharacteristicNotification(testCharacteristic, true);
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            Log.i(LOG_TAG, "got ranges: " + decodeCharacteristic(characteristic) + " " + characteristic.getProperties());
         }
     };
 
