@@ -32,6 +32,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -62,6 +63,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
@@ -80,7 +83,9 @@ public class MainActivity extends AppCompatActivity {
     private List<ScanFilter> scanFilters;
     private Handler scanHandler;
     private BluetoothGatt deviceGatt;
-    private BluetoothGattCharacteristic testCharacteristic;
+
+    private Timer timer;
+    private static final long RANGE_PERIOD = 1000L;
 
     private Slam3dJni slam3d;
     private ArrayList<Slam3dJni.TagLocation> tagLocations = new ArrayList<>();
@@ -253,10 +258,15 @@ public class MainActivity extends AppCompatActivity {
             switch (newState) {
                 case BluetoothProfile.STATE_CONNECTED:
                     Log.i(LOG_TAG, "STATE_CONNECTED");
+//                    gatt.requestMtu(512);
                     gatt.discoverServices();
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     Log.e(LOG_TAG, "STATE_DISCONNECTED");
+                    if (timer != null) {
+                        timer.cancel();
+                        timer = null;
+                    }
                     break;
                 default:
                     Log.e(LOG_TAG, "STATE_OTHER");
@@ -282,8 +292,17 @@ public class MainActivity extends AppCompatActivity {
                         continue;
                     }
                     if (characteristic.getUuid().equals(LOCATION_DATA_UUID)) {
-                        testCharacteristic = characteristic;
-                        gatt.readCharacteristic(characteristic);
+                        timer = new Timer();
+                        timer.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                gatt.readCharacteristic(characteristic);
+                            }
+                        }, 0, RANGE_PERIOD);
+//                        gatt.setCharacteristicNotification(characteristic, true);
+//                        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG);
+//                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+//                        gatt.writeDescriptor(descriptor);
                     }
                 }
             }
@@ -291,45 +310,66 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG);
-            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-            gatt.writeDescriptor(descriptor);
-        }
-
-        @Override
-        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-            Log.i(LOG_TAG, "descriptor write status: " + status);
-            gatt.setCharacteristicNotification(testCharacteristic, true);
+            HashMap<String, Pair<Float, Float>> ranges = decodeCharacteristic(characteristic);
+            Log.i(LOG_TAG, "got ranges: " + ranges.toString() + " " + characteristic.getProperties());
+            for (Map.Entry<String, Pair<Float, Float>> range : ranges.entrySet()) {
+                slam3d.depositUwb(range.getKey(), range.getValue().first, 0.1f);
+            }
         }
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            Log.i(LOG_TAG, "got ranges: " + decodeCharacteristic(characteristic) + " " + characteristic.getProperties());
+            HashMap<String, Pair<Float, Float>> ranges = decodeCharacteristic(characteristic);
+            Log.i(LOG_TAG, "got ranges: " + ranges.toString() + " " + characteristic.getProperties());
+            for (Map.Entry<String, Pair<Float, Float>> range : ranges.entrySet()) {
+                slam3d.depositUwb(range.getKey(), range.getValue().first, 0.1f);
+            }
         }
     };
 
-    private HashMap<String, Float> decodeCharacteristic(BluetoothGattCharacteristic characteristic) {
-        HashMap<String, Float> ranges = new HashMap<>();
-        if (characteristic.getValue().length == 0) {
+    private HashMap<String, Pair<Float, Float>> decodeCharacteristic(BluetoothGattCharacteristic characteristic) {
+        HashMap<String, Pair<Float, Float>> ranges = new HashMap<>();
+        int offset = 0;
+        Log.i(LOG_TAG, "total bytes " + characteristic.getValue().length);
+        Integer type = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, offset);
+        if (type == null) {
             return ranges;
         }
-        int offset = 0;
-        Integer type = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, offset);
         offset += 1;
         if (type == 2) {
             offset += 13;
+            Log.i(LOG_TAG, "position type");
         } else if (type != 1) {
             return ranges;
+        } else {
+            Log.i(LOG_TAG, "range type");
         }
         Integer distanceCount = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, offset);
+        if (distanceCount == null) {
+            return ranges;
+        }
+        Log.i(LOG_TAG, distanceCount.toString());
         offset += 1;
         for (int i = 0; i < distanceCount; ++i) {
             Integer nodeId = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
+            if (nodeId == null) {
+                Log.i(LOG_TAG, "null nodeId");
+            }
             offset += 2;
             Integer range = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_SINT32, offset);
+            if (range == null) {
+                Log.i(LOG_TAG, "null range");
+            }
             offset += 4;
-            offset += 1; // quality factor
-            ranges.put(nodeId.toString(), range / 1000.0f);
+            Integer quality = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_SINT8, offset);
+            if (quality == null) {
+                Log.i(LOG_TAG, "null quality");
+            }
+            offset += 1;
+            if (nodeId == null || range == null || quality == null) {
+                return ranges;
+            }
+            ranges.put(nodeId.toString(), new Pair<>(range / 1000.0f, quality / 100.0f));
         }
         return ranges;
     }
