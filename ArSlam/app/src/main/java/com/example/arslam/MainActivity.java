@@ -43,7 +43,9 @@ import com.google.ar.sceneform.ux.TransformableNode;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,10 +54,11 @@ public class MainActivity extends AppCompatActivity {
     private boolean isTracking;
     private boolean isHitting;
 
+    private HashMap<String, Node> bcnNodes;
+
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothSystemManager bluetoothManager;
     private PoseManager poseManager;
-    private Node baseNode = new Node();
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 2;
@@ -81,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         initializeGallery();
+        bcnNodes = new HashMap<>();
 
         poseManager = ENABLE_LOG ?
                 new PoseManager(generateTagFilename(), generateVioFilename(), generateBcnFilename())
@@ -174,11 +178,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void slam3dUpdate() {
+        if (!isTracking) {
+            return;
+        }
         Pose arCorePose = fragment.getArSceneView().getArFrame().getAndroidSensorPose();
         poseManager.depositArCore(SystemClock.elapsedRealtime(), arCorePose);
-        Pose baseNodePose = poseManager.getPoseToDraw(Pose.IDENTITY);
-        baseNode.setWorldPosition(new Vector3(baseNodePose.tx(), baseNodePose.ty(), baseNodePose.tz()));
-        baseNode.setWorldRotation(new Quaternion(baseNodePose.qx(), baseNodePose.qy(), baseNodePose.qz(), baseNodePose.qw()));
+        for (String bcnName : poseManager.getBcnNames()) {
+            if (!bcnNodes.containsKey(bcnName)) {
+                addObject(bcnName, Uri.parse("andy.sfb"));
+            }
+        }
+        for (Map.Entry<String, Node> entry : bcnNodes.entrySet()) {
+            Pose pose = poseManager.getPoseToDraw(poseManager.getBcnWorldPose(entry.getKey()));
+            entry.getValue().setWorldPosition(new Vector3(pose.tx(), pose.ty(), pose.tz()));
+            entry.getValue().setWorldRotation(new Quaternion(pose.qx(), pose.qy(), pose.qz(), pose.qw()));
+        }
     }
 
     private boolean updateTracking() {
@@ -235,37 +249,33 @@ public class MainActivity extends AppCompatActivity {
         ImageView andy = new ImageView(this);
         andy.setImageResource(R.drawable.droid_thumb);
         andy.setContentDescription("andy");
-        andy.setOnClickListener(view -> {addObject(Uri.parse("andy.sfb"));});
+//        andy.setOnClickListener(view -> {addObject(Uri.parse("andy.sfb"));});
         gallery.addView(andy);
 
         ImageView cabin = new ImageView(this);
         cabin.setImageResource(R.drawable.cabin_thumb);
         cabin.setContentDescription("cabin");
-        cabin.setOnClickListener(view -> {addObject(Uri.parse("Cabin.sfb"));});
+//        cabin.setOnClickListener(view -> {addObject(Uri.parse("Cabin.sfb"));});
         gallery.addView(cabin);
 
         ImageView house = new ImageView(this);
         house.setImageResource(R.drawable.house_thumb);
         house.setContentDescription("house");
-        house.setOnClickListener(view -> {addObject(Uri.parse("House.sfb"));});
+//        house.setOnClickListener(view -> {addObject(Uri.parse("House.sfb"));});
         gallery.addView(house);
 
         ImageView igloo = new ImageView(this);
         igloo.setImageResource(R.drawable.igloo_thumb);
         igloo.setContentDescription("igloo");
-        igloo.setOnClickListener(view -> {addObject(Uri.parse("igloo.sfb"));});
+//        igloo.setOnClickListener(view -> {addObject(Uri.parse("igloo.sfb"));});
         gallery.addView(igloo);
     }
 
-    private void addObject(Uri model) {
-        placeObject(fragment, model);
-    }
-
-    private void placeObject(ArFragment fragment, Uri model) {
+    private void addObject(String bcnName, Uri model) {
         ModelRenderable.builder()
                 .setSource(fragment.getContext(), model)
                 .build()
-                .thenAccept(renderable -> addNodeToScene(fragment, renderable))
+                .thenAccept(renderable -> addNodeToScene(bcnName, renderable))
                 .exceptionally((throwable -> {
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setMessage(throwable.getMessage()).setTitle("Error!");
@@ -275,12 +285,13 @@ public class MainActivity extends AppCompatActivity {
                 }));
     }
 
-    private void addNodeToScene(ArFragment fragment, Renderable renderable) {
-//        TransformableNode node = new TransformableNode(fragment.getTransformationSystem());
-        baseNode.setRenderable(renderable);
-//        node.setParent(baseNode);
-        fragment.getArSceneView().getScene().addChild(baseNode);
-//        node.select();
+    private void addNodeToScene(String bcnName, Renderable renderable) {
+        Node node = new Node();
+        node.setWorldPosition(Vector3.zero());
+        node.setWorldRotation(Quaternion.identity());
+        node.setRenderable(renderable);
+        fragment.getArSceneView().getScene().addChild(node);
+        bcnNodes.put(bcnName, node);
     }
 
     private String generateTagFilename() {
