@@ -91,11 +91,9 @@ public class PoseManager {
 //        Pose theirRotationOurVio = theirWorldToOurVio.compose(theirRotationTheirWorld);
 //        Pose ourRotationOurVio = additionalRotation.compose(theirRotationOurVio);
 //        Pose ourRotationOurDevice = ourDeviceToOurVio.inverse().compose(ourRotationOurVio);
-//
-//        float[] t = new float[]{slam3d.tagLocation.x, slam3d.tagLocation.y, slam3d.tagLocation.z};
-//        Pose ourDeviceToOurWorld = new Pose(t, ourRotationOurDevice.getRotationQuaternion());
 
-        Pose ourDeviceToOurWorld = ourDeviceToOurVio;
+        float[] t = new float[]{slam3d.tagLocation.x, slam3d.tagLocation.y, slam3d.tagLocation.z};
+        Pose ourDeviceToOurWorld = new Pose(t, ourDeviceToOurVio.getRotationQuaternion());
         ourWorldToOurVio = ourDeviceToOurVio.compose(ourDeviceToOurWorld.inverse());
     }
 }
