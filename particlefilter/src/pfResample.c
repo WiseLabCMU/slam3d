@@ -15,7 +15,7 @@
 #include "pfResample.h"
 
 #define RESAMPLE_THRESH     (0.5f)
-#define RADIUS_SPAWN_THRESH (1.0f)
+#define RADIUS_SPAWN_THRESH (4.0f)
 #define WEIGHT_SPAWN_THRESH (0.4f)
 #define PCT_SPAWN           (0.05f)
 #define HXYZ                (0.1f)
