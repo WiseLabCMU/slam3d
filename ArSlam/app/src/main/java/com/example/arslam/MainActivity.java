@@ -183,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
         poseManager.depositArCore(SystemClock.elapsedRealtime(), arCorePose);
         for (String bcnName : poseManager.getBcnNames()) {
             if (!bcnNodes.containsKey(bcnName)) {
+                bcnNodes.put(bcnName, null);
                 addObject(bcnName, Uri.parse("andy.sfb"));
             }
         }
