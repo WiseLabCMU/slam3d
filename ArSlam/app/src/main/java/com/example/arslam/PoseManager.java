@@ -1,6 +1,8 @@
 package com.example.arslam;
 
 import com.google.ar.core.Pose;
+import com.google.ar.sceneform.math.Quaternion;
+import com.google.ar.sceneform.math.Vector3;
 
 import java.io.IOException;
 import java.util.Set;
@@ -37,6 +39,7 @@ public class PoseManager {
         slam3d.free();
         slam3d = null;
         theirDeviceToTheirWorld = null;
+        ourDeviceToOurVio = null;
         ourWorldToOurVio = null;
     }
 
@@ -84,16 +87,12 @@ public class PoseManager {
         if (ourDeviceToOurVio == null) {
             ourDeviceToOurVio = Pose.IDENTITY;
         }
-//        Quaternion q = Quaternion.axisAngle(new Vector3(0.0f, 0.0f, 1.0f), (float)Math.toDegrees(slam3d.tagLocation.theta));
-//        Pose additionalRotation = Pose.makeRotation(q.x, q.y, q.z, q.w);
-//        Pose theirRotationTheirDevice = theirDeviceToTheirWorld.extractRotation();
-//        Pose theirRotationTheirWorld = theirDeviceToTheirWorld.compose(theirRotationTheirDevice);
-//        Pose theirRotationOurVio = theirWorldToOurVio.compose(theirRotationTheirWorld);
-//        Pose ourRotationOurVio = additionalRotation.compose(theirRotationOurVio);
-//        Pose ourRotationOurDevice = ourDeviceToOurVio.inverse().compose(ourRotationOurVio);
 
+        Quaternion q = Quaternion.axisAngle(new Vector3(0.0f, 0.0f, 1.0f), (float)Math.toDegrees(slam3d.tagLocation.theta));
         float[] t = new float[]{slam3d.tagLocation.x, slam3d.tagLocation.y, slam3d.tagLocation.z};
+
         Pose ourDeviceToOurWorld = new Pose(t, ourDeviceToOurVio.getRotationQuaternion());
+        ourDeviceToOurWorld = Pose.makeRotation(q.x, q.y, q.z, q.w).compose(ourDeviceToOurWorld);
         ourWorldToOurVio = ourDeviceToOurVio.compose(ourDeviceToOurWorld.inverse());
     }
 }
