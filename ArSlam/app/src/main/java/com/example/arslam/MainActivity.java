@@ -188,9 +188,11 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         for (Map.Entry<String, Node> entry : bcnNodes.entrySet()) {
-            Pose pose = poseManager.getPoseToDraw(poseManager.getBcnWorldPose(entry.getKey()));
-            entry.getValue().setWorldPosition(new Vector3(pose.tx(), pose.ty(), pose.tz()));
-            entry.getValue().setWorldRotation(new Quaternion(pose.qx(), pose.qy(), pose.qz(), pose.qw()));
+            if (entry.getValue() != null) {
+                Pose pose = poseManager.getPoseToDraw(poseManager.getBcnWorldPose(entry.getKey()));
+                entry.getValue().setWorldPosition(new Vector3(pose.tx(), pose.ty(), pose.tz()));
+                entry.getValue().setWorldRotation(new Quaternion(pose.qx(), pose.qy(), pose.qz(), pose.qw()));
+            }
         }
     }
 
