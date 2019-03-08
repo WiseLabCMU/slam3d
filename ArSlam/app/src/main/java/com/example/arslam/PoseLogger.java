@@ -11,32 +11,69 @@ import java.util.List;
 import java.util.Map;
 
 public class PoseLogger {
+    private List<Slam3dJni.VioMeasurement> vio;
+    private List<Slam3dJni.UwbMeasurement> uwb;
     private List<Slam3dJni.TagLocation> tag;
-    private List<Slam3dJni.TagLocation> vio;
-    private String tagFilename;
     private String vioFilename;
+    private String uwbFilename;
+    private String tagFilename;
     private String bcnFilename;
 
-    public PoseLogger(String tagFilename, String vioFilename, String bcnFilename) {
-        tag = new ArrayList<>();
+    public PoseLogger(String vioFilename, String uwbFilename, String tagFilename, String bcnFilename) {
         vio = new ArrayList<>();
-        this.tagFilename = tagFilename;
+        uwb = new ArrayList<>();
+        tag = new ArrayList<>();
         this.vioFilename = vioFilename;
+        this.uwbFilename = uwbFilename;
         this.bcnFilename = bcnFilename;
+        this.tagFilename = tagFilename;
+    }
+
+    public void logVio(long elapsedRealtimeMillis, Pose vioPose) {
+        this.vio.add(new Slam3dJni.VioMeasurement(elapsedRealtimeMillis / 1000.0, vioPose.tx(), vioPose.ty(), vioPose.tz(), 0.0f));
+    }
+
+    public void logUwb(long elapsedRealtimeMillis, String bcnName, float range, float stdRange) {
+        this.uwb.add(new Slam3dJni.UwbMeasurement(elapsedRealtimeMillis / 1000.0, bcnName, range, stdRange));
     }
 
     public void logTag(Slam3dJni.TagLocation tagLocation) {
         this.tag.add(new Slam3dJni.TagLocation(tagLocation));
     }
 
-    public void logVio(long elapsedRealtimeMillis, Pose vioPose) {
-        this.vio.add(new Slam3dJni.TagLocation(elapsedRealtimeMillis / 1000.0, vioPose.tx(), vioPose.ty(), vioPose.tz(), 0.0f));
+    public void writeLogs(HashMap<String, Slam3dJni.BcnLocation> bcns) throws IOException {
+        saveVioToDisk();
+        saveUwbToDisk();
+        saveTagToDisk();
+        saveBcnToDisk(bcns);
     }
 
-    public void writeLogs(HashMap<String, Slam3dJni.BcnLocation> bcns) throws IOException {
-        saveTagToDisk();
-        saveVioToDisk();
-        saveBcnToDisk(bcns);
+    private void saveVioToDisk() throws IOException {
+        File out = new File(vioFilename);
+        if (!out.getParentFile().exists()) {
+            out.getParentFile().mkdirs();
+        }
+        try (FileOutputStream stream = new FileOutputStream(out)) {
+            stream.write("t,x,y,z,theta\n".getBytes());
+            for (Slam3dJni.VioMeasurement v : vio) {
+                stream.write((v.toString() + "\n").getBytes());
+            }
+        }
+        vio.clear();
+    }
+
+    private void saveUwbToDisk() throws IOException {
+        File out = new File(uwbFilename);
+        if (!out.getParentFile().exists()) {
+            out.getParentFile().mkdirs();
+        }
+        try (FileOutputStream stream = new FileOutputStream(out)) {
+            stream.write("\n".getBytes());
+            for (Slam3dJni.UwbMeasurement u : uwb) {
+                stream.write((u.toString() + "\n").getBytes());
+            }
+        }
+        uwb.clear();
     }
 
     private void saveTagToDisk() throws IOException {
@@ -51,20 +88,6 @@ public class PoseLogger {
             }
         }
         tag.clear();
-    }
-
-    private void saveVioToDisk() throws IOException {
-        File out = new File(vioFilename);
-        if (!out.getParentFile().exists()) {
-            out.getParentFile().mkdirs();
-        }
-        try (FileOutputStream stream = new FileOutputStream(out)) {
-            stream.write("t,x,y,z,theta\n".getBytes());
-            for (Slam3dJni.TagLocation loc : vio) {
-                stream.write((loc.toString() + "\n").getBytes());
-            }
-        }
-        vio.clear();
     }
 
     private void saveBcnToDisk(HashMap<String, Slam3dJni.BcnLocation> bcns) throws IOException {

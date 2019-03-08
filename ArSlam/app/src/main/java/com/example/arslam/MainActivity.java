@@ -83,8 +83,9 @@ public class MainActivity extends AppCompatActivity {
         initializeGallery();
         bcnNodes = new HashMap<>();
 
+        Date date = new Date();
         poseManager = ENABLE_LOG ?
-                new PoseManager(generateTagFilename(), generateVioFilename(), generateBcnFilename())
+                new PoseManager(generateVioFilename(date), generateUwbFilename(date), generateTagFilename(date), generateBcnFilename(date))
                 : new PoseManager();
 
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -103,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onUwbRange(String bcnName, float range, float quality) {
-                poseManager.depositUwb(bcnName, range, 0.1f);
+                poseManager.depositUwb(SystemClock.elapsedRealtime(), bcnName, range, 0.1f);
             }
         });
     }
@@ -291,22 +292,28 @@ public class MainActivity extends AppCompatActivity {
         bcnNodes.put(bcnName, node);
     }
 
-    private String generateTagFilename() {
-        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
+    private String generateVioFilename(Date date) {
+        String dateString = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(date);
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-                + File.separator + "arslam/" + date + "_tag.csv";
+                + File.separator + "arslam/" + dateString + "_vio.csv";
     }
 
-    private String generateVioFilename() {
-        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
+    private String generateUwbFilename(Date date) {
+        String dateString = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(date);
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-                + File.separator + "arslam/" + date + "_vio.csv";
+                + File.separator + "arslam/" + dateString + "_vio.csv";
     }
 
-    private String generateBcnFilename() {
-        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
+    private String generateTagFilename(Date date) {
+        String dateString = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(date);
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-                + File.separator + "arslam/" + date + "_bcn.csv";
+                + File.separator + "arslam/" + dateString + "_tag.csv";
+    }
+
+    private String generateBcnFilename(Date date) {
+        String dateString = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(date);
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+                + File.separator + "arslam/" + dateString + "_bcn.csv";
     }
 
     private void pressSave() {

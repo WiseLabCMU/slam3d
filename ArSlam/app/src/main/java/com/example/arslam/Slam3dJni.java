@@ -9,6 +9,46 @@ public class Slam3dJni {
 
     private static String LOG_TAG = "Slam3dJni";
 
+    public static class VioMeasurement {
+        public final double t;
+        public final float x;
+        public final float y;
+        public final float z;
+        public final float dist;
+
+        public VioMeasurement(double t, float x, float y, float z, float dist) {
+            this.t = t;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.dist = dist;
+        }
+
+        @Override
+        public String toString() {
+            return String.format(Locale.US, "%.3f", t) + "," + x + "," + y + "," + z + "," + dist;
+        }
+    }
+
+    public static class UwbMeasurement {
+        public final double t;
+        public final String bcnName;
+        public final float range;
+        public final float stdRange;
+
+        public UwbMeasurement(double t, String bcnName, float range, float stdRange) {
+            this.t = t;
+            this.bcnName = bcnName;
+            this.range = range;
+            this.stdRange = stdRange;
+        }
+
+        @Override
+        public String toString() {
+            return String.format(Locale.US, "%.3f", t) + "," + bcnName + "," + range + "," + stdRange;
+        }
+    }
+
     public static class TagLocation {
         public final double t;
         public final float x;
