@@ -1,5 +1,7 @@
 package com.example.arslam;
 
+import android.util.Log;
+
 import com.google.ar.core.Pose;
 
 import java.io.File;
@@ -18,6 +20,8 @@ public class PoseLogger {
     private String uwbFilename;
     private String tagFilename;
     private String bcnFilename;
+
+    private static final String LOG_TAG = "PoseLogger";
 
     public PoseLogger(String vioFilename, String uwbFilename, String tagFilename, String bcnFilename) {
         vio = new ArrayList<>();
@@ -68,7 +72,7 @@ public class PoseLogger {
             out.getParentFile().mkdirs();
         }
         try (FileOutputStream stream = new FileOutputStream(out)) {
-            stream.write("\n".getBytes());
+            stream.write("t,b,r,s\n".getBytes());
             for (Slam3dJni.UwbMeasurement u : uwb) {
                 stream.write((u.toString() + "\n").getBytes());
             }

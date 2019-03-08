@@ -304,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
     private String generateUwbFilename(Date date) {
         String dateString = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(date);
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-                + File.separator + "arslam/" + dateString + "_vio.csv";
+                + File.separator + "arslam/" + dateString + "_uwb.csv";
     }
 
     private String generateTagFilename(Date date) {
