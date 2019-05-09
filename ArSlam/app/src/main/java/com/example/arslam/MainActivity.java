@@ -20,7 +20,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -80,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
             slam3dUpdate();
         });
 
-//        initializeGallery();
         bcnNodes = new HashMap<>();
 
         Date date = new Date();
@@ -242,10 +240,6 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void initializeGallery() {
-        LinearLayout gallery = findViewById(R.id.gallery_layout);
     }
 
     private void addObject(String bcnName, Uri model) {
