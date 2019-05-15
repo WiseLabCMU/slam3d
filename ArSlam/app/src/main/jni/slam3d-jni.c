@@ -41,11 +41,11 @@ JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilterDepositVi
     particleFilter_depositVio((particleFilter_t*)pf, (double)t, (float)x, (float)y, (float)z, (float)dist);
 }
 
-JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilterDepositUwb(
+JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilterDepositRange(
         JNIEnv* env, jclass clazz, jlong pf, jlong bcn, jfloat range, jfloat stdRange, jlongArray bcnArray) {
     bcn_t** allBcns = (bcn_t**)(*env)->GetLongArrayElements(env, bcnArray, NULL);
     int numBcns = (int)(*env)->GetArrayLength(env, bcnArray);
-    particleFilter_depositUwb((particleFilter_t*)pf, (bcn_t*)bcn, (float)range, (float)stdRange, allBcns, numBcns);
+    particleFilter_depositRange((particleFilter_t*)pf, (bcn_t*)bcn, (float)range, (float)stdRange, allBcns, numBcns);
     (*env)->ReleaseLongArrayElements(env, bcnArray, (jlong*)allBcns, 0);
 }
 

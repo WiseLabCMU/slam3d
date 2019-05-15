@@ -43,7 +43,7 @@ void pfMeasurement_applyVio(tag_t* tag, float dt, float dx, float dy, float dz, 
     }
 }
 
-void pfMeasurement_applyUwb(tag_t* tag, bcn_t* bcn, float range, float stdRange)
+void pfMeasurement_applyRange(tag_t* tag, bcn_t* bcn, float range, float stdRange)
 {
     int i, j;
     tagParticle_t* tp;

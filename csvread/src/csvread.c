@@ -74,7 +74,7 @@ int main(void)
         {
             uwbR -= UWB_BIAS;
             if (uwbR > 0.0f && uwbR < 30.0f)
-                particleFilter_depositUwb(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD, _bcnPtrs, NUM_BCNS);
+                particleFilter_depositRange(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD, _bcnPtrs, NUM_BCNS);
             haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR, 0);
         }
     }

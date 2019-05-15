@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class PoseLogger {
     private List<Slam3dJni.VioMeasurement> vio;
-    private List<Slam3dJni.UwbMeasurement> uwb;
+    private List<Slam3dJni.RangeMeasurement> uwb;
     private List<Slam3dJni.TagLocation> tag;
     private String vioFilename;
     private String uwbFilename;
@@ -38,7 +38,7 @@ public class PoseLogger {
     }
 
     public void logUwb(long elapsedRealtimeMillis, String bcnName, float range, float stdRange) {
-        this.uwb.add(new Slam3dJni.UwbMeasurement(elapsedRealtimeMillis / 1000.0, bcnName, range, stdRange));
+        this.uwb.add(new Slam3dJni.RangeMeasurement(elapsedRealtimeMillis / 1000.0, bcnName, range, stdRange));
     }
 
     public void logTag(Slam3dJni.TagLocation tagLocation) {
@@ -73,7 +73,7 @@ public class PoseLogger {
         }
         try (FileOutputStream stream = new FileOutputStream(out)) {
             stream.write("t,b,r,s\n".getBytes());
-            for (Slam3dJni.UwbMeasurement u : uwb) {
+            for (Slam3dJni.RangeMeasurement u : uwb) {
                 stream.write((u.toString() + "\n").getBytes());
             }
         }

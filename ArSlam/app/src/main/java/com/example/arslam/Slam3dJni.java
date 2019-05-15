@@ -30,13 +30,13 @@ public class Slam3dJni {
         }
     }
 
-    public static class UwbMeasurement {
+    public static class RangeMeasurement {
         public final double t;
         public final String bcnName;
         public final float range;
         public final float stdRange;
 
-        public UwbMeasurement(double t, String bcnName, float range, float stdRange) {
+        public RangeMeasurement(double t, String bcnName, float range, float stdRange) {
             this.t = t;
             this.bcnName = bcnName;
             this.range = range;
@@ -115,7 +115,7 @@ public class Slam3dJni {
     private static native void particleFilterFreePf(long pf);
     private static native void particleFilterFreeBcn(long bcn);
     private static native void particleFilterDepositVio(long pf, double t, float x, float y, float z, float dist);
-    private static native void particleFilterDepositUwb(long pf, long bcn, float range, float stdRange, long[] bcnArray);
+    private static native void particleFilterDepositRange(long pf, long bcn, float range, float stdRange, long[] bcnArray);
     private static native TagLocation particleFilterGetTagLoc(long pf);
     private static native BcnLocation particleFilterGetBcnLoc(long pf, long bcn);
 
@@ -151,7 +151,7 @@ public class Slam3dJni {
         tagLocation = particleFilterGetTagLoc(pf);
     }
 
-    public void depositUwb(String bcnName, float range, float stdRange) {
+    public void depositRange(String bcnName, float range, float stdRange) {
         if (pf == 0L) {
             throw new NullPointerException("Slam3d is not initialized");
         }
@@ -163,7 +163,7 @@ public class Slam3dJni {
         for (Long bcn : bcnMap.values()) {
             bcnArray[i++] = bcn;
         }
-        particleFilterDepositUwb(pf, bcnMap.get(bcnName), range, stdRange, bcnArray);
+        particleFilterDepositRange(pf, bcnMap.get(bcnName), range, stdRange, bcnArray);
         tagLocation = particleFilterGetTagLoc(pf);
         for (String bcn : bcnMap.keySet()) {
             bcnLocations.put(bcn, particleFilterGetBcnLoc(pf, bcnMap.get(bcn)));

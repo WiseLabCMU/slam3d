@@ -69,7 +69,7 @@ void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y,
     pf->lastZ = z;
 }
 
-void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
+void particleFilter_depositRange(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
 {
     float dt, dx, dy, dz, ddist;
 
@@ -86,7 +86,7 @@ void particleFilter_depositUwb(particleFilter_t* pf, bcn_t* bcn, float range, fl
     pfMeasurement_applyVio(&pf->tag, dt, dx, dy, dz, ddist);
     if (bcn->initialized)
     {
-        pfMeasurement_applyUwb(&pf->tag, bcn, range, stdRange);
+        pfMeasurement_applyRange(&pf->tag, bcn, range, stdRange);
         pfResample_resample(&pf->tag, bcn, range, stdRange, allBcns, numBcns);
     }
     else

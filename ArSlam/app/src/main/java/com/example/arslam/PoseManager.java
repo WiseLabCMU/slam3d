@@ -55,7 +55,7 @@ public class PoseManager {
     }
 
     public void depositUwb(long elapsedRealtimeMillis, String bcnName, float range, float stdRange) {
-        slam3d.depositUwb(bcnName, range, stdRange);
+        slam3d.depositRange(bcnName, range, stdRange);
         updatePose();
         if (logger != null) {
             logger.logUwb(elapsedRealtimeMillis, bcnName, range, stdRange);
