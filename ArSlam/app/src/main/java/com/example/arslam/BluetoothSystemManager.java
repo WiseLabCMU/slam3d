@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
@@ -20,14 +21,11 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.ArrayAdapter;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
 
 public class BluetoothSystemManager {
@@ -47,13 +45,13 @@ public class BluetoothSystemManager {
     private RangeCallback rangeCallback;
     private AlertDialog selectDeviceDialog;
 
-    private Timer timer;
-    private static final long RANGE_PERIOD = 1000L;
+//    private Timer timer;
+//    private static final long RANGE_PERIOD = 1000L;
     private static final long SCAN_PERIOD = 10000L;
 
     private static final ParcelUuid NETWORK_NODE_UUID = ParcelUuid.fromString("680c21d9-c946-4c1f-9c11-baa1c21329e7");
     private static final UUID LOCATION_DATA_UUID = UUID.fromString("003bbdf2-c634-4b3d-ab56-7ec889b89a37");
-//    private static final UUID CLIENT_CHARACTERISTIC_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+    private static final UUID CLIENT_CHARACTERISTIC_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
     private static final String LOG_TAG = "BluetoothSystemManager";
 
@@ -168,10 +166,10 @@ public class BluetoothSystemManager {
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     Log.e(LOG_TAG, "STATE_DISCONNECTED");
-                    if (timer != null) {
-                        timer.cancel();
-                        timer = null;
-                    }
+//                    if (timer != null) {
+//                        timer.cancel();
+//                        timer = null;
+//                    }
                     break;
                 default:
                     Log.e(LOG_TAG, "STATE_OTHER");
@@ -197,45 +195,45 @@ public class BluetoothSystemManager {
                         continue;
                     }
                     if (characteristic.getUuid().equals(LOCATION_DATA_UUID)) {
-                        timer = new Timer();
-                        timer.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                gatt.readCharacteristic(characteristic);
-                            }
-                        }, 0, RANGE_PERIOD);
-//                        gatt.setCharacteristicNotification(characteristic, true);
-//                        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG);
-//                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-//                        gatt.writeDescriptor(descriptor);
+//                        timer = new Timer();
+//                        timer.schedule(new TimerTask() {
+//                            @Override
+//                            public void run() {
+//                                gatt.readCharacteristic(characteristic);
+//                            }
+//                        }, 0, RANGE_PERIOD);
+                        gatt.setCharacteristicNotification(characteristic, true);
+                        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG);
+                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                        gatt.writeDescriptor(descriptor);
                     }
                 }
             }
         }
 
+//        @Override
+//        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+//            HashMap<String, Pair<Float, Float>> ranges = decodeCharacteristic(characteristic);
+//            Log.i(LOG_TAG, "got ranges: " + ranges.toString() + " " + characteristic.getProperties());
+//            for (Map.Entry<String, Pair<Float, Float>> range : ranges.entrySet()) {
+//                rangeCallback.onUwbRange(range.getKey(), range.getValue().first, range.getValue().second);
+//            }
+//        }
+
         @Override
-        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             HashMap<String, Pair<Float, Float>> ranges = decodeCharacteristic(characteristic);
             Log.i(LOG_TAG, "got ranges: " + ranges.toString() + " " + characteristic.getProperties());
             for (Map.Entry<String, Pair<Float, Float>> range : ranges.entrySet()) {
                 rangeCallback.onUwbRange(range.getKey(), range.getValue().first, range.getValue().second);
             }
         }
-
-//        @Override
-//        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-//            HashMap<String, Pair<Float, Float>> ranges = decodeCharacteristic(characteristic);
-//            Log.i(LOG_TAG, "got ranges: " + ranges.toString() + " " + characteristic.getProperties());
-//            for (Map.Entry<String, Pair<Float, Float>> range : ranges.entrySet()) {
-//                poseManager.depositUwb(range.getKey(), range.getValue().first, 0.1f);
-//            }
-//        }
     };
 
     private HashMap<String, Pair<Float, Float>> decodeCharacteristic(BluetoothGattCharacteristic characteristic) {
         HashMap<String, Pair<Float, Float>> ranges = new HashMap<>();
         int offset = 0;
-//        Log.i(LOG_TAG, "total bytes " + characteristic.getValue().length);
+        Log.i(LOG_TAG, "total bytes " + characteristic.getValue().length);
         Integer type = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, offset);
         if (type == null) {
             return ranges;
@@ -243,11 +241,11 @@ public class BluetoothSystemManager {
         offset += 1;
         if (type == 2) {
             offset += 13;
-//            Log.i(LOG_TAG, "position type");
+            Log.i(LOG_TAG, "position type");
         } else if (type != 1) {
             return ranges;
         } else {
-//            Log.i(LOG_TAG, "range type");
+            Log.i(LOG_TAG, "range type");
         }
         Integer distanceCount = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, offset);
         if (distanceCount == null) {
@@ -258,17 +256,17 @@ public class BluetoothSystemManager {
         for (int i = 0; i < distanceCount; ++i) {
             Integer nodeId = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
             if (nodeId == null) {
-//                Log.i(LOG_TAG, "null nodeId");
+                Log.i(LOG_TAG, "null nodeId");
             }
             offset += 2;
             Integer range = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_SINT32, offset);
             if (range == null) {
-//                Log.i(LOG_TAG, "null range");
+                Log.i(LOG_TAG, "null range");
             }
             offset += 4;
             Integer quality = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_SINT8, offset);
             if (quality == null) {
-//                Log.i(LOG_TAG, "null quality");
+                Log.i(LOG_TAG, "null quality");
             }
             offset += 1;
             if (nodeId == null || range == null || quality == null) {
