@@ -103,6 +103,11 @@ public class MainActivity extends AppCompatActivity {
             public void onUwbRange(String bcnName, float range, float quality) {
                 poseManager.depositUwb(SystemClock.elapsedRealtime(), bcnName, range, 0.1f);
             }
+
+            @Override
+            public void onBleRssi(String address, int rssi) {
+
+            }
         });
     }
 

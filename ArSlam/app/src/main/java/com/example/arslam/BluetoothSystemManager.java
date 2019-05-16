@@ -33,6 +33,7 @@ public class BluetoothSystemManager {
     public static abstract class RangeCallback {
         abstract public void onBleConnect(String deviceName);
         abstract public void onUwbRange(String bcnName, float range, float quality);
+        abstract public void onBleRssi(String address, int rssi);
     }
 
     private List<BluetoothDevice> discoveredDevices = new ArrayList<>();
@@ -67,18 +68,19 @@ public class BluetoothSystemManager {
                 .setCancelable(false)
                 .setAdapter(discoveredDeviceNames, (dialog, which) -> {
                     if (which >= 0) {
+                        scanLeDevice(false);
                         BluetoothDevice selectedDevice = discoveredDevices.get(which);
                         if (deviceGatt != null) {
                             deviceGatt.close();
                         }
                         if (selectedDevice != null) {
                             Log.i(LOG_TAG, "Connecting to " + selectedDevice.getName());
-                            scanLeDevice(false);
+                            scanForRssi(false);
                             deviceGatt = selectedDevice.connectGatt(context, true, gattCallback);
                         } else {
                             Log.i(LOG_TAG, "Using phone RSSI");
-                            scanLeDevice(false);
                             deviceGatt = null;
+                            scanForRssi(true);
                         }
                     }
                 })
@@ -96,6 +98,7 @@ public class BluetoothSystemManager {
 
     public void pause() {
         scanLeDevice(false);
+        scanForRssi(false);
     }
 
     public void destroy() {
@@ -103,6 +106,8 @@ public class BluetoothSystemManager {
             deviceGatt.close();
             deviceGatt = null;
         }
+        scanLeDevice(false);
+        scanForRssi(false);
     }
 
     public void showDeviceSelectDialog() {
@@ -112,14 +117,22 @@ public class BluetoothSystemManager {
 
     private void scanLeDevice(boolean enable) {
         if (enable) {
-            scanHandler.postDelayed(() -> leScanner.stopScan(leScanCallback), SCAN_PERIOD);
-            leScanner.startScan(scanFilters, scanSettings, leScanCallback);
+            scanHandler.postDelayed(() -> leScanner.stopScan(leScanForConnectionCallback), SCAN_PERIOD);
+            leScanner.startScan(scanFilters, scanSettings, leScanForConnectionCallback);
         } else {
-            leScanner.stopScan(leScanCallback);
+            leScanner.stopScan(leScanForConnectionCallback);
         }
     }
 
-    private ScanCallback leScanCallback = new ScanCallback() {
+    private void scanForRssi(boolean enable) {
+        if (enable) {
+            leScanner.startScan(scanFilters, scanSettings, leScanForRssiCallback);
+        } else {
+            leScanner.stopScan(leScanForRssiCallback);
+        }
+    }
+
+    private ScanCallback leScanForConnectionCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             addScannedDevice(result);
@@ -135,6 +148,29 @@ public class BluetoothSystemManager {
         @Override
         public void onScanFailed(int errorCode) {
             Log.e(LOG_TAG, "Scan Failed. Error Code: " + errorCode);
+        }
+    };
+
+    private ScanCallback leScanForRssiCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            handleScanResult(result);
+        }
+
+        @Override
+        public void onBatchScanResults(List<ScanResult> results) {
+            for (ScanResult result : results) {
+                handleScanResult(result);
+            }
+        }
+
+        @Override
+        public void onScanFailed(int errorCode) {
+            Log.e(LOG_TAG, "Scan Failed. Error Code: " + errorCode);
+        }
+
+        private void handleScanResult(ScanResult result) {
+            rangeCallback.onBleRssi(result.getDevice().getAddress(), result.getRssi());
         }
     };
 
