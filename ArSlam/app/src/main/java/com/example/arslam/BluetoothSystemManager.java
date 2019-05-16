@@ -60,19 +60,25 @@ public class BluetoothSystemManager {
         this.rangeCallback = rangeCallback;
 
         discoveredDeviceNames = new ArrayAdapter<>(context, android.R.layout.select_dialog_singlechoice);
+        discoveredDeviceNames.add("Use phone RSSI");
+        discoveredDevices.add(null);
         selectDeviceDialog = new AlertDialog.Builder(context)
                 .setTitle("Detected Devices:")
                 .setCancelable(false)
                 .setAdapter(discoveredDeviceNames, (dialog, which) -> {
                     if (which >= 0) {
                         BluetoothDevice selectedDevice = discoveredDevices.get(which);
+                        if (deviceGatt != null) {
+                            deviceGatt.close();
+                        }
                         if (selectedDevice != null) {
-                            if (deviceGatt != null) {
-                                deviceGatt.close();
-                            }
                             Log.i(LOG_TAG, "Connecting to " + selectedDevice.getName());
                             scanLeDevice(false);
                             deviceGatt = selectedDevice.connectGatt(context, true, gattCallback);
+                        } else {
+                            Log.i(LOG_TAG, "Using phone RSSI");
+                            scanLeDevice(false);
+                            deviceGatt = null;
                         }
                     }
                 })
