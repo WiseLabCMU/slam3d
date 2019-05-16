@@ -71,6 +71,7 @@ extern "C" {
     void particleFilter_addBcn(bcn_t* bcn);
     void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y, float z, float dist);
     void particleFilter_depositRange(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns);
+    void particleFilter_depositRssi(particleFilter_t* pf, bcn_t* bcn, int rssi, bcn_t** allBcns, int numBcns);
     void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, float* y, float* z, float* theta);
     void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z);
 

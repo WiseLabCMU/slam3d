@@ -21,7 +21,7 @@ void pfInit_initTag(tag_t* tag)
         pfInit_spawnTagParticle(&tag->pTag[i]);
 }
 
-void pfInit_initBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange)
+void pfInit_initBcnRange(bcn_t* bcn, const tag_t* tag, float range, float stdRange)
 {
     int i, j;
     const tagParticle_t* tp;
@@ -30,7 +30,21 @@ void pfInit_initBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange)
     {
         tp = &tag->pTag[i];
         for (j = 0; j < PF_N_BCN; ++j)
-            pfInit_spawnBcnParticle(&bcn->pBcn[i][j], tp, range, stdRange);
+            pfInit_spawnBcnParticleFromRange(&bcn->pBcn[i][j], tp, range, stdRange);
+    }
+    bcn->initialized = 1;
+}
+
+void pfInit_initBcnRssi(bcn_t* bcn, const tag_t* tag, int rssi)
+{
+    int i, j;
+    const tagParticle_t* tp;
+
+    for (i = 0; i < PF_N_TAG; ++i)
+    {
+        tp = &tag->pTag[i];
+        for (j = 0; j < PF_N_BCN; ++j)
+            pfInit_spawnBcnParticleFromRssi(&bcn->pBcn[i][j], tp, rssi);
     }
     bcn->initialized = 1;
 }
@@ -57,11 +71,22 @@ void pfInit_spawnTagParticleFromOther(tagParticle_t* tp, const tagParticle_t* ot
     tp->theta = fmodf(other->theta + dtheta * hTheta, 2 * (float)M_PI);
 }
 
-void pfInit_spawnBcnParticle(bcnParticle_t* bp, const tagParticle_t* tp, float range, float stdRange)
+void pfInit_spawnBcnParticleFromRange(bcnParticle_t* bp, const tagParticle_t* tp, float range, float stdRange)
 {
     float dx, dy, dz;
     
     pfRandom_sphere(&dx, &dy, &dz, range, stdRange);
+    bp->w = 1.0f;
+    bp->x = tp->x + dx;
+    bp->y = tp->y + dy;
+    bp->z = tp->z + dz;
+}
+
+void pfInit_spawnBcnParticleFromRssi(bcnParticle_t* bp, const tagParticle_t* tp, int rssi)
+{
+    float dx, dy, dz;
+
+    pfRandom_sphere(&dx, &dy, &dz, 1.5f, 0.5f);
     bp->w = 1.0f;
     bp->x = tp->x + dx;
     bp->y = tp->y + dy;

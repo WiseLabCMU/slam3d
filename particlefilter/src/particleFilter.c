@@ -13,6 +13,8 @@
 #include "pfMeasurement.h"
 #include "pfResample.h"
 
+static void _commitVio(particleFilter_t* pf);
+
 void particleFilter_init(particleFilter_t* pf)
 {
     pf->firstT = 0.0;
@@ -71,27 +73,29 @@ void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y,
 
 void particleFilter_depositRange(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
 {
-    float dt, dx, dy, dz, ddist;
-
-    dt = (float)(pf->lastT - pf->firstT);
-    dx = pf->lastX - pf->firstX;
-    dy = pf->lastY - pf->firstY;
-    dz = pf->lastZ - pf->firstZ;
-    ddist = pf->lastDist - pf->firstDist;
-    pf->firstT = pf->lastT;
-    pf->firstX = pf->lastX;
-    pf->firstY = pf->lastY;
-    pf->firstZ = pf->lastZ;
-    pf->firstDist = pf->lastDist;
-    pfMeasurement_applyVio(&pf->tag, dt, dx, dy, dz, ddist);
+    _commitVio(pf);
     if (bcn->initialized)
     {
         pfMeasurement_applyRange(&pf->tag, bcn, range, stdRange);
-        pfResample_resample(&pf->tag, bcn, range, stdRange, allBcns, numBcns);
+        pfResample_resampleRange(&pf->tag, bcn, range, stdRange, allBcns, numBcns);
     }
     else
     {
-        pfInit_initBcn(bcn, &pf->tag, range, stdRange);
+        pfInit_initBcnRange(bcn, &pf->tag, range, stdRange);
+    }
+}
+
+void particleFilter_depositRssi(particleFilter_t* pf, bcn_t* bcn, int rssi, bcn_t** allBcns, int numBcns)
+{
+    _commitVio(pf);
+    if (bcn->initialized)
+    {
+        pfMeasurement_applyRssi(&pf->tag, bcn, rssi);
+        pfResample_resampleRssi(&pf->tag, bcn, rssi, allBcns, numBcns);
+    }
+    else
+    {
+        pfInit_initBcnRssi(bcn, &pf->tag, rssi);
     }
 }
 
@@ -173,4 +177,21 @@ void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, doub
     *x = xsum1 / s1;
     *y = ysum1 / s1;
     *z = zsum1 / s1;
+}
+
+static void _commitVio(particleFilter_t* pf)
+{
+    float dt, dx, dy, dz, ddist;
+
+    dt = (float)(pf->lastT - pf->firstT);
+    dx = pf->lastX - pf->firstX;
+    dy = pf->lastY - pf->firstY;
+    dz = pf->lastZ - pf->firstZ;
+    ddist = pf->lastDist - pf->firstDist;
+    pf->firstT = pf->lastT;
+    pf->firstX = pf->lastX;
+    pf->firstY = pf->lastY;
+    pf->firstZ = pf->lastZ;
+    pf->firstDist = pf->lastDist;
+    pfMeasurement_applyVio(&pf->tag, dt, dx, dy, dz, ddist);
 }
