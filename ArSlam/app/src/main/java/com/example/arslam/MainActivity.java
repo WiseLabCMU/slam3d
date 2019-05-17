@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
         Date date = new Date();
         poseManager = ENABLE_LOG ?
-                new PoseManager(generateVioFilename(date), generateUwbFilename(date), generateTagFilename(date), generateBcnFilename(date))
+                new PoseManager(generateVioFilename(date), generateUwbFilename(date), generateRssiFilename(date), generateTagFilename(date), generateBcnFilename(date))
                 : new PoseManager();
 
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -106,7 +106,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onBleRssi(String address, int rssi) {
-
+                if (rssi > -45) {
+                    poseManager.depositRssi(SystemClock.elapsedRealtime(), address, rssi);
+                }
             }
         });
     }
@@ -279,6 +281,12 @@ public class MainActivity extends AppCompatActivity {
         String dateString = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(date);
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
                 + File.separator + "arslam/" + dateString + "_uwb.csv";
+    }
+
+    private String generateRssiFilename(Date date) {
+        String dateString = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(date);
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+                + File.separator + "arslam/" + dateString + "_rssi.csv";
     }
 
     private String generateTagFilename(Date date) {

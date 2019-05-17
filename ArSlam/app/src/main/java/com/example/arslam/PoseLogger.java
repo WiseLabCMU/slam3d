@@ -15,20 +15,24 @@ import java.util.Map;
 public class PoseLogger {
     private List<Slam3dJni.VioMeasurement> vio;
     private List<Slam3dJni.RangeMeasurement> uwb;
+    private List<Slam3dJni.RssiMeasurement> rssi;
     private List<Slam3dJni.TagLocation> tag;
     private String vioFilename;
     private String uwbFilename;
+    private String rssiFilename;
     private String tagFilename;
     private String bcnFilename;
 
     private static final String LOG_TAG = "PoseLogger";
 
-    public PoseLogger(String vioFilename, String uwbFilename, String tagFilename, String bcnFilename) {
+    public PoseLogger(String vioFilename, String uwbFilename, String rssiFilename, String tagFilename, String bcnFilename) {
         vio = new ArrayList<>();
         uwb = new ArrayList<>();
+        rssi = new ArrayList<>();
         tag = new ArrayList<>();
         this.vioFilename = vioFilename;
         this.uwbFilename = uwbFilename;
+        this.rssiFilename = rssiFilename;
         this.bcnFilename = bcnFilename;
         this.tagFilename = tagFilename;
     }
@@ -41,6 +45,10 @@ public class PoseLogger {
         this.uwb.add(new Slam3dJni.RangeMeasurement(elapsedRealtimeMillis / 1000.0, bcnName, range, stdRange));
     }
 
+    public void logRssi(long elapsedRealtimeMillis, String bcnName, int rssi) {
+        this.rssi.add(new Slam3dJni.RssiMeasurement(elapsedRealtimeMillis / 1000.0, bcnName, rssi));
+    }
+
     public void logTag(Slam3dJni.TagLocation tagLocation) {
         this.tag.add(new Slam3dJni.TagLocation(tagLocation));
     }
@@ -48,6 +56,7 @@ public class PoseLogger {
     public void writeLogs(HashMap<String, Slam3dJni.BcnLocation> bcns) throws IOException {
         saveVioToDisk();
         saveUwbToDisk();
+        saveRssiToDisk();
         saveTagToDisk();
         saveBcnToDisk(bcns);
     }
@@ -78,6 +87,20 @@ public class PoseLogger {
             }
         }
         uwb.clear();
+    }
+
+    private void saveRssiToDisk() throws IOException {
+        File out = new File(rssiFilename);
+        if (!out.getParentFile().exists()) {
+            out.getParentFile().mkdirs();
+        }
+        try (FileOutputStream stream = new FileOutputStream(out)) {
+            stream.write("t,b,r\n".getBytes());
+            for (Slam3dJni.RssiMeasurement r : rssi) {
+                stream.write((r.toString() + "\n").getBytes());
+            }
+        }
+        rssi.clear();
     }
 
     private void saveTagToDisk() throws IOException {

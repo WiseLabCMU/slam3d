@@ -49,6 +49,14 @@ JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilterDepositRa
     (*env)->ReleaseLongArrayElements(env, bcnArray, (jlong*)allBcns, 0);
 }
 
+JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilterDepositRssi(
+        JNIEnv* env, jclass clazz, jlong pf, jlong bcn, jint rssi, jlongArray bcnArray) {
+    bcn_t** allBcns = (bcn_t**)(*env)->GetLongArrayElements(env, bcnArray, NULL);
+    int numBcns = (int)(*env)->GetArrayLength(env, bcnArray);
+    particleFilter_depositRssi((particleFilter_t*)pf, (bcn_t*)bcn, (int)rssi, allBcns, numBcns);
+    (*env)->ReleaseLongArrayElements(env, bcnArray, (jlong*)allBcns, 0);
+}
+
 JNIEXPORT jobject JNICALL Java_com_example_arslam_Slam3dJni_particleFilterGetTagLoc(
         JNIEnv* env, jclass clazz, jlong pf) {
     double t;

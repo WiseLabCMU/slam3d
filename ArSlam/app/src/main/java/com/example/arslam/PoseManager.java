@@ -23,9 +23,9 @@ public class PoseManager {
         updatePose();
     }
 
-    public PoseManager(String vioFilename, String uwbFilename, String tagFilename, String bcnFilename) {
+    public PoseManager(String vioFilename, String uwbFilename, String rssiFilename, String tagFilename, String bcnFilename) {
         slam3d = new Slam3dJni();
-        logger = new PoseLogger(vioFilename, uwbFilename, tagFilename, bcnFilename);
+        logger = new PoseLogger(vioFilename, uwbFilename, rssiFilename, tagFilename, bcnFilename);
         updatePose();
     }
 
@@ -59,6 +59,14 @@ public class PoseManager {
         updatePose();
         if (logger != null) {
             logger.logUwb(elapsedRealtimeMillis, bcnName, range, stdRange);
+        }
+    }
+
+    public void depositRssi(long elapsedRealtimeMillis, String bcnName, int rssi) {
+        slam3d.depositRssi(bcnName, rssi);
+        updatePose();
+        if (logger != null) {
+            logger.logRssi(elapsedRealtimeMillis, bcnName, rssi);
         }
     }
 

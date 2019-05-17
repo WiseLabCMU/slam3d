@@ -49,6 +49,23 @@ public class Slam3dJni {
         }
     }
 
+    public static class RssiMeasurement {
+        public final double t;
+        public final String bcnName;
+        public final int rssi;
+
+        public RssiMeasurement(double t, String bcnName, int rssi) {
+            this.t = t;
+            this.bcnName = bcnName;
+            this.rssi = rssi;
+        }
+
+        @Override
+        public String toString() {
+            return String.format(Locale.US, "%.3f", t) + "," + bcnName + "," + rssi;
+        }
+    }
+
     public static class TagLocation {
         public final double t;
         public final float x;
@@ -116,6 +133,7 @@ public class Slam3dJni {
     private static native void particleFilterFreeBcn(long bcn);
     private static native void particleFilterDepositVio(long pf, double t, float x, float y, float z, float dist);
     private static native void particleFilterDepositRange(long pf, long bcn, float range, float stdRange, long[] bcnArray);
+    private static native void particleFilterDepositRssi(long pf, long bcn, int rssi, long[] bcnArray);
     private static native TagLocation particleFilterGetTagLoc(long pf);
     private static native BcnLocation particleFilterGetBcnLoc(long pf, long bcn);
 
@@ -164,6 +182,25 @@ public class Slam3dJni {
             bcnArray[i++] = bcn;
         }
         particleFilterDepositRange(pf, bcnMap.get(bcnName), range, stdRange, bcnArray);
+        tagLocation = particleFilterGetTagLoc(pf);
+        for (String bcn : bcnMap.keySet()) {
+            bcnLocations.put(bcn, particleFilterGetBcnLoc(pf, bcnMap.get(bcn)));
+        }
+    }
+
+    public void depositRssi(String bcnName, int rssi) {
+        if (pf == 0L) {
+            throw new NullPointerException("Slam3d is not initialized");
+        }
+        if (!bcnMap.containsKey(bcnName)) {
+            bcnMap.put(bcnName, particleFilterNewBcn());
+        }
+        long[] bcnArray = new long[bcnMap.size()];
+        int i = 0;
+        for (Long bcn : bcnMap.values()) {
+            bcnArray[i++] = bcn;
+        }
+        particleFilterDepositRssi(pf, bcnMap.get(bcnName), rssi, bcnArray);
         tagLocation = particleFilterGetTagLoc(pf);
         for (String bcn : bcnMap.keySet()) {
             bcnLocations.put(bcn, particleFilterGetBcnLoc(pf, bcnMap.get(bcn)));
