@@ -107,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onBleRssi(String address, int rssi) {
                 if (rssi > -45) {
+                    Log.i(LOG_TAG, "Got strong BLE " + address);
                     poseManager.depositRssi(SystemClock.elapsedRealtime(), address, rssi);
                 }
             }
