@@ -32,7 +32,7 @@
     <ClCompile Include="..\particlefilter\src\pfResample.c">
       <Filter>Source Files\particlefilter</Filter>
     </ClCompile>
-    <ClCompile Include="src\csvread.c">
+    <ClCompile Include="src\csvslam.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
