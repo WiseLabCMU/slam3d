@@ -1,5 +1,5 @@
-//
-//  csvslam.c
+﻿//
+//  csvlocalize.c
 //
 //  Created by John Miller on 11/1/18.
 //  Copyright � 2018 CMU. All rights reserved.
@@ -45,7 +45,7 @@ int main(void)
     float vioX, vioY, vioZ, uwbR, outX, outY, outZ, outTheta;
     uint8_t uwbB, haveVio, haveUwb;
     int i;
-    
+
     printf("Starting localization\n");
     vioFile = fopen(VIO_FILE, "r");
     uwbFile = fopen(UWB_FILE, "r");
@@ -58,7 +58,7 @@ int main(void)
         _bcnPtrs[i] = &_bcns[i];
     }
     printf("Initialized\n");
-    
+
     haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ, SKIP_TO_WAYPOINT);
     haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR, SKIP_TO_WAYPOINT);
     while (haveVio || haveUwb)
@@ -89,7 +89,7 @@ int main(void)
     fclose(uwbFile);
     fclose(tagOutFile);
     fclose(bcnOutFile);
-    
+
     printf("Done\n");
     return 0;
 }
@@ -112,7 +112,7 @@ static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z, u
         *x = (float)atof(strtok(NULL, ",\n"));
         fgets(_lineBuf, LINE_LEN, vioFile); // Skip line for orientation
     } while (skipToWaypoint && waypoint < '4');
-    
+
     return 1;
 }
 
@@ -131,7 +131,7 @@ static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r, uint8_t s
         *b = strtok(NULL, ",")[0] - 'a';
         *r = (float)atof(strtok(NULL, ",\n"));
     } while (skipToWaypoint && waypoint < '4');
-    
+
     assert(*b < NUM_BCNS);
     return 1;
 }
