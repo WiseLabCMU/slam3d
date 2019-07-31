@@ -138,10 +138,22 @@ static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r, uint8_t s
 
 static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, float theta)
 {
+    static uint8_t printedHeaders = 0;
+    if (!printedHeaders)
+    {
+        fprintf(outFile, "t,x,y,z,theta\n");
+        printedHeaders = 1;
+    }
     fprintf(outFile, "%lf,%f,%f,%f,%f\n", t, x, y, z, theta);
 }
 
 static void _writeBcnLoc(FILE* outFile, uint8_t b, float x, float y, float z)
 {
+    static uint8_t printedHeaders = 0;
+    if (!printedHeaders)
+    {
+        fprintf(outFile, "b,x,y,z\n");
+        printedHeaders = 1;
+    }
     fprintf(outFile, "%hhu,%f,%f,%f\n", b, x, y, z);
 }
