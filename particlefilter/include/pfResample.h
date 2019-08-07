@@ -8,7 +8,7 @@
 #ifndef _PFRESAMPLE_H
 #define _PFRESAMPLE_H
 
-#include "particleFilter.h"
+#include "pfSlam.h"
 
 #ifdef __cplusplus
 extern "C" {

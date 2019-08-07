@@ -8,7 +8,7 @@
 #ifndef _PFMEASUREMENT_H
 #define _PFMEASUREMENT_H
 
-#include "particleFilter.h"
+#include "pfSlam.h"
 
 #ifdef __cplusplus
 extern "C" {

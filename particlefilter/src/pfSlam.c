@@ -95,7 +95,7 @@ void particleFilter_depositRssi(particleFilter_t* pf, bcn_t* bcn, int rssi, bcn_
     }
     else
     {
-        pfInit_initBcnRssi(bcn, &pf->tag, rssi);
+        pfInit_initBcnRange(bcn, &pf->tag, 1.5f, 0.5f);
     }
 }
 

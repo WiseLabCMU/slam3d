@@ -30,15 +30,6 @@ void pfInit_initTagRange(tag_t* tag, float bx, float by, float bz, float range, 
         pfInit_spawnTagParticleFromRange(&tag->pTag[i], bx, by, bz, range, stdRange);
 }
 
-void pfInit_initTagRssi(tag_t* tag, float bx, float by, float bz, int rssi)
-{
-    int i;
-
-    pfRandom_init();
-    for (i = 0; i < PF_N_TAG; ++i)
-        pfInit_spawnTagParticleFromRssi(&tag->pTag[i], bx, by, bz, rssi);
-}
-
 void pfInit_initBcnRange(bcn_t* bcn, const tag_t* tag, float range, float stdRange)
 {
     int i, j;
@@ -49,20 +40,6 @@ void pfInit_initBcnRange(bcn_t* bcn, const tag_t* tag, float range, float stdRan
         tp = &tag->pTag[i];
         for (j = 0; j < PF_N_BCN; ++j)
             pfInit_spawnBcnParticleFromRange(&bcn->pBcn[i][j], tp, range, stdRange);
-    }
-    bcn->initialized = 1;
-}
-
-void pfInit_initBcnRssi(bcn_t* bcn, const tag_t* tag, int rssi)
-{
-    int i, j;
-    const tagParticle_t* tp;
-
-    for (i = 0; i < PF_N_TAG; ++i)
-    {
-        tp = &tag->pTag[i];
-        for (j = 0; j < PF_N_BCN; ++j)
-            pfInit_spawnBcnParticleFromRssi(&bcn->pBcn[i][j], tp, rssi);
     }
     bcn->initialized = 1;
 }
@@ -88,18 +65,6 @@ void pfInit_spawnTagParticleFromRange(tagParticle_t* tp, float bx, float by, flo
     tp->theta = pfRandom_uniform() * 2 * (float)M_PI;
 }
 
-void pfInit_spawnTagParticleFromRssi(tagParticle_t* tp, float bx, float by, float bz, int rssi)
-{
-    float dx, dy, dz;
-
-    pfRandom_sphere(&dx, &dy, &dz, 1.5f, 0.5f);
-    tp->w = 1.0f;
-    tp->x = bx + dx;
-    tp->y = by + dy;
-    tp->z = bz + dz;
-    tp->theta = pfRandom_uniform() * 2 * (float)M_PI;
-}
-
 void pfInit_spawnTagParticleFromOther(tagParticle_t* tp, const tagParticle_t* other, float hXyz, float hTheta)
 {
     float dx, dy, dz, dtheta;
@@ -118,17 +83,6 @@ void pfInit_spawnBcnParticleFromRange(bcnParticle_t* bp, const tagParticle_t* tp
     float dx, dy, dz;
     
     pfRandom_sphere(&dx, &dy, &dz, range, stdRange);
-    bp->w = 1.0f;
-    bp->x = tp->x + dx;
-    bp->y = tp->y + dy;
-    bp->z = tp->z + dz;
-}
-
-void pfInit_spawnBcnParticleFromRssi(bcnParticle_t* bp, const tagParticle_t* tp, int rssi)
-{
-    float dx, dy, dz;
-
-    pfRandom_sphere(&dx, &dy, &dz, 1.5f, 0.5f);
     bp->w = 1.0f;
     bp->x = tp->x + dx;
     bp->y = tp->y + dy;
