@@ -22,6 +22,7 @@
 
 #define VIO_FILE            TRACE_DIR "vio.csv"
 #define UWB_FILE            TRACE_DIR "uwb.csv"
+#define DEPLOY_FILE         TRACE_DIR "deploy.csv"
 #define TAG_OUT_FILE        TRACE_DIR "tag.csv"
 #define BCN_OUT_FILE        TRACE_DIR "bcn.csv"
 #define LINE_LEN            (1024)
