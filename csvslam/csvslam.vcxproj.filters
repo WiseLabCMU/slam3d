@@ -17,9 +17,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\particlefilter\src\particleFilter.c">
-      <Filter>Source Files\particlefilter</Filter>
-    </ClCompile>
     <ClCompile Include="..\particlefilter\src\pfInit.c">
       <Filter>Source Files\particlefilter</Filter>
     </ClCompile>
@@ -35,11 +32,11 @@
     <ClCompile Include="csvslam.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\particlefilter\src\pfSlam.c">
+      <Filter>Source Files\particlefilter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\particlefilter\include\particleFilter.h">
-      <Filter>Header Files\particlefilter</Filter>
-    </ClInclude>
     <ClInclude Include="..\particlefilter\include\pfInit.h">
       <Filter>Header Files\particlefilter</Filter>
     </ClInclude>
@@ -50,6 +47,9 @@
       <Filter>Header Files\particlefilter</Filter>
     </ClInclude>
     <ClInclude Include="..\particlefilter\include\pfResample.h">
+      <Filter>Header Files\particlefilter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\particlefilter\include\pfSlam.h">
       <Filter>Header Files\particlefilter</Filter>
     </ClInclude>
   </ItemGroup>

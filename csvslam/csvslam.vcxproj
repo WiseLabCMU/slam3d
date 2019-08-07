@@ -87,19 +87,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\particlefilter\src\particleFilter.c" />
     <ClCompile Include="..\particlefilter\src\pfInit.c" />
     <ClCompile Include="..\particlefilter\src\pfMeasurement.c" />
     <ClCompile Include="..\particlefilter\src\pfRandom.c" />
     <ClCompile Include="..\particlefilter\src\pfResample.c" />
+    <ClCompile Include="..\particlefilter\src\pfSlam.c" />
     <ClCompile Include="csvslam.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\particlefilter\include\particleFilter.h" />
     <ClInclude Include="..\particlefilter\include\pfInit.h" />
     <ClInclude Include="..\particlefilter\include\pfMeasurement.h" />
     <ClInclude Include="..\particlefilter\include\pfRandom.h" />
     <ClInclude Include="..\particlefilter\include\pfResample.h" />
+    <ClInclude Include="..\particlefilter\include\pfSlam.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

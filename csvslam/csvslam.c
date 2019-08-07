@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "particleFilter.h"
+#include "pfSlam.h"
 
 #define DATA_DIR            "../sampledata/"
 #define TRACE_DIR           DATA_DIR "cic/0/"

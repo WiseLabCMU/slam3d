@@ -1,5 +1,5 @@
 //
-//  particleFilter.c
+//  pfSlam.c
 //
 //  Created by John Miller on 11/1/18.
 //  Copyright © 2018 CMU. All rights reserved.
@@ -8,7 +8,7 @@
 #include <math.h>
 #include <stdint.h>
 
-#include "particleFilter.h"
+#include "pfSlam.h"
 #include "pfInit.h"
 #include "pfMeasurement.h"
 #include "pfResample.h"
