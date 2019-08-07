@@ -78,14 +78,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\particlefilter\include\particleFilter.h" />
     <ClInclude Include="..\particlefilter\include\pfInit.h" />
+    <ClInclude Include="..\particlefilter\include\pfLocalize.h" />
     <ClInclude Include="..\particlefilter\include\pfMeasurement.h" />
     <ClInclude Include="..\particlefilter\include\pfRandom.h" />
     <ClInclude Include="..\particlefilter\include\pfResample.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\particlefilter\src\particleFilter.c" />
     <ClCompile Include="..\particlefilter\src\pfInit.c" />
     <ClCompile Include="..\particlefilter\src\pfMeasurement.c" />
     <ClCompile Include="..\particlefilter\src\pfRandom.c" />
