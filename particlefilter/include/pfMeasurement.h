@@ -15,8 +15,8 @@ extern "C" {
 #endif
     
     void pfMeasurement_applyVio(tag_t* tag, float dt, float dx, float dy, float dz, float ddist);
+    void pfMeasurement_applyRange(tag_t* tag, float bx, float by, float bz, float range, float stdRange);
     void pfMeasurement_applyRange(tag_t* tag, bcn_t* bcn, float range, float stdRange);
-    void pfMeasurement_applyRssi(tag_t* tag, bcn_t* bcn, int rssi);
     
 #ifdef __cplusplus
 } // extern "C"

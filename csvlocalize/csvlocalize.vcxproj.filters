@@ -49,5 +49,8 @@
     <ClCompile Include="csvlocalize.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\particlefilter\src\pfLocalize.c">
+      <Filter>Source Files\particlefilter</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

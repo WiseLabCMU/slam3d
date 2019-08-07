@@ -86,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\particlefilter\src\pfInit.c" />
+    <ClCompile Include="..\particlefilter\src\pfLocalize.c" />
     <ClCompile Include="..\particlefilter\src\pfMeasurement.c" />
     <ClCompile Include="..\particlefilter\src\pfRandom.c" />
     <ClCompile Include="..\particlefilter\src\pfResample.c" />

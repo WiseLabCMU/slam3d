@@ -51,8 +51,8 @@ extern "C" {
 
     void pfLocalize_init(pfLocalize_t* pf);
     void pfLocalize_depositVio(pfLocalize_t* pf, double t, float x, float y, float z, float dist);
-    void pfLocalize_depositRange(pfLocalize_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns);
-    void pfLocalize_depositRssi(pfLocalize_t* pf, bcn_t* bcn, int rssi, bcn_t** allBcns, int numBcns);
+    void pfLocalize_depositRange(pfLocalize_t* pf, float bx, float by, float bz, float range, float stdRange);
+    void pfLocalize_depositRssi(pfLocalize_t* pf, float bx, float by, float bz, int rssi);
     void pfLocalize_getTagLoc(const pfLocalize_t* pf, double* t, float* x, float* y, float* z, float* theta);
 
 #ifdef __cplusplus

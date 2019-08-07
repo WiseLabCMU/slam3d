@@ -43,6 +43,25 @@ void pfMeasurement_applyVio(tag_t* tag, float dt, float dx, float dy, float dz, 
     }
 }
 
+void pfMeasurement_applyRange(tag_t* tag, float bx, float by, float bz, float range, float stdRange)
+{
+    int i;
+    tagParticle_t* tp;
+    float minWeight, dx, dy, dz, pRange;
+
+    minWeight = MIN_WEIGHT(range);
+    for (i = 0; i < PF_N_TAG; ++i)
+    {
+        tp = &tag->pTag[i];
+        dx = tp->x - bx;
+        dy = tp->y - by;
+        dz = tp->z - bz;
+        pRange = sqrtf(dx * dx + dy * dy + dz * dz);
+        if (fabsf(pRange - range) > 3 * stdRange)
+            tp->w *= minWeight;
+    }
+}
+
 void pfMeasurement_applyRange(tag_t* tag, bcn_t* bcn, float range, float stdRange)
 {
     int i, j;
@@ -63,33 +82,6 @@ void pfMeasurement_applyRange(tag_t* tag, bcn_t* bcn, float range, float stdRang
             dz = tp->z - bp->z;
             pRange = sqrtf(dx * dx + dy * dy + dz * dz);
             if (fabsf(pRange - range) > 3 * stdRange)
-                bp->w *= minWeight;
-            bcnSum += bp->w;
-        }
-        tp->w *= bcnSum;
-    }
-}
-
-void pfMeasurement_applyRssi(tag_t* tag, bcn_t* bcn, int rssi)
-{
-    int i, j;
-    tagParticle_t* tp;
-    bcnParticle_t* bp;
-    float minWeight, dx, dy, dz, pRange, bcnSum;
-
-    minWeight = 0.1f;
-    for (i = 0; i < PF_N_TAG; ++i)
-    {
-        tp = &tag->pTag[i];
-        bcnSum = 0.0f;
-        for (j = 0; j < PF_N_BCN; ++j)
-        {
-            bp = &bcn->pBcn[i][j];
-            dx = tp->x - bp->x;
-            dy = tp->y - bp->y;
-            dz = tp->z - bp->z;
-            pRange = sqrtf(dx * dx + dy * dy + dz * dz);
-            if (fabsf(pRange) > 3)
                 bp->w *= minWeight;
             bcnSum += bp->w;
         }

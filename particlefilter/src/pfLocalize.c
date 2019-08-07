@@ -1,5 +1,5 @@
 //
-//  pfSlam.c
+//  pfLocalize.c
 //
 //  Created by John Miller on 11/1/18.
 //  Copyright © 2018 CMU. All rights reserved.
@@ -8,14 +8,14 @@
 #include <math.h>
 #include <stdint.h>
 
-#include "pfSlam.h"
+#include "pfLocalize.h"
 #include "pfInit.h"
 #include "pfMeasurement.h"
 #include "pfResample.h"
 
 static void _commitVio(particleFilter_t* pf);
 
-void particleFilter_init(particleFilter_t* pf)
+void pfLocalize_init(particleFilter_t* pf)
 {
     pf->firstT = 0.0;
     pf->firstX = 0.0f;
@@ -30,12 +30,7 @@ void particleFilter_init(particleFilter_t* pf)
     pfInit_initTag(&pf->tag);
 }
 
-void particleFilter_addBcn(bcn_t* bcn)
-{
-    bcn->initialized = 0;
-}
-
-void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y, float z, float dist)
+void pfLocalize_depositVio(particleFilter_t* pf, double t, float x, float y, float z, float dist)
 {
     float dx, dy, dz;
     
@@ -71,35 +66,21 @@ void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y,
     pf->lastZ = z;
 }
 
-void particleFilter_depositRange(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
+void pfLocalize_depositRange(particleFilter_t* pf, float bx, float by, float bz, float range, float stdRange)
 {
     _commitVio(pf);
-    if (bcn->initialized)
-    {
-        pfMeasurement_applyRange(&pf->tag, bcn, range, stdRange);
-        pfResample_resample(&pf->tag, bcn, range, stdRange, allBcns, numBcns);
-    }
-    else
-    {
-        pfInit_initBcn(bcn, &pf->tag, range, stdRange);
-    }
+    pfMeasurement_applyRange(&pf->tag, bx, by, bz, range, stdRange);
+    pfResample_resample(&pf->tag, bx, by, bz, range, stdRange);
 }
 
-void particleFilter_depositRssi(particleFilter_t* pf, bcn_t* bcn, int rssi, bcn_t** allBcns, int numBcns)
+void pfLocalize_depositRssi(particleFilter_t* pf, float bx, float by, float bz, int rssi)
 {
     _commitVio(pf);
-    if (bcn->initialized)
-    {
-        pfMeasurement_applyRange(&pf->tag, bcn, 1.5f, 0.5f);
-        pfResample_resample(&pf->tag, bcn, 1.5f, 0.5f, allBcns, numBcns);
-    }
-    else
-    {
-        pfInit_initBcn(bcn, &pf->tag, 1.5f, 0.5f);
-    }
+    pfMeasurement_applyRssi(&pf->tag, bx, by, bz, 1.5f, 0.5f);
+    pfResample_resample(&pf->tag, bx, by, bz, 1.5f, 0.5f);
 }
 
-void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, float* y, float* z, float* theta)
+void pfLocalize_getTagLoc(const particleFilter_t* pf, double* t, float* x, float* y, float* z, float* theta)
 {
     int i;
     const tagParticle_t* tp;
@@ -137,46 +118,6 @@ void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, f
     *x += dx * co - dy * si;
     *y += dx * si + dy * co;
     *z += dz;
-}
-
-void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z)
-{
-    int i, j;
-    const bcnParticle_t* bp;
-    float w1, w2, s1, s2, xsum1, xsum2, ysum1, ysum2, zsum1, zsum2;
-    
-    if (!bcn->initialized)
-        return;
-    
-    s1 = 0.0f;
-    xsum1 = 0.0f;
-    ysum1 = 0.0f;
-    zsum1 = 0.0f;
-    for (i = 0; i < PF_N_TAG; ++i)
-    {
-        w1 = pf->tag.pTag[i].w;
-        s1 += w1;
-        s2 = 0.0f;
-        xsum2 = 0.0f;
-        ysum2 = 0.0f;
-        zsum2 = 0.0f;
-        for (j = 0; j < PF_N_BCN; ++j)
-        {
-            bp = &bcn->pBcn[i][j];
-            w2 = bp->w;
-            s2 += w2;
-            xsum2 += w2 * bp->x;
-            ysum2 += w2 * bp->y;
-            zsum2 += w2 * bp->z;
-        }
-        xsum1 += w1 * xsum2 / s2;
-        ysum1 += w1 * ysum2 / s2;
-        zsum1 += w1 * zsum2 / s2;
-    }
-    *t = pf->lastT;
-    *x = xsum1 / s1;
-    *y = ysum1 / s1;
-    *z = zsum1 / s1;
 }
 
 static void _commitVio(particleFilter_t* pf)

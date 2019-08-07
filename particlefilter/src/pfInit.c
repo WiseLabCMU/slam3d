@@ -21,7 +21,7 @@ void pfInit_initTag(tag_t* tag)
         pfInit_spawnTagParticle(&tag->pTag[i]);
 }
 
-void pfInit_initTagRange(tag_t* tag, float bx, float by, float bz, float range, float stdRange)
+void pfInit_initTag(tag_t* tag, float bx, float by, float bz, float range, float stdRange)
 {
     int i;
 
@@ -30,7 +30,7 @@ void pfInit_initTagRange(tag_t* tag, float bx, float by, float bz, float range, 
         pfInit_spawnTagParticleFromRange(&tag->pTag[i], bx, by, bz, range, stdRange);
 }
 
-void pfInit_initBcnRange(bcn_t* bcn, const tag_t* tag, float range, float stdRange)
+void pfInit_initBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange)
 {
     int i, j;
     const tagParticle_t* tp;
