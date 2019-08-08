@@ -24,24 +24,20 @@
 #define UWB_FILE            TRACE_DIR "uwb.csv"
 #define DEPLOY_FILE         TRACE_DIR "deploy.csv"
 #define TAG_OUT_FILE        TRACE_DIR "tag.csv"
-#define BCN_OUT_FILE        TRACE_DIR "bcn.csv"
 #define LINE_LEN            (1024)
 
 static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z, uint8_t skipToWaypoint);
 static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r, uint8_t skipToWaypoint);
 static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, float theta);
-static void _writeBcnLoc(FILE* outFile, uint8_t b, float x, float y, float z);
 
 static particleFilter_t _particleFilter;
-static bcn_t _bcns[NUM_BCNS];
-static bcn_t *_bcnPtrs[NUM_BCNS];
 
 int main(void)
 {
     FILE* vioFile;
     FILE* uwbFile;
+    FILE* deployFile;
     FILE* tagOutFile;
-    FILE* bcnOutFile;
     double vioT, uwbT, outT;
     float vioX, vioY, vioZ, uwbR, outX, outY, outZ, outTheta;
     uint8_t uwbB, haveVio, haveUwb;
@@ -50,14 +46,9 @@ int main(void)
     printf("Starting localization\n");
     vioFile = fopen(VIO_FILE, "r");
     uwbFile = fopen(UWB_FILE, "r");
+    deployFile = fopen(DEPLOY_FILE, "r");
     tagOutFile = fopen(TAG_OUT_FILE, "w");
-    bcnOutFile = fopen(BCN_OUT_FILE, "w");
-    particleFilter_initSlam(&_particleFilter);
-    for (i = 0; i < NUM_BCNS; ++i)
-    {
-        particleFilter_addBcn(&_bcns[i]);
-        _bcnPtrs[i] = &_bcns[i];
-    }
+    particleFilter_init(&_particleFilter);
     printf("Initialized\n");
 
     haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ, SKIP_TO_WAYPOINT);
@@ -80,16 +71,11 @@ int main(void)
         }
     }
     printf("Finished localization\n");
-    for (uwbB = 0; uwbB < NUM_BCNS; ++uwbB)
-    {
-        particleFilter_getBcnLoc(&_particleFilter, &_bcns[uwbB], &outT, &outX, &outY, &outZ);
-        _writeBcnLoc(bcnOutFile, uwbB, outX, outY, outZ);
-    }
 
     fclose(vioFile);
     fclose(uwbFile);
+    fclose(deployFile);
     fclose(tagOutFile);
-    fclose(bcnOutFile);
 
     printf("Done\n");
     return 0;
