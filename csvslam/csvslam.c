@@ -51,7 +51,7 @@ int main(void)
     uwbFile = fopen(UWB_FILE, "r");
     tagOutFile = fopen(TAG_OUT_FILE, "w");
     bcnOutFile = fopen(BCN_OUT_FILE, "w");
-    particleFilter_init(&_particleFilter);
+    particleFilter_initSlam(&_particleFilter);
     for (i = 0; i < NUM_BCNS; ++i)
     {
         particleFilter_addBcn(&_bcns[i]);
@@ -74,7 +74,7 @@ int main(void)
         {
             uwbR -= UWB_BIAS;
             if (uwbR > 0.0f && uwbR < 30.0f)
-                particleFilter_depositRange(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD, _bcnPtrs, NUM_BCNS);
+                particleFilter_depositRangeSlam(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD, _bcnPtrs, NUM_BCNS);
             haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR, 0);
         }
     }
