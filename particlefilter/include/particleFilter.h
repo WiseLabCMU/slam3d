@@ -64,9 +64,11 @@ extern "C" {
         float lastZ;
         float lastDist;
         tag_t tag;
+        uint8_t initialized;
 
     } particleFilter_t;
 
+    void particleFilter_init(particleFilter_t* pf);
     void particleFilter_initSlam(particleFilter_t* pf);
     void particleFilter_addBcn(bcn_t* bcn);
     void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y, float z, float dist);

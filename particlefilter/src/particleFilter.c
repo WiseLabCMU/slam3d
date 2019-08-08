@@ -15,6 +15,21 @@
 
 static void _commitVio(particleFilter_t* pf);
 
+void particleFilter_init(particleFilter_t* pf)
+{
+    pf->firstT = 0.0;
+    pf->firstX = 0.0f;
+    pf->firstY = 0.0f;
+    pf->firstZ = 0.0f;
+    pf->firstDist = 0.0f;
+    pf->lastT = 0.0;
+    pf->lastX = 0.0f;
+    pf->lastY = 0.0f;
+    pf->lastZ = 0.0f;
+    pf->lastDist = 0.0f;
+    pf->initialized = 0;
+}
+
 void particleFilter_initSlam(particleFilter_t* pf)
 {
     pf->firstT = 0.0;
@@ -27,6 +42,7 @@ void particleFilter_initSlam(particleFilter_t* pf)
     pf->lastY = 0.0f;
     pf->lastZ = 0.0f;
     pf->lastDist = 0.0f;
+    pf->initialized = 0;
     pfInit_initTagSlam(&pf->tag);
 }
 
@@ -74,8 +90,16 @@ void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y,
 void particleFilter_depositRange(particleFilter_t* pf, float bx, float by, float bz, float range, float stdRange)
 {
     _commitVio(pf);
-    pfMeasurement_applyRange(&pf->tag, bx, by, bz, range, stdRange);
-    pfResample_resample(&pf->tag, bx, by, bz, range, stdRange);
+    if (pf->initialized)
+    {
+        pfMeasurement_applyRange(&pf->tag, bx, by, bz, range, stdRange);
+        pfResample_resample(&pf->tag, bx, by, bz, range, stdRange);
+    }
+    else
+    {
+        pfInit_initTag(&pf->tag, bx, by, bz, range, stdRange);
+        pf->initialized = 1;
+    }
 }
 
 void particleFilter_depositRangeSlam(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
@@ -89,14 +113,23 @@ void particleFilter_depositRangeSlam(particleFilter_t* pf, bcn_t* bcn, float ran
     else
     {
         pfInit_initBcn(bcn, &pf->tag, range, stdRange);
+        bcn->initialized = 1;
     }
 }
 
 void particleFilter_depositRssi(particleFilter_t* pf, float bx, float by, float bz, int rssi)
 {
     _commitVio(pf);
-    pfMeasurement_applyRange(&pf->tag, bx, by, bz, 1.5f, 0.5f);
-    pfResample_resample(&pf->tag, bx, by, bz, 1.5f, 0.5f);
+    if (pf->initialized)
+    {
+        pfMeasurement_applyRange(&pf->tag, bx, by, bz, 1.5f, 0.5f);
+        pfResample_resample(&pf->tag, bx, by, bz, 1.5f, 0.5f);
+    }
+    else
+    {
+        pfInit_initTag(&pf->tag, bx, by, bz, 1.5f, 0.5f);
+        pf->initialized = 1;
+    }
 }
 
 void particleFilter_depositRssiSlam(particleFilter_t* pf, bcn_t* bcn, int rssi, bcn_t** allBcns, int numBcns)
@@ -110,6 +143,7 @@ void particleFilter_depositRssiSlam(particleFilter_t* pf, bcn_t* bcn, int rssi, 
     else
     {
         pfInit_initBcn(bcn, &pf->tag, 1.5f, 0.5f);
+        bcn->initialized = 1;
     }
 }
 
