@@ -147,14 +147,14 @@ void particleFilter_depositRssiSlam(particleFilter_t* pf, bcn_t* bcn, int rssi, 
     }
 }
 
-void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, float* y, float* z, float* theta)
+uint8_t particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, float* y, float* z, float* theta)
 {
     int i;
     const tagParticle_t* tp;
     float w, s, xsum, ysum, zsum, csum, ssum, dx, dy, dz, co, si;
     
     if (!pf->tag.initialized)
-        return;
+        return 0;
 
     s = 0.0f;
     xsum = 0.0f;
@@ -188,16 +188,18 @@ void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, f
     *x += dx * co - dy * si;
     *y += dx * si + dy * co;
     *z += dz;
+
+    return 1;
 }
 
-void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z)
+uint8_t particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z)
 {
     int i, j;
     const bcnParticle_t* bp;
     float w1, w2, s1, s2, xsum1, xsum2, ysum1, ysum2, zsum1, zsum2;
     
     if (!bcn->initialized)
-        return;
+        return 0;
     
     s1 = 0.0f;
     xsum1 = 0.0f;
@@ -228,6 +230,8 @@ void particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, doub
     *x = xsum1 / s1;
     *y = ysum1 / s1;
     *z = zsum1 / s1;
+
+    return 1;
 }
 
 static void _commitVio(particleFilter_t* pf)

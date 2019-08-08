@@ -66,11 +66,8 @@ int main(void)
         if (haveVio && (!haveUwb || vioT < uwbT))
         {
             particleFilter_depositVio(&_particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
-            if (_particleFilter.tag.initialized)
-            {
-                particleFilter_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta);
+            if (particleFilter_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta))
                 _writeTagLoc(tagOutFile, outT, outX, outY, outZ, outTheta);
-            }
             haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ, 0);
         }
         else if (haveUwb)
@@ -84,8 +81,8 @@ int main(void)
     printf("Finished localization\n");
     for (uwbB = 0; uwbB < NUM_BCNS; ++uwbB)
     {
-        particleFilter_getBcnLoc(&_particleFilter, &_bcns[uwbB], &outT, &outX, &outY, &outZ);
-        _writeBcnLoc(bcnOutFile, uwbB, outX, outY, outZ);
+        if (particleFilter_getBcnLoc(&_particleFilter, &_bcns[uwbB], &outT, &outX, &outY, &outZ))
+            _writeBcnLoc(bcnOutFile, uwbB, outX, outY, outZ);
     }
 
     fclose(vioFile);
