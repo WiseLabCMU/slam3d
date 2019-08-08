@@ -1,12 +1,12 @@
 //
-//  pfSlam.h
+//  particleFilter.h
 //
 //  Created by John Miller on 11/1/18.
 //  Copyright © 2018 CMU. All rights reserved.
 //
 
-#ifndef _PFSLAM_H
-#define _PFSLAM_H
+#ifndef _PARTICLEFILTER_H
+#define _PARTICLEFILTER_H
 
 #include <stdint.h>
 

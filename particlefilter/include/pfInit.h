@@ -8,7 +8,7 @@
 #ifndef _PFINIT_H
 #define _PFINIT_H
 
-#include "pfSlam.h"
+#include "particleFilter.h"
 
 #ifdef __cplusplus
 extern "C" {

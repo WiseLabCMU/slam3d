@@ -29,7 +29,7 @@
     <ClInclude Include="..\particlefilter\include\pfResample.h">
       <Filter>Header Files\particlefilter</Filter>
     </ClInclude>
-    <ClInclude Include="..\particlefilter\include\pfLocalize.h">
+    <ClInclude Include="..\particlefilter\include\particleFilter.h">
       <Filter>Header Files\particlefilter</Filter>
     </ClInclude>
   </ItemGroup>
@@ -49,7 +49,7 @@
     <ClCompile Include="csvlocalize.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\particlefilter\src\pfLocalize.c">
+    <ClCompile Include="..\particlefilter\src\particleFilter.c">
       <Filter>Source Files\particlefilter</Filter>
     </ClCompile>
   </ItemGroup>
