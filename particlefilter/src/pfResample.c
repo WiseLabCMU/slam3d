@@ -78,7 +78,7 @@ void pfResample_resample(tag_t* tag, float bx, float by, float bz, float range, 
     }
 }
 
-void pfResample_resample(tag_t* tag, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
+void pfResample_resampleSlam(tag_t* tag, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
 {
     int i, j;
     tagParticle_t* tp;

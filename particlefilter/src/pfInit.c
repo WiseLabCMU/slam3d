@@ -12,15 +12,6 @@
 #include "pfInit.h"
 #include "pfRandom.h"
 
-void pfInit_initTag(tag_t* tag)
-{
-    int i;
-    
-    pfRandom_init();
-    for (i = 0; i < PF_N_TAG; ++i)
-        pfInit_spawnTagParticle(&tag->pTag[i]);
-}
-
 void pfInit_initTag(tag_t* tag, float bx, float by, float bz, float range, float stdRange)
 {
     int i;
@@ -28,6 +19,15 @@ void pfInit_initTag(tag_t* tag, float bx, float by, float bz, float range, float
     pfRandom_init();
     for (i = 0; i < PF_N_TAG; ++i)
         pfInit_spawnTagParticleFromRange(&tag->pTag[i], bx, by, bz, range, stdRange);
+}
+
+void pfInit_initTagSlam(tag_t* tag)
+{
+    int i;
+
+    pfRandom_init();
+    for (i = 0; i < PF_N_TAG; ++i)
+        pfInit_spawnTagParticle(&tag->pTag[i]);
 }
 
 void pfInit_initBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange)

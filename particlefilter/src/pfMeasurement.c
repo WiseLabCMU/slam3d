@@ -62,7 +62,7 @@ void pfMeasurement_applyRange(tag_t* tag, float bx, float by, float bz, float ra
     }
 }
 
-void pfMeasurement_applyRange(tag_t* tag, bcn_t* bcn, float range, float stdRange)
+void pfMeasurement_applyRangeSlam(tag_t* tag, bcn_t* bcn, float range, float stdRange)
 {
     int i, j;
     tagParticle_t* tp;

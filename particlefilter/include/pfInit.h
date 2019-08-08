@@ -14,8 +14,8 @@
 extern "C" {
 #endif
 
-    void pfInit_initTag(tag_t* tag);
     void pfInit_initTag(tag_t* tag, float bx, float by, float bz, float range, float stdRange);
+    void pfInit_initTagSlam(tag_t* tag);
     void pfInit_initBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange);
     void pfInit_spawnTagParticle(tagParticle_t* tp);
     void pfInit_spawnTagParticleFromRange(tagParticle_t* tp, float bx, float by, float bz, float range, float stdRange);
