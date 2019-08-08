@@ -153,6 +153,9 @@ void particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, f
     const tagParticle_t* tp;
     float w, s, xsum, ysum, zsum, csum, ssum, dx, dy, dz, co, si;
     
+    if (!pf->tag.initialized)
+        return;
+
     s = 0.0f;
     xsum = 0.0f;
     ysum = 0.0f;

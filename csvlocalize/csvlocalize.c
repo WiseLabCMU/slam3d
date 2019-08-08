@@ -43,7 +43,6 @@ int main(void)
     double vioT, uwbT, outT;
     float vioX, vioY, vioZ, uwbR, outX, outY, outZ, outTheta;
     uint8_t uwbB, haveVio, haveUwb;
-    int i;
 
     printf("Starting localization\n");
     vioFile = fopen(VIO_FILE, "r");
@@ -130,7 +129,20 @@ static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r, uint8_t s
 
 static void _getDeployment(FILE* deployFile, float deployment[NUM_BCNS][3])
 {
+    static char _lineBuf[LINE_LEN];
+    int i;
+    uint8_t b;
 
+    for (i = 0; i < NUM_BCNS; ++i)
+    {
+        if (fgets(_lineBuf, LINE_LEN, deployFile) == NULL)
+            return;
+        b = (uint8_t)atoi(strtok(_lineBuf, ","));
+        assert(b < NUM_BCNS);
+        deployment[b][0] = (float)atof(strtok(NULL, ","));
+        deployment[b][1] = (float)atof(strtok(NULL, ","));
+        deployment[b][2] = (float)atof(strtok(NULL, ",\n"));
+    }
 }
 
 static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, float theta)
