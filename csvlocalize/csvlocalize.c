@@ -28,6 +28,7 @@
 
 static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z, uint8_t skipToWaypoint);
 static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r, uint8_t skipToWaypoint);
+static void _getDeployment(FILE* deployFile, float deployment[NUM_BCNS][3]);
 static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, float theta);
 
 static particleFilter_t _particleFilter;
@@ -38,6 +39,7 @@ int main(void)
     FILE* uwbFile;
     FILE* deployFile;
     FILE* tagOutFile;
+    float deployment[NUM_BCNS][3];
     double vioT, uwbT, outT;
     float vioX, vioY, vioZ, uwbR, outX, outY, outZ, outTheta;
     uint8_t uwbB, haveVio, haveUwb;
@@ -46,9 +48,13 @@ int main(void)
     printf("Starting localization\n");
     vioFile = fopen(VIO_FILE, "r");
     uwbFile = fopen(UWB_FILE, "r");
-    deployFile = fopen(DEPLOY_FILE, "r");
     tagOutFile = fopen(TAG_OUT_FILE, "w");
     particleFilter_init(&_particleFilter);
+
+    deployFile = fopen(DEPLOY_FILE, "r");
+    _getDeployment(deployFile, deployment);
+    fclose(deployFile);
+
     printf("Initialized\n");
 
     haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ, SKIP_TO_WAYPOINT);
@@ -66,7 +72,7 @@ int main(void)
         {
             uwbR -= UWB_BIAS;
             if (uwbR > 0.0f && uwbR < 30.0f)
-                particleFilter_depositRangeSlam(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD, _bcnPtrs, NUM_BCNS);
+                particleFilter_depositRange(&_particleFilter, deployment[uwbB][0], deployment[uwbB][1], deployment[uwbB][2], uwbR, UWB_STD);
             haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR, 0);
         }
     }
@@ -74,7 +80,6 @@ int main(void)
 
     fclose(vioFile);
     fclose(uwbFile);
-    fclose(deployFile);
     fclose(tagOutFile);
 
     printf("Done\n");
@@ -123,6 +128,11 @@ static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r, uint8_t s
     return 1;
 }
 
+static void _getDeployment(FILE* deployFile, float deployment[NUM_BCNS][3])
+{
+
+}
+
 static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, float theta)
 {
     static uint8_t printedHeaders = 0;
@@ -132,15 +142,4 @@ static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, flo
         printedHeaders = 1;
     }
     fprintf(outFile, "%lf,%f,%f,%f,%f\n", t, x, y, z, theta);
-}
-
-static void _writeBcnLoc(FILE* outFile, uint8_t b, float x, float y, float z)
-{
-    static uint8_t printedHeaders = 0;
-    if (!printedHeaders)
-    {
-        fprintf(outFile, "b,x,y,z\n");
-        printedHeaders = 1;
-    }
-    fprintf(outFile, "%hhu,%f,%f,%f\n", b, x, y, z);
 }
