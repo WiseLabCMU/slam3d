@@ -66,8 +66,11 @@ int main(void)
         if (haveVio && (!haveUwb || vioT < uwbT))
         {
             particleFilter_depositVio(&_particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
-            particleFilter_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta);
-            _writeTagLoc(tagOutFile, outT, outX, outY, outZ, outTheta);
+            if (_particleFilter.tag.initialized)
+            {
+                particleFilter_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta);
+                _writeTagLoc(tagOutFile, outT, outX, outY, outZ, outTheta);
+            }
             haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ, 0);
         }
         else if (haveUwb)
