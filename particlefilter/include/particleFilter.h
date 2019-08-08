@@ -40,6 +40,7 @@ extern "C" {
     {
         tagParticle_t pTag[PF_N_TAG];
         tagParticle_t pTagBuf[PF_N_TAG];
+        uint8_t initialized;
         
     } tag_t;
     
@@ -64,7 +65,6 @@ extern "C" {
         float lastZ;
         float lastDist;
         tag_t tag;
-        uint8_t initialized;
 
     } particleFilter_t;
 

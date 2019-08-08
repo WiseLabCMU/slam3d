@@ -27,7 +27,7 @@ void particleFilter_init(particleFilter_t* pf)
     pf->lastY = 0.0f;
     pf->lastZ = 0.0f;
     pf->lastDist = 0.0f;
-    pf->initialized = 0;
+    pf->tag.initialized = 0;
 }
 
 void particleFilter_initSlam(particleFilter_t* pf)
@@ -42,8 +42,8 @@ void particleFilter_initSlam(particleFilter_t* pf)
     pf->lastY = 0.0f;
     pf->lastZ = 0.0f;
     pf->lastDist = 0.0f;
-    pf->initialized = 0;
     pfInit_initTagSlam(&pf->tag);
+    pf->tag.initialized = 1;
 }
 
 void particleFilter_addBcn(bcn_t* bcn)
@@ -90,7 +90,7 @@ void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y,
 void particleFilter_depositRange(particleFilter_t* pf, float bx, float by, float bz, float range, float stdRange)
 {
     _commitVio(pf);
-    if (pf->initialized)
+    if (pf->tag.initialized)
     {
         pfMeasurement_applyRange(&pf->tag, bx, by, bz, range, stdRange);
         pfResample_resample(&pf->tag, bx, by, bz, range, stdRange);
@@ -98,7 +98,7 @@ void particleFilter_depositRange(particleFilter_t* pf, float bx, float by, float
     else
     {
         pfInit_initTag(&pf->tag, bx, by, bz, range, stdRange);
-        pf->initialized = 1;
+        pf->tag.initialized = 1;
     }
 }
 
@@ -120,7 +120,7 @@ void particleFilter_depositRangeSlam(particleFilter_t* pf, bcn_t* bcn, float ran
 void particleFilter_depositRssi(particleFilter_t* pf, float bx, float by, float bz, int rssi)
 {
     _commitVio(pf);
-    if (pf->initialized)
+    if (pf->tag.initialized)
     {
         pfMeasurement_applyRange(&pf->tag, bx, by, bz, 1.5f, 0.5f);
         pfResample_resample(&pf->tag, bx, by, bz, 1.5f, 0.5f);
@@ -128,7 +128,7 @@ void particleFilter_depositRssi(particleFilter_t* pf, float bx, float by, float 
     else
     {
         pfInit_initTag(&pf->tag, bx, by, bz, 1.5f, 0.5f);
-        pf->initialized = 1;
+        pf->tag.initialized = 1;
     }
 }
 
