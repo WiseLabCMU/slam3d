@@ -33,7 +33,7 @@ static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, flo
 
 static particleFilterLoc_t _particleFilter;
 
-int main(void)
+int main(int argc, char** argv)
 {
     FILE* vioFile;
     FILE* uwbFile;

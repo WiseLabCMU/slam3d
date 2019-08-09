@@ -35,7 +35,7 @@ static particleFilterSlam_t _particleFilter;
 static bcn_t _bcns[NUM_BCNS];
 static bcn_t *_bcnPtrs[NUM_BCNS];
 
-int main(void)
+int main(int argc, char** argv)
 {
     FILE* vioFile;
     FILE* uwbFile;
