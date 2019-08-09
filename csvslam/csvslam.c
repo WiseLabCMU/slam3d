@@ -31,7 +31,7 @@ static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r, uint8_t s
 static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, float theta);
 static void _writeBcnLoc(FILE* outFile, uint8_t b, float x, float y, float z);
 
-static particleFilter_t _particleFilter;
+static particleFilterSlam_t _particleFilter;
 static bcn_t _bcns[NUM_BCNS];
 static bcn_t *_bcnPtrs[NUM_BCNS];
 
@@ -54,7 +54,7 @@ int main(void)
     particleFilter_initSlam(&_particleFilter);
     for (i = 0; i < NUM_BCNS; ++i)
     {
-        particleFilter_addBcn(&_bcns[i]);
+        particleFilter_addBcnSlam(&_bcns[i]);
         _bcnPtrs[i] = &_bcns[i];
     }
     printf("Initialized\n");
@@ -65,8 +65,8 @@ int main(void)
     {
         if (haveVio && (!haveUwb || vioT < uwbT))
         {
-            particleFilter_depositVio(&_particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
-            if (particleFilter_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta))
+            particleFilter_depositVioSlam(&_particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
+            if (particleFilter_getTagSlam(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta))
                 _writeTagLoc(tagOutFile, outT, outX, outY, outZ, outTheta);
             haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ, 0);
         }
@@ -81,7 +81,7 @@ int main(void)
     printf("Finished localization\n");
     for (uwbB = 0; uwbB < NUM_BCNS; ++uwbB)
     {
-        if (particleFilter_getBcnLoc(&_particleFilter, &_bcns[uwbB], &outT, &outX, &outY, &outZ))
+        if (particleFilter_getBcnSlam(&_particleFilter, &_bcns[uwbB], &outT, &outX, &outY, &outZ))
             _writeBcnLoc(bcnOutFile, uwbB, outX, outY, outZ);
     }
 

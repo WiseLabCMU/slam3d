@@ -20,20 +20,20 @@
 #define PCT_SPAWN           (0.05f)
 #define HXYZ                (0.1f)
 
-static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange, uint8_t force);
+static void _resampleBcn(bcn_t* bcn, const tagSlam_t* tag, float range, float stdRange, uint8_t force);
 
-void pfResample_resample(tag_t* tag, float bx, float by, float bz, float range, float stdRange)
+void pfResample_resampleLoc(tagLoc_t* tag, float bx, float by, float bz, float range, float stdRange)
 {
     int numSpawn, i, j;
     tagParticle_t* tp;
     float invN, w, s, ss, csum, ssum, ess, htheta, m, rStart, rStep;
-    float weightCdf[PF_N_TAG];
+    float weightCdf[PF_N_TAG_LOC];
 
     s = 0.0f;
     ss = 0.0f;
     csum = 0.0f;
     ssum = 0.0f;
-    for (i = 0; i < PF_N_TAG; ++i)
+    for (i = 0; i < PF_N_TAG_LOC; ++i)
     {
         tp = &tag->pTag[i];
         w = tp->w;
@@ -45,7 +45,7 @@ void pfResample_resample(tag_t* tag, float bx, float by, float bz, float range, 
     }
     ess = s * s / ss;
 
-    invN = 1.0f / PF_N_TAG;
+    invN = 1.0f / PF_N_TAG_LOC;
     numSpawn = 0;
     if (s * invN < WEIGHT_SPAWN_THRESH && range < RADIUS_SPAWN_THRESH)
         numSpawn = (int)lroundf(PF_N_BCN * PCT_SPAWN);
@@ -62,8 +62,8 @@ void pfResample_resample(tag_t* tag, float bx, float by, float bz, float range, 
         rStep = invN * s;
         rStart = pfRandom_uniform() * rStep;
 
-        for (i = 0, j = 0; i < PF_N_TAG; ++j)
-            for (; i < PF_N_TAG && (rStart + rStep * i) < weightCdf[j]; ++i)
+        for (i = 0, j = 0; i < PF_N_TAG_LOC; ++j)
+            for (; i < PF_N_TAG_LOC && (rStart + rStep * i) < weightCdf[j]; ++i)
                 pfInit_spawnTagParticleFromOther(&tag->pTagBuf[i], &tag->pTag[j], HXYZ, htheta);
 
         memcpy(tag->pTag, tag->pTagBuf, sizeof(tag->pTagBuf));
@@ -72,24 +72,24 @@ void pfResample_resample(tag_t* tag, float bx, float by, float bz, float range, 
     }
     else
     {
-        m = PF_N_TAG / s;
-        for (i = 0; i < PF_N_TAG; ++i)
+        m = PF_N_TAG_LOC / s;
+        for (i = 0; i < PF_N_TAG_LOC; ++i)
             tag->pTag[i].w *= m;
     }
 }
 
-void pfResample_resampleSlam(tag_t* tag, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
+void pfResample_resampleSlam(tagSlam_t* tag, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
 {
     int i, j;
     tagParticle_t* tp;
     float invN, w, s, ss, csum, ssum, ess, htheta, m, rStart, rStep;
-    float weightCdf[PF_N_TAG];
+    float weightCdf[PF_N_TAG_SLAM];
     
     s = 0.0f;
     ss = 0.0f;
     csum = 0.0f;
     ssum = 0.0f;
-    for (i = 0; i < PF_N_TAG; ++i)
+    for (i = 0; i < PF_N_TAG_SLAM; ++i)
     {
         tp = &tag->pTag[i];
         w = tp->w;
@@ -101,7 +101,7 @@ void pfResample_resampleSlam(tag_t* tag, bcn_t* bcn, float range, float stdRange
     }
     ess = s * s / ss;
     
-    invN = 1.0f / PF_N_TAG;
+    invN = 1.0f / PF_N_TAG_SLAM;
     if (ess * invN < RESAMPLE_THRESH)
     {
         csum /= s;
@@ -114,8 +114,8 @@ void pfResample_resampleSlam(tag_t* tag, bcn_t* bcn, float range, float stdRange
         rStep = invN * s;
         rStart = pfRandom_uniform() * rStep;
         
-        for (i = 0, j = 0; i < PF_N_TAG; ++j)
-            for (; i < PF_N_TAG && (rStart + rStep * i) < weightCdf[j]; ++i)
+        for (i = 0, j = 0; i < PF_N_TAG_SLAM; ++j)
+            for (; i < PF_N_TAG_SLAM && (rStart + rStep * i) < weightCdf[j]; ++i)
                 pfInit_spawnTagParticleFromOther(&tag->pTagBuf[i], &tag->pTag[j], HXYZ, htheta);
         
         memcpy(tag->pTag, tag->pTagBuf, sizeof(tag->pTagBuf));
@@ -126,14 +126,14 @@ void pfResample_resampleSlam(tag_t* tag, bcn_t* bcn, float range, float stdRange
     }
     else
     {
-        m = PF_N_TAG / s;
-        for (i = 0; i < PF_N_TAG; ++i)
+        m = PF_N_TAG_SLAM / s;
+        for (i = 0; i < PF_N_TAG_SLAM; ++i)
             tag->pTag[i].w *= m;
         _resampleBcn(bcn, tag, range, stdRange, 0);
     }
 }
 
-static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRange, uint8_t force)
+static void _resampleBcn(bcn_t* bcn, const tagSlam_t* tag, float range, float stdRange, uint8_t force)
 {
     int numSpawn, i, j, k;
     const tagParticle_t* tp;
@@ -141,7 +141,7 @@ static void _resampleBcn(bcn_t* bcn, const tag_t* tag, float range, float stdRan
     float invN, w, s, ss, ess, m, rStart, rStep;
     float weightCdf[PF_N_BCN];
     
-    for (k = 0; k < PF_N_TAG; ++k)
+    for (k = 0; k < PF_N_TAG_SLAM; ++k)
     {
         s = 0.0f;
         ss = 0.0f;

@@ -13,9 +13,10 @@
 #include "pfMeasurement.h"
 #include "pfResample.h"
 
-static void _commitVio(particleFilter_t* pf);
+static void _commitVioLoc(particleFilterLoc_t* pf);
+static void _commitVioSlam(particleFilterSlam_t* pf);
 
-void particleFilter_init(particleFilter_t* pf)
+void particleFilter_initLoc(particleFilterLoc_t* pf)
 {
     pf->firstT = 0.0;
     pf->firstX = 0.0f;
@@ -30,7 +31,7 @@ void particleFilter_init(particleFilter_t* pf)
     pf->tag.initialized = 0;
 }
 
-void particleFilter_initSlam(particleFilter_t* pf)
+void particleFilter_initSlam(particleFilterSlam_t* pf)
 {
     pf->firstT = 0.0;
     pf->firstX = 0.0f;
@@ -46,12 +47,12 @@ void particleFilter_initSlam(particleFilter_t* pf)
     pf->tag.initialized = 1;
 }
 
-void particleFilter_addBcn(bcn_t* bcn)
+void particleFilter_addBcnSlam(bcn_t* bcn)
 {
     bcn->initialized = 0;
 }
 
-void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y, float z, float dist)
+void particleFilter_depositVioLoc(particleFilterLoc_t* pf, double t, float x, float y, float z, float dist)
 {
     float dx, dy, dz;
     
@@ -87,24 +88,60 @@ void particleFilter_depositVio(particleFilter_t* pf, double t, float x, float y,
     pf->lastZ = z;
 }
 
-void particleFilter_depositRange(particleFilter_t* pf, float bx, float by, float bz, float range, float stdRange)
+void particleFilter_depositVioSlam(particleFilterSlam_t* pf, double t, float x, float y, float z, float dist)
 {
-    _commitVio(pf);
-    if (pf->tag.initialized)
+    float dx, dy, dz;
+
+    if (pf->firstT == 0.0)
     {
-        pfMeasurement_applyRange(&pf->tag, bx, by, bz, range, stdRange);
-        pfResample_resample(&pf->tag, bx, by, bz, range, stdRange);
+        pf->firstT = t;
+        pf->firstX = x;
+        pf->firstY = y;
+        pf->firstZ = z;
+        pf->firstDist = dist;
+        pf->lastT = t;
+        pf->lastX = x;
+        pf->lastY = y;
+        pf->lastZ = z;
+        pf->lastDist = dist;
+        return;
+    }
+
+    if (dist > pf->lastDist)
+    {
+        pf->lastDist = dist;
     }
     else
     {
-        pfInit_initTag(&pf->tag, bx, by, bz, range, stdRange);
+        dx = x - pf->lastX;
+        dy = y - pf->lastY;
+        dz = z - pf->lastZ;
+        pf->lastDist += sqrtf(dx * dx + dy * dy + dz * dz);
+    }
+    pf->lastT = t;
+    pf->lastX = x;
+    pf->lastY = y;
+    pf->lastZ = z;
+}
+
+void particleFilter_depositRangeLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange)
+{
+    _commitVioLoc(pf);
+    if (pf->tag.initialized)
+    {
+        pfMeasurement_applyRangeLoc(&pf->tag, bx, by, bz, range, stdRange);
+        pfResample_resampleLoc(&pf->tag, bx, by, bz, range, stdRange);
+    }
+    else
+    {
+        pfInit_initTagLoc(&pf->tag, bx, by, bz, range, stdRange);
         pf->tag.initialized = 1;
     }
 }
 
-void particleFilter_depositRangeSlam(particleFilter_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
+void particleFilter_depositRangeSlam(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
 {
-    _commitVio(pf);
+    _commitVioSlam(pf);
     if (bcn->initialized)
     {
         pfMeasurement_applyRangeSlam(&pf->tag, bcn, range, stdRange);
@@ -112,29 +149,29 @@ void particleFilter_depositRangeSlam(particleFilter_t* pf, bcn_t* bcn, float ran
     }
     else
     {
-        pfInit_initBcn(bcn, &pf->tag, range, stdRange);
+        pfInit_initBcnSlam(bcn, &pf->tag, range, stdRange);
         bcn->initialized = 1;
     }
 }
 
-void particleFilter_depositRssi(particleFilter_t* pf, float bx, float by, float bz, int rssi)
+void particleFilter_depositRssiLoc(particleFilterLoc_t* pf, float bx, float by, float bz, int rssi)
 {
-    _commitVio(pf);
+    _commitVioLoc(pf);
     if (pf->tag.initialized)
     {
-        pfMeasurement_applyRange(&pf->tag, bx, by, bz, 1.5f, 0.5f);
-        pfResample_resample(&pf->tag, bx, by, bz, 1.5f, 0.5f);
+        pfMeasurement_applyRangeLoc(&pf->tag, bx, by, bz, 1.5f, 0.5f);
+        pfResample_resampleLoc(&pf->tag, bx, by, bz, 1.5f, 0.5f);
     }
     else
     {
-        pfInit_initTag(&pf->tag, bx, by, bz, 1.5f, 0.5f);
+        pfInit_initTagLoc(&pf->tag, bx, by, bz, 1.5f, 0.5f);
         pf->tag.initialized = 1;
     }
 }
 
-void particleFilter_depositRssiSlam(particleFilter_t* pf, bcn_t* bcn, int rssi, bcn_t** allBcns, int numBcns)
+void particleFilter_depositRssiSlam(particleFilterSlam_t* pf, bcn_t* bcn, int rssi, bcn_t** allBcns, int numBcns)
 {
-    _commitVio(pf);
+    _commitVioSlam(pf);
     if (bcn->initialized)
     {
         pfMeasurement_applyRangeSlam(&pf->tag, bcn, 1.5f, 0.5f);
@@ -142,12 +179,12 @@ void particleFilter_depositRssiSlam(particleFilter_t* pf, bcn_t* bcn, int rssi, 
     }
     else
     {
-        pfInit_initBcn(bcn, &pf->tag, 1.5f, 0.5f);
+        pfInit_initBcnSlam(bcn, &pf->tag, 1.5f, 0.5f);
         bcn->initialized = 1;
     }
 }
 
-uint8_t particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x, float* y, float* z, float* theta)
+uint8_t particleFilter_getTagLoc(const particleFilterLoc_t* pf, double* t, float* x, float* y, float* z, float* theta)
 {
     int i;
     const tagParticle_t* tp;
@@ -162,7 +199,7 @@ uint8_t particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x
     zsum = 0.0f;
     csum = 0.0f;
     ssum = 0.0f;
-    for (i = 0; i < PF_N_TAG; ++i)
+    for (i = 0; i < PF_N_TAG_LOC; ++i)
     {
         tp = &pf->tag.pTag[i];
         w = tp->w;
@@ -192,7 +229,52 @@ uint8_t particleFilter_getTagLoc(const particleFilter_t* pf, double* t, float* x
     return 1;
 }
 
-uint8_t particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z)
+uint8_t particleFilter_getTagSlam(const particleFilterSlam_t* pf, double* t, float* x, float* y, float* z, float* theta)
+{
+    int i;
+    const tagParticle_t* tp;
+    float w, s, xsum, ysum, zsum, csum, ssum, dx, dy, dz, co, si;
+
+    if (!pf->tag.initialized)
+        return 0;
+
+    s = 0.0f;
+    xsum = 0.0f;
+    ysum = 0.0f;
+    zsum = 0.0f;
+    csum = 0.0f;
+    ssum = 0.0f;
+    for (i = 0; i < PF_N_TAG_SLAM; ++i)
+    {
+        tp = &pf->tag.pTag[i];
+        w = tp->w;
+        s += w;
+        xsum += w * tp->x;
+        ysum += w * tp->y;
+        zsum += w * tp->z;
+        csum += w * cosf(tp->theta);
+        ssum += w * sinf(tp->theta);
+    }
+    *t = pf->lastT;
+    *x = xsum / s;
+    *y = ysum / s;
+    *z = zsum / s;
+    *theta = atan2f(ssum, csum);
+
+    dx = pf->lastX - pf->firstX;
+    dy = pf->lastY - pf->firstY;
+    dz = pf->lastZ - pf->firstZ;
+
+    co = cosf(*theta);
+    si = sinf(*theta);
+    *x += dx * co - dy * si;
+    *y += dx * si + dy * co;
+    *z += dz;
+
+    return 1;
+}
+
+uint8_t particleFilter_getBcnSlam(const particleFilterSlam_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z)
 {
     int i, j;
     const bcnParticle_t* bp;
@@ -205,7 +287,7 @@ uint8_t particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, d
     xsum1 = 0.0f;
     ysum1 = 0.0f;
     zsum1 = 0.0f;
-    for (i = 0; i < PF_N_TAG; ++i)
+    for (i = 0; i < PF_N_TAG_SLAM; ++i)
     {
         w1 = pf->tag.pTag[i].w;
         s1 += w1;
@@ -234,7 +316,7 @@ uint8_t particleFilter_getBcnLoc(const particleFilter_t* pf, const bcn_t* bcn, d
     return 1;
 }
 
-static void _commitVio(particleFilter_t* pf)
+static void _commitVioLoc(particleFilterLoc_t* pf)
 {
     float dt, dx, dy, dz, ddist;
 
@@ -248,5 +330,22 @@ static void _commitVio(particleFilter_t* pf)
     pf->firstY = pf->lastY;
     pf->firstZ = pf->lastZ;
     pf->firstDist = pf->lastDist;
-    pfMeasurement_applyVio(&pf->tag, dt, dx, dy, dz, ddist);
+    pfMeasurement_applyVioLoc(&pf->tag, dt, dx, dy, dz, ddist);
+}
+
+static void _commitVioSlam(particleFilterSlam_t* pf)
+{
+    float dt, dx, dy, dz, ddist;
+
+    dt = (float)(pf->lastT - pf->firstT);
+    dx = pf->lastX - pf->firstX;
+    dy = pf->lastY - pf->firstY;
+    dz = pf->lastZ - pf->firstZ;
+    ddist = pf->lastDist - pf->firstDist;
+    pf->firstT = pf->lastT;
+    pf->firstX = pf->lastX;
+    pf->firstY = pf->lastY;
+    pf->firstZ = pf->lastZ;
+    pf->firstDist = pf->lastDist;
+    pfMeasurement_applyVioSlam(&pf->tag, dt, dx, dy, dz, ddist);
 }
