@@ -73,9 +73,9 @@ extern "C" {
         float lastY;
         float lastZ;
         float lastDist;
-        tagSlam_t tag;
+        tagLoc_t tag;
 
-    } particleFilterSlam_t;
+    } particleFilterLoc_t;
 
     typedef struct
     {
@@ -89,22 +89,22 @@ extern "C" {
         float lastY;
         float lastZ;
         float lastDist;
-        tagLoc_t tag;
+        tagSlam_t tag;
 
-    } particleFilterLoc_t;
+    } particleFilterSlam_t;
 
-    void particleFilter_initLoc(particleFilterLoc_t* pf);
-    void particleFilter_initSlam(particleFilterSlam_t* pf);
-    void particleFilter_addBcnSlam(bcn_t* bcn);
-    void particleFilter_depositVioLoc(particleFilterLoc_t* pf, double t, float x, float y, float z, float dist);
-    void particleFilter_depositVioSlam(particleFilterSlam_t* pf, double t, float x, float y, float z, float dist);
-    void particleFilter_depositRangeLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange);
-    void particleFilter_depositRangeSlam(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns);
-    void particleFilter_depositRssiLoc(particleFilterLoc_t* pf, float bx, float by, float bz, int rssi);
-    void particleFilter_depositRssiSlam(particleFilterSlam_t* pf, bcn_t* bcn, int rssi, bcn_t** allBcns, int numBcns);
-    uint8_t particleFilter_getTagLoc(const particleFilterLoc_t* pf, double* t, float* x, float* y, float* z, float* theta);
-    uint8_t particleFilter_getTagSlam(const particleFilterSlam_t* pf, double* t, float* x, float* y, float* z, float* theta);
-    uint8_t particleFilter_getBcnSlam(const particleFilterSlam_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z);
+    void particleFilterLoc_init(particleFilterLoc_t* pf);
+    void particleFilterSlam_init(particleFilterSlam_t* pf);
+    void particleFilterSlam_addBcn(bcn_t* bcn);
+    void particleFilterLoc_depositVio(particleFilterLoc_t* pf, double t, float x, float y, float z, float dist);
+    void particleFilterSlam_depositVio(particleFilterSlam_t* pf, double t, float x, float y, float z, float dist);
+    void particleFilterLoc_depositRange(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange);
+    void particleFilterSlam_depositRange(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns);
+    void particleFilterLoc_depositRssi(particleFilterLoc_t* pf, float bx, float by, float bz, int rssi);
+    void particleFilterSlam_depositRssi(particleFilterSlam_t* pf, bcn_t* bcn, int rssi, bcn_t** allBcns, int numBcns);
+    uint8_t particleFilterLoc_getTagLoc(const particleFilterLoc_t* pf, double* t, float* x, float* y, float* z, float* theta);
+    uint8_t particleFilterSlam_getTagLoc(const particleFilterSlam_t* pf, double* t, float* x, float* y, float* z, float* theta);
+    uint8_t particleFilterSlam_getBcnLoc(const particleFilterSlam_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z);
 
 #ifdef __cplusplus
 } // extern "C"

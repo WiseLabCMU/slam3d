@@ -51,10 +51,10 @@ int main(void)
     uwbFile = fopen(UWB_FILE, "r");
     tagOutFile = fopen(TAG_OUT_FILE, "w");
     bcnOutFile = fopen(BCN_OUT_FILE, "w");
-    particleFilter_initSlam(&_particleFilter);
+    particleFilterSlam_init(&_particleFilter);
     for (i = 0; i < NUM_BCNS; ++i)
     {
-        particleFilter_addBcnSlam(&_bcns[i]);
+        particleFilterSlam_addBcn(&_bcns[i]);
         _bcnPtrs[i] = &_bcns[i];
     }
     printf("Initialized\n");
@@ -65,8 +65,8 @@ int main(void)
     {
         if (haveVio && (!haveUwb || vioT < uwbT))
         {
-            particleFilter_depositVioSlam(&_particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
-            if (particleFilter_getTagSlam(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta))
+            particleFilterSlam_depositVio(&_particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
+            if (particleFilterSlam_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta))
                 _writeTagLoc(tagOutFile, outT, outX, outY, outZ, outTheta);
             haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ, 0);
         }
@@ -74,14 +74,14 @@ int main(void)
         {
             uwbR -= UWB_BIAS;
             if (uwbR > 0.0f && uwbR < 30.0f)
-                particleFilter_depositRangeSlam(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD, _bcnPtrs, NUM_BCNS);
+                particleFilterSlam_depositRange(&_particleFilter, &_bcns[uwbB], uwbR, UWB_STD, _bcnPtrs, NUM_BCNS);
             haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR, 0);
         }
     }
     printf("Finished localization\n");
     for (uwbB = 0; uwbB < NUM_BCNS; ++uwbB)
     {
-        if (particleFilter_getBcnSlam(&_particleFilter, &_bcns[uwbB], &outT, &outX, &outY, &outZ))
+        if (particleFilterSlam_getBcnLoc(&_particleFilter, &_bcns[uwbB], &outT, &outX, &outY, &outZ))
             _writeBcnLoc(bcnOutFile, uwbB, outX, outY, outZ);
     }
 

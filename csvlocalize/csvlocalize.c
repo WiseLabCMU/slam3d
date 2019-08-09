@@ -48,7 +48,7 @@ int main(void)
     vioFile = fopen(VIO_FILE, "r");
     uwbFile = fopen(UWB_FILE, "r");
     tagOutFile = fopen(TAG_OUT_FILE, "w");
-    particleFilter_initLoc(&_particleFilter);
+    particleFilterLoc_init(&_particleFilter);
 
     deployFile = fopen(DEPLOY_FILE, "r");
     _getDeployment(deployFile, deployment);
@@ -62,8 +62,8 @@ int main(void)
     {
         if (haveVio && (!haveUwb || vioT < uwbT))
         {
-            particleFilter_depositVioLoc(&_particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
-            if (particleFilter_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta))
+            particleFilterLoc_depositVio(&_particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
+            if (particleFilterLoc_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta))
                 _writeTagLoc(tagOutFile, outT, outX, outY, outZ, outTheta);
             haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ, 0);
         }
@@ -71,7 +71,7 @@ int main(void)
         {
             uwbR -= UWB_BIAS;
             if (uwbR > 0.0f && uwbR < 30.0f)
-                particleFilter_depositRangeLoc(&_particleFilter, deployment[uwbB][0], deployment[uwbB][1], deployment[uwbB][2], uwbR, UWB_STD);
+                particleFilterLoc_depositRange(&_particleFilter, deployment[uwbB][0], deployment[uwbB][1], deployment[uwbB][2], uwbR, UWB_STD);
             haveUwb = _getUwb(uwbFile, &uwbT, &uwbB, &uwbR, 0);
         }
     }
