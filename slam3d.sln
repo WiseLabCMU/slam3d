@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "csvslam", "csvslam\csvslam.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "csvlocalize", "csvlocalize\csvlocalize.vcxproj", "{8A5FA94D-5F1A-467C-B2FD-F77BD31CC7EC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mqttlocalize", "mqttlocalize\mqttlocalize.vcxproj", "{AC9CD092-03A1-4E5F-ABB7-9847390A57F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,10 @@ Global
 		{8A5FA94D-5F1A-467C-B2FD-F77BD31CC7EC}.Debug|x64.Build.0 = Debug|x64
 		{8A5FA94D-5F1A-467C-B2FD-F77BD31CC7EC}.Release|x64.ActiveCfg = Release|x64
 		{8A5FA94D-5F1A-467C-B2FD-F77BD31CC7EC}.Release|x64.Build.0 = Release|x64
+		{AC9CD092-03A1-4E5F-ABB7-9847390A57F9}.Debug|x64.ActiveCfg = Debug|x64
+		{AC9CD092-03A1-4E5F-ABB7-9847390A57F9}.Debug|x64.Build.0 = Debug|x64
+		{AC9CD092-03A1-4E5F-ABB7-9847390A57F9}.Release|x64.ActiveCfg = Release|x64
+		{AC9CD092-03A1-4E5F-ABB7-9847390A57F9}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
