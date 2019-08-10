@@ -91,7 +91,7 @@
     <ClCompile Include="..\particlefilter\src\pfMeasurement.c" />
     <ClCompile Include="..\particlefilter\src\pfRandom.c" />
     <ClCompile Include="..\particlefilter\src\pfResample.c" />
-    <ClCompile Include="mqttlocalize.cpp" />
+    <ClCompile Include="mqttlocalize.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\particlefilter\include\particleFilter.h" />
