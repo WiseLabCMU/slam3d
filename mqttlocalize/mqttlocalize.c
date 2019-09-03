@@ -19,16 +19,13 @@
 #include "MQTTClient.h"
 
 #define DATA_DIR            "../sampledata/"
-#define TRACE_DIR           DATA_DIR "cic/0/"
+#define TRACE_DIR           DATA_DIR "arena/"
 #define NUM_BCNS            (12)
 #define UWB_STD             (0.1f)
 #define UWB_BIAS            (0.4f)
 #define SKIP_TO_WAYPOINT    (1)
 
-#define VIO_FILE            TRACE_DIR "vio.csv"
-#define UWB_FILE            TRACE_DIR "uwb.csv"
 #define DEPLOY_FILE         TRACE_DIR "deploy.csv"
-#define TAG_OUT_FILE        TRACE_DIR "tag.csv"
 #define LINE_LEN            (1024)
 
 #define ADDRESS     "oz.andrew.cmu.edu:1883"
