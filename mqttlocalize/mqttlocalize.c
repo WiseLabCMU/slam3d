@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <time.h> 
 
+#include "kbhit.h"
 #include "particleFilter.h"
 
 #include "MQTTClient.h"
@@ -34,15 +35,9 @@
 #define QOS         1
 #define TIMEOUT     10000L
 
-
-#define TOPIC       "MQTT Examples"
-
 #define FRMT_TAG_LOC_MSG "%f,%f,%f,%f,%f,%f,%f"
 
-//static uint8_t _getVio(FILE* vioFile, double* t, float* x, float* y, float* z, uint8_t skipToWaypoint);
-//static uint8_t _getUwb(FILE* uwbFile, double* t, uint8_t* b, float* r, uint8_t skipToWaypoint);
 static void _getDeployment(FILE* deployFile, float deployment[NUM_BCNS][3]);
-//static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, float theta);
 static void _publishTagLoc(MQTTClient client, char *topic, double t, float x, float y, float z, float theta);
 
 void delivered(void *context, MQTTClient_deliveryToken dt);
@@ -67,7 +62,7 @@ int main(int argc, char* argv[])
 
     MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
     int rc;
-    int ch;
+    int ch=0;
 
     if (argc <4) printf("Usage: %s <Subscribe_VIO_Topic> <Subscribe_UWB_Topic> <Publish_Loc_Topic>\n", argv[0]);
 
@@ -90,9 +85,9 @@ int main(int argc, char* argv[])
     topicName_UWB = argv[2];
     topicName_LocOut = argv[3];
 
-    printf("Subscribing to topic %s\nfor client %s using QoS%d\n\n", topicName_VIO, CLIENTID, QOS);
+    printf("\nSubscribing to topic %s\nfor client %s using QoS%d\n\n", topicName_VIO, clientid, QOS);
     MQTTClient_subscribe(client, argv[1], QOS);
-    printf("Subscribing to topic %s\nfor client %s using QoS%d\n\n", topicName_UWB, CLIENTID, QOS);    
+    printf("Subscribing to topic %s\nfor client %s using QoS%d\n\n", topicName_UWB, clientid, QOS);    
     MQTTClient_subscribe(client, topicName_UWB, QOS);
 
     printf("Starting localization\n");
@@ -102,22 +97,18 @@ int main(int argc, char* argv[])
     fclose(deployFile);
     printf("Initialized\n");
 
-    printf("s=%d", sizeof(particleFilterLoc_t)/1000);
-/*
-    do 
-    {
-        ch = getchar();
+    printf("Press 'q' to quit.\n");
 
-    } while(ch!='Q' && ch != 'q');
- */
     do
     {
         if (particleFilterLoc_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta))
             _publishTagLoc(client, topicName_LocOut, outT, outX, outY, outZ, outTheta);
         sleep(1);
-    } while(1);
+        if(_kbhit()){
+            ch = getchar();
+        }
+    } while(ch!='Q' && ch != 'q');
 
-    MQTTClient_unsubscribe(client, TOPIC);
     MQTTClient_disconnect(client, 10000);
     MQTTClient_destroy(&client);
     return rc;
@@ -191,14 +182,13 @@ static void _publishTagLoc(MQTTClient client, char *topic, double t, float x, fl
     pubmsg.payloadlen = strlen(str_msg);
     pubmsg.qos = QOS;
     pubmsg.retained = 0;
+    printf("UPDT : %s\n", str_msg);
     MQTTClient_publishMessage(client, topic, &pubmsg, &token);
-    rc = MQTTClient_waitForCompletion(client, token, TIMEOUT);
-    //printf("Message with delivery token %d delivered\n", token);
 }
 
 void delivered(void *context, MQTTClient_deliveryToken dt)
 {
-    printf("Message with token value %d delivery confirmed\n", dt);
+    //printf("Message with token value %d delivery confirmed\n", dt);
     //deliveredtoken = dt;
 }
 
@@ -213,15 +203,16 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *m
     memcpy(payload_str, message->payload, message->payloadlen);
     payload_str[message->payloadlen] = '\0';
 
-    printf("#topic: %s; message:%s", topicName, payload_str);  
+    //printf("#topic: %s; message:%s", topicName, payload_str);  
+    printf("#topic: %s ", topicName);  
 
     if (strncmp(topicName, topicName_VIO, strlen(topicName_VIO)) == 0) {
         _getVio(payload_str, &vioT, &vioX, &vioY, &vioZ);
-        printf(" => VIO:%lf,%f,%f,%f\n", vioT, vioX, vioY, vioZ);
+        printf("VIO  :%lf,%f,%f,%f\n", vioT, vioX, vioY, vioZ);
         particleFilterLoc_depositVio(&_particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
     } else if (strncmp(topicName, topicName_UWB, strlen(topicName_UWB)) == 0) {
         _getUwb(payload_str, &uwbT, &uwbB, &uwbR);
-        printf(" => UWB:%lf,%d,%f\n", uwbT, uwbB, uwbR);
+        printf("UWB  :%lf,%d,%f\n", uwbT, uwbB, uwbR);
         assert(uwbB<NUM_BCNS);
         uwbR -= UWB_BIAS;
         if (uwbR > 0.0f && uwbR < 30.0f)
