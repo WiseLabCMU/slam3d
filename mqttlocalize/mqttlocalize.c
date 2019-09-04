@@ -13,6 +13,7 @@
 #include <math.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <time.h> 
 
 #include "particleFilter.h"
 
@@ -30,7 +31,6 @@
 
 #define ADDRESS     "oz.andrew.cmu.edu:1883"
 #define CLIENTID    "localize"
-#define PUB_TOPIC    "/topic/render/camera_5432/rig"
 #define QOS         1
 #define TIMEOUT     10000L
 
@@ -63,6 +63,7 @@ int main(int argc, char* argv[])
     FILE* deployFile;
     double outT;
     float outX, outY, outZ, outTheta;
+    char clientid[LINE_LEN];
 
     MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
     int rc;
@@ -70,7 +71,9 @@ int main(int argc, char* argv[])
 
     if (argc <4) printf("Usage: %s <Subscribe_VIO_Topic> <Subscribe_UWB_Topic> <Publish_Loc_Topic>\n", argv[0]);
 
-    MQTTClient_create(&client, ADDRESS, CLIENTID,
+    snprintf(clientid, LINE_LEN, "%s%d", CLIENTID, time(NULL) % 1000);
+    printf("Client ID:%s\n", clientid);
+    MQTTClient_create(&client, ADDRESS, clientid,
         MQTTCLIENT_PERSISTENCE_NONE, NULL);
     conn_opts.keepAliveInterval = 20;
     conn_opts.cleansession = 1;
@@ -182,7 +185,7 @@ static void _publishTagLoc(MQTTClient client, char *topic, double t, float x, fl
     int rc;
     char str_msg[100];
 
-    snprintf(str_msg, 100, FRMT_TAG_LOC_MSG, y, z, x, 0.0f, 0.0f, sinf(theta/2), cosf(theta/2));
+    snprintf(str_msg, 100, FRMT_TAG_LOC_MSG, y, z, x, 0.0f, sinf(theta/2), 0.0f, cosf(theta/2));
 
     pubmsg.payload = str_msg;
     pubmsg.payloadlen = strlen(str_msg);
