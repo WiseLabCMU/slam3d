@@ -1,5 +1,7 @@
 # slam3d
 
+## MQTT Localize
+
 1. Start script to request uwb ranges: ```./uwb_ctrl_publish.sh```
 
 2. Start mqqtlocalize:
