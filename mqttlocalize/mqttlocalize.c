@@ -15,7 +15,6 @@
 #include <unistd.h>
 #include <time.h> 
 
-#include "kbhit.h"
 #include "particleFilter.h"
 
 #include "MQTTClient.h"
@@ -66,7 +65,7 @@ int main(int argc, char* argv[])
 
     if (argc <4) printf("Usage: %s <Subscribe_VIO_Topic> <Subscribe_UWB_Topic> <Publish_Loc_Topic>\n", argv[0]);
 
-    snprintf(clientid, LINE_LEN, "%s%d", CLIENTID, time(NULL) % 1000);
+    snprintf(clientid, LINE_LEN, "%s%ld", CLIENTID, time(NULL) % 1000);
     printf("Client ID:%s\n", clientid);
     MQTTClient_create(&client, ADDRESS, clientid,
         MQTTCLIENT_PERSISTENCE_NONE, NULL);
@@ -97,17 +96,14 @@ int main(int argc, char* argv[])
     fclose(deployFile);
     printf("Initialized\n");
 
-    printf("Press 'q' to quit.\n");
+    printf("'Ctrl+c' to quit.\n");
 
     do
     {
         if (particleFilterLoc_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta))
             _publishTagLoc(client, topicName_LocOut, outT, outX, outY, outZ, outTheta);
-        sleep(1);
-        if(_kbhit()){
-            ch = getchar();
-        }
-    } while(ch!='Q' && ch != 'q');
+        usleep(100000);
+    } while(1);
 
     MQTTClient_disconnect(client, 10000);
     MQTTClient_destroy(&client);

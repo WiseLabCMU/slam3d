@@ -28,7 +28,7 @@ IF (WIN32)
 ENDIF()
 
 # sample files c
-ADD_EXECUTABLE(mqttlocalize mqttlocalize.c kbhit.c ../particlefilter/src/particleFilter.c  ../particlefilter/src/pfInit.c  ../particlefilter/src/pfMeasurement.c  ../particlefilter/src/pfRandom.c  ../particlefilter/src/pfResample.c)
+ADD_EXECUTABLE(mqttlocalize mqttlocalize.c ../particlefilter/src/particleFilter.c  ../particlefilter/src/pfInit.c  ../particlefilter/src/pfMeasurement.c  ../particlefilter/src/pfRandom.c  ../particlefilter/src/pfResample.c)
 
 TARGET_LINK_LIBRARIES(mqttlocalize paho-mqtt3c -lm)
 
