@@ -1,10 +1,10 @@
 # slam3d
 
-## MQTT Localize
+## MQTT Localize (tested on Ubuntu 18.04.1)
 
-1. Install paho library: https://github.com/eclipse/paho.mqtt.c
+1. Install paho c library: https://github.com/eclipse/paho.mqtt.c
 
-2. Compile: ```cmake .``` and then ```make```
+2. Compile (inside the mqttlocalize folder): ```cmake .``` and then ```make```
 
 2. Start script to request uwb ranges: ```./uwb_ctrl_publish.sh```
 
