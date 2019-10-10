@@ -37,7 +37,7 @@
 #define FRMT_TAG_LOC_MSG "%f,%f,%f,%f,%f,%f,%f"
 
 static void _getDeployment(FILE* deployFile, float deployment[NUM_BCNS][3]);
-static void _publishTagLoc(MQTTClient client, char *topic, double t, float x, float y, float z, float theta);
+static void _publishLoc(MQTTClient client, char *topic, double t, float x, float y, float z, float theta);
 
 void delivered(void *context, MQTTClient_deliveryToken dt);
 int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *message);
@@ -49,6 +49,7 @@ static float deployment[NUM_BCNS][3];
 static char *topicName_VIO;
 static char *topicName_UWB;
 static char *topicName_LocOut;
+static char *topicName_RigOut;
 
 static MQTTClient client;
 
@@ -56,14 +57,14 @@ int main(int argc, char* argv[])
 {
     FILE* deployFile;
     double outT;
-    float outX, outY, outZ, outTheta;
+    float outX, outY, outZ, outTheta, dx, dy, dz, c, s, rigX, rigY, rigZ;
     char clientid[LINE_LEN];
 
     MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
     int rc;
     int ch=0;
 
-    if (argc <4) printf("Usage: %s <Subscribe_VIO_Topic> <Subscribe_UWB_Topic> <Publish_Loc_Topic>\n", argv[0]);
+    if (argc <5) printf("Usage: %s <Subscribe_VIO_Topic> <Subscribe_UWB_Topic> <Publish_Loc_Topic> <Publish_Rig_Topic>\n", argv[0]);
 
     snprintf(clientid, LINE_LEN, "%s%ld", CLIENTID, time(NULL) % 1000);
     printf("Client ID:%s\n", clientid);
@@ -83,6 +84,7 @@ int main(int argc, char* argv[])
     topicName_VIO = argv[1];
     topicName_UWB = argv[2];
     topicName_LocOut = argv[3];
+    topicName_RigOut = argv[4];
 
     printf("\nSubscribing to topic %s\nfor client %s using QoS%d\n\n", topicName_VIO, clientid, QOS);
     MQTTClient_subscribe(client, argv[1], QOS);
@@ -101,7 +103,20 @@ int main(int argc, char* argv[])
     do
     {
         if (particleFilterLoc_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta))
-            _publishTagLoc(client, topicName_LocOut, outT, outX, outY, outZ, outTheta);
+        {
+            dx = _particleFilter.lastX;
+            dy = _particleFilter.lastY;
+            dz = _particleFilter.lastZ;
+            c = cosf(outTheta);
+            s = sinf(outTheta);
+
+            rigX = outX - (dx * c - dy * s);
+            rigY = outY - (dx * s + dy * c);
+            rigZ = outZ - dz;
+
+            _publishLoc(client, topicName_RigOut, outT, rigX, rigY, rigZ, outTheta);
+            _publishLoc(client, topicName_LocOut, outT, outX, outY, outZ, outTheta);
+        }
         usleep(100000);
     } while(1);
 
@@ -165,11 +180,10 @@ static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, flo
     fprintf(outFile, "%lf,%f,%f,%f,%f\n", t, x, y, z, theta);
 }
 
-static void _publishTagLoc(MQTTClient client, char *topic, double t, float x, float y, float z, float theta)
+static void _publishLoc(MQTTClient client, char *topic, double t, float x, float y, float z, float theta)
 {
     MQTTClient_deliveryToken token;
     MQTTClient_message pubmsg = MQTTClient_message_initializer;
-    int rc;
     char str_msg[100];
 
     snprintf(str_msg, 100, FRMT_TAG_LOC_MSG, y, z, x, 0.0f, sinf(theta/2), 0.0f, cosf(theta/2));
