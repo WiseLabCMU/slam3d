@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
             _publishLoc(client, topicName_RigOut, outT, rigX, rigY, rigZ, outTheta);
             _publishLoc(client, topicName_LocOut, outT, outX, outY, outZ, outTheta);
         }
-        usleep(100000);
+        usleep(1000000);
     } while(1);
 
     MQTTClient_disconnect(client, 10000);
@@ -192,7 +192,7 @@ static void _publishLoc(MQTTClient client, char *topic, double t, float x, float
     pubmsg.payloadlen = strlen(str_msg);
     pubmsg.qos = QOS;
     pubmsg.retained = 0;
-    printf("UPDT : %s\n", str_msg);
+    printf("UPDT : [%s] %s\n", topic, str_msg);
     MQTTClient_publishMessage(client, topic, &pubmsg, &token);
 }
 
