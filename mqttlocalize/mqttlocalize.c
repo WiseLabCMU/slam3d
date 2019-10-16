@@ -104,6 +104,17 @@ int main(int argc, char* argv[])
     {
         if (particleFilterLoc_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta))
         {
+            // To get ARKit objects to align with world coordinates, we have to 
+            // figure out the orientation and position of the ARKit origin 
+            // w.r.t the global origin
+            // a rig transform (used by A frame) is the location of the global 
+            // origin in the ARKit coordinate frame
+
+
+            // dx, dy, dz: are VIO estimates of phone position
+            // theta: is angle we must rotate VIO X axis to get global X axis
+            // outX, outY, outZ: are particle filter's estimates of phone
+            // position
             dx = _particleFilter.lastX;
             dy = _particleFilter.lastY;
             dz = _particleFilter.lastZ;
@@ -114,7 +125,8 @@ int main(int argc, char* argv[])
             rigY = outY - (dx * s + dy * c);
             rigZ = outZ - dz;
 
-            _publishLoc(client, topicName_RigOut, outT, rigX, rigY, rigZ, outTheta+1.57079632679f);
+            // additional pi/2 added to theta for axis alignment - Adwait
+            _publishLoc(client, topicName_RigOut, outT, rigX, rigY, rigZ, outTheta);
             _publishLoc(client, topicName_LocOut, outT, outX, outY, outZ, outTheta);
         }
         usleep(1000000);
@@ -132,7 +144,7 @@ static uint8_t _getVio(char *_lineBuf, double* t, float* x, float* y, float* z)
     
     strtok(_lineBuf, ",");
     *t = tv.tv_sec + tv.tv_usec / 1000000.0;
-    *y = (float)atof(strtok(NULL, ","));    
+    *y = (float)atof(strtok(NULL, ","));     
     *z = (float)atof(strtok(NULL, ","));
     *x = (float)atof(strtok(NULL, ","));
 
@@ -145,8 +157,9 @@ static uint8_t _getUwb(char *_lineBuf, double* t, uint8_t* b, float* r)
     gettimeofday(&tv, NULL); 
     
     *t = tv.tv_sec + tv.tv_usec / 1000000.0;
-    *b = atoi(strtok(_lineBuf, ",")); 
-    *r = (float)atof(strtok(NULL, ","));
+    *b = atoi(strtok(_lineBuf, ","));
+    // adding 0.3 to range to deal with bias observed on the UWB nodes
+    *r = (float)atof(strtok(NULL, ","))+0.3;
 
     return 1;
 }
