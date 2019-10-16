@@ -113,6 +113,13 @@ int main(int argc, char* argv[])
             rigX = outX - (dx * c - dy * s);
             rigY = outY - (dx * s + dy * c);
             rigZ = outZ - dz;
+            
+            dx = -rigX;
+            dy = -rigY;
+            dz = -rigZ;
+            rigX = -(dx * c - dy * s);
+            rigY = -(dx * s + dy * c);
+            rigZ = -dz;
 
             _publishLoc(client, topicName_RigOut, outT, rigX, rigY, rigZ, outTheta);
             _publishLoc(client, topicName_LocOut, outT, outX, outY, outZ, outTheta);
