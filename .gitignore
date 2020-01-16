@@ -346,3 +346,4 @@ xcuserdata/
 /ArSlam/app/src/main/assets/*.sfb
 /sampledata/cic/0/bcn.csv
 /sampledata/cic/0/tag.csv
+/ArSlam/app/.cxx/ndk_locator_record.json
