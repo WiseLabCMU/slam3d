@@ -9,7 +9,6 @@ eval IPADUWB="topic/uwb_range_mud"
 eval IPADLOCATION="/topic/loc/${CAMERAID}"
 eval IPADVIZ="realm/s/$SCENENAME/"
 
-
 # check if we requesting ranges from tags
 if ! pidof -x "uwb_ctrl_publish.sh" >/dev/null; then
     echo "Start requesting ranges from tags"
@@ -17,4 +16,3 @@ if ! pidof -x "uwb_ctrl_publish.sh" >/dev/null; then
 fi
 
 ./mqttlocalize ${IPADVIO} ${IPADUWB} ${IPADLOCATION} ${IPADVIZ} ${CAMERAID}
-# ./mqttlocalize /topic/vio/camera_ipad_ipad topic/uwb_range_pot /topic/loc/camera_ipad_ipad /topic/render/camera_ipad_ipad/rig
