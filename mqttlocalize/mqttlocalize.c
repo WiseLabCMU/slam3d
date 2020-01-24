@@ -76,28 +76,6 @@ int main(int argc, char* argv[])
     char *topicName_RigOut;
     char *cameraObjId;    
 
-/*
-////
-
-char str_vio_json[] = "{\"object_id\":\"camera_jerry_jerry\",\"action\":\"update\",\"type\":\"object\",\"data\":{\"position\":{\"x\":0.788,\"y\":1.105,\"z\":-0.235},\"rotation\":{\"x\":0.024,\"y\":0.701,\"z\":0.712,\"w\":0.026},\"color\":\"#b21cd5\"}}";
-
-double t;
-float x;
-float y;
-float z;
-int ret;
-ret = _getVio(str_vio_json,  &t, &x, &y, &z);
-
-if (!ret)
-    printf("t: %f, x:%f, y:%f, z:%f\n", t, x, y,z);
-else
-    printf("Error pasing JSON\n");
-
-return 1;
-
-////
-*/
-
     if (argc <5) printf("Usage: %s <Subscribe_VIO_Topic> <Subscribe_UWB_Topic> <Publish_Loc_Topic> <Publish_Rig_Topic> <Rig_Obj_id>\n", argv[0]);
 
     snprintf(clientid, LINE_LEN, "%s%ld", CLIENTID, time(NULL) % 1000);
