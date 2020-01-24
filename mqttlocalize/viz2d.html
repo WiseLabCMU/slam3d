@@ -1,4 +1,4 @@
-i<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 
 	<head>
@@ -31,7 +31,7 @@ i<!DOCTYPE html>
 	<input type="text" size=27 id="mqtt_server" value="oz.andrew.cmu.edu">:
 	<input type="text" size=4 id="mqtt_port" value="9001">
 	<button onclick="reConnect()">Connect</button>	<p/>
-	<input type="text" size=34 id="mqtt_topic" value="/topic/loc/camera_ipad_ipad">
+	<input type="text" size=34 id="mqtt_topic" value="/topic/loc/camera_pixel_pixel">
 	<input type="range" min="1" max="100" value="50" class="slider" id="zoom_slider">
  </div>
 <script>
@@ -39,10 +39,13 @@ i<!DOCTYPE html>
 var canvas = $("#my_canvas");
 var ctx;
 
-var anchor_list={'anchors':[{ 'x': 0.071, 'y': 1.079, 'label': '0'}, { 'x': 0.778, 'y': 1.079, 'label': '1'}, { 'x': 0.071, 'y': 2.674, 'label': '2'}, {'x': 0.778, 'y': 2.674, 'label': '3'}]};
+// ARENA UWB anchors location
+var anchor_list={'anchors':[{ 'x': 2.111, 'y': -0.704, 'label': '0'}, { 'x': -2.122, 'y': -2.88, 'label': '1'}, { 'x': -3.666, 'y': 0.098, 'label': '2'}, {'x': -0.978, 'y': 3.319, 'label': '3'}]};
 
-var tag_x=3;
-var tag_y=2;
+var tag_x=0.0;
+var tag_y=0.0;
+var tag_oSin=1;
+var tag_oCos=1;
 var zoom_fact = 50;
 
 window.addEventListener('DOMContentLoaded', function(){	
@@ -71,20 +74,30 @@ window.addEventListener('DOMContentLoaded', function(){
 			return; 
 		};		
 		ctx = tmpCanvas.getContext('2d');
-		ctx.clearRect(0, 0, canvasWidth, canvasHeight);	
+		ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+		// 4.0 added to make anchors and tags visible in the first quadrant (Tepper demo day!)
 		for (i in anchor_list.anchors) {	
-			drawAnchor(anchor_list.anchors[i].x*zoom_fact,canvasHeight-(anchor_list.anchors[i].y*zoom_fact), '#008B8B', anchor_list.anchors[i].label);
+			drawAnchor((anchor_list.anchors[i].x+6.0)*zoom_fact,canvasHeight-((anchor_list.anchors[i].y+6.0)*zoom_fact), '#008B8B', anchor_list.anchors[i].label);
 		}
-		drawAnchor(tag_x*zoom_fact, canvasHeight-(tag_y*zoom_fact), '#DC143C', 'Jerry');
+		// 4.0 added to make anchors and tags visible on the first quadrant (Tepper demo day!)
+		drawTag((tag_x+6.0)*zoom_fact, canvasHeight-((tag_y+6.0)*zoom_fact), '#DC143C', 'Jerry');
 	};
 
 	function drawAnchor(x, y, color, name) {
 		ctx.fillStyle = color;
 		ctx.beginPath();
 		ctx.arc(x, y, 0.2*zoom_fact, 0, 2 * Math.PI);
-		//ctx.stroke();
 		ctx.fill();
 		text(x, y, name, '#1B2631');
+	}
+
+	function drawTag(x, y, color, name) {
+		drawAnchor(x, y, color, name);
+		ctx.beginPath();
+		ctx.moveTo(x, y);
+		ctx.strokeStyle = "#FF0000";
+		ctx.lineTo(x+tag_oCos*0.3*zoom_fact, y+tag_oSin*0.3*zoom_fact);
+		ctx.stroke();
 	}
 
 	function text(x, y, text, color) {
@@ -164,18 +177,18 @@ function onConnectionLost(responseObject) {
 // Called when a message arrives
 function onMessageArrived(message) {
     //console.log(message.payloadString);
-	var valArr = message.payloadString.split(',');
-	//console.log(valArr);
-	x = parseFloat(valArr[0]);
-	y = parseFloat(valArr[1]);
-	z = parseFloat(valArr[2]);
-	console.log('x:'+x+' y:'+y+' z:'+z);
-	tag_x = z;
-	tag_y = x;
+	// example location update JSON: 
+	//    {"object_id" : "camera_pixel_pixel",  "action": "update", "type": "rig", "data": {"position": {"x": 1.397020, "y": 2.200331, "z": 2.624482}, "rotation": {"x": 0.000000, "y": 0.995859, "z": 0.000000, "w": 0.090907}}}
+	let locUpdt = JSON.parse(message.payloadString);
+
+	tag_x = locUpdt.data.position.z;
+	tag_y = locUpdt.data.position.x;
+	tag_oSin = locUpdt.data.rotation.y;
+	tag_oCos = locUpdt.data.rotation.w;
+
 	console.log('tx:'+tag_x+' ty:'+tag_y);
 	draw();
 }
-
 
 </script> 
 
