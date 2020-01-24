@@ -4,6 +4,13 @@
 //  Created by John Miller on 11/1/18.
 //  Copyright � 2018 CMU. All rights reserved.
 //
+//  Solver coordinates are "Z up"; 
+//  Coordinate input/output functions: 
+//     _getVio(),
+//     _getDeployment(), 
+//     _publishLoc() 
+//  have to transform to/from this coordinate system
+//
 
 #include <assert.h>
 #include <stdint.h>
@@ -18,13 +25,15 @@
 #include "particleFilter.h"
 
 #include "MQTTClient.h"
+#include "cJSON.h"
 
 #define DATA_DIR            "../sampledata/"
 #define TRACE_DIR           DATA_DIR "arena/"
 #define NUM_BCNS            (12)
 #define UWB_STD             (0.1f)
-#define UWB_BIAS            (0.4f)
+#define UWB_BIAS            (0.2f)
 #define SKIP_TO_WAYPOINT    (1)
+#define UPDATE_INTERVAL_us  1000000
 
 #define DEPLOY_FILE         TRACE_DIR "deploy.csv"
 #define LINE_LEN            (1024)
@@ -35,9 +44,10 @@
 #define TIMEOUT     10000L
 
 #define FRMT_TAG_LOC_MSG "%f,%f,%f,%f,%f,%f,%f"
+#define FRMT_TAG_LOC_JSON "{\"object_id\" : \"%s\",  \"action\": \"update\", \"type\": \"rig\", \"data\": {\"position\": {\"x\": %f, \"y\": %f, \"z\": %f}, \"rotation\": {\"x\": %f, \"y\": %f, \"z\": %f, \"w\": %f}}}"
 
 static void _getDeployment(FILE* deployFile, float deployment[NUM_BCNS][3]);
-static void _publishLoc(MQTTClient client, char *topic, double t, float x, float y, float z, float theta);
+static void _publishLoc(MQTTClient client, char *topic, char *objid, double t, float x, float y, float z, float theta);
 
 void delivered(void *context, MQTTClient_deliveryToken dt);
 int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *message);
@@ -48,10 +58,10 @@ static float deployment[NUM_BCNS][3];
 
 static char *topicName_VIO;
 static char *topicName_UWB;
-static char *topicName_LocOut;
-static char *topicName_RigOut;
 
 static MQTTClient client;
+
+static int8_t _getVio(char *_lineBuf, double* t, float* x, float* y, float* z);
 
 int main(int argc, char* argv[])
 {
@@ -59,12 +69,36 @@ int main(int argc, char* argv[])
     double outT;
     float outX, outY, outZ, outTheta, dx, dy, dz, c, s, rigX, rigY, rigZ;
     char clientid[LINE_LEN];
-
     MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
     int rc;
     int ch=0;
+    char *topicName_LocOut;
+    char *topicName_RigOut;
+    char *cameraObjId;    
 
-    if (argc <5) printf("Usage: %s <Subscribe_VIO_Topic> <Subscribe_UWB_Topic> <Publish_Loc_Topic> <Publish_Rig_Topic>\n", argv[0]);
+/*
+////
+
+char str_vio_json[] = "{\"object_id\":\"camera_jerry_jerry\",\"action\":\"update\",\"type\":\"object\",\"data\":{\"position\":{\"x\":0.788,\"y\":1.105,\"z\":-0.235},\"rotation\":{\"x\":0.024,\"y\":0.701,\"z\":0.712,\"w\":0.026},\"color\":\"#b21cd5\"}}";
+
+double t;
+float x;
+float y;
+float z;
+int ret;
+ret = _getVio(str_vio_json,  &t, &x, &y, &z);
+
+if (!ret)
+    printf("t: %f, x:%f, y:%f, z:%f\n", t, x, y,z);
+else
+    printf("Error pasing JSON\n");
+
+return 1;
+
+////
+*/
+
+    if (argc <5) printf("Usage: %s <Subscribe_VIO_Topic> <Subscribe_UWB_Topic> <Publish_Loc_Topic> <Publish_Rig_Topic> <Rig_Obj_id>\n", argv[0]);
 
     snprintf(clientid, LINE_LEN, "%s%ld", CLIENTID, time(NULL) % 1000);
     printf("Client ID:%s\n", clientid);
@@ -85,6 +119,7 @@ int main(int argc, char* argv[])
     topicName_UWB = argv[2];
     topicName_LocOut = argv[3];
     topicName_RigOut = argv[4];
+    cameraObjId = argv[5];
 
     printf("\nSubscribing to topic %s\nfor client %s using QoS%d\n\n", topicName_VIO, clientid, QOS);
     MQTTClient_subscribe(client, argv[1], QOS);
@@ -126,10 +161,10 @@ int main(int argc, char* argv[])
             rigZ = outZ - dz;
 
             // additional pi/2 added to theta for axis alignment - Adwait
-            _publishLoc(client, topicName_RigOut, outT, rigX, rigY, rigZ, outTheta);
-            _publishLoc(client, topicName_LocOut, outT, outX, outY, outZ, outTheta);
+            _publishLoc(client, topicName_RigOut, cameraObjId, outT, rigX, rigY, rigZ, outTheta);
+            _publishLoc(client, topicName_LocOut, cameraObjId, outT, outX, outY, outZ, outTheta);
         }
-        usleep(1000000);
+        usleep(UPDATE_INTERVAL_us);
     } while(1);
 
     MQTTClient_disconnect(client, 10000);
@@ -137,18 +172,64 @@ int main(int argc, char* argv[])
     return rc;
 }
 
-static uint8_t _getVio(char *_lineBuf, double* t, float* x, float* y, float* z)
+static int8_t _getVio(char *_lineBuf, double* t, float* x, float* y, float* z) 
 {
     struct timeval tv;
     gettimeofday(&tv, NULL); 
-    
-    strtok(_lineBuf, ",");
-    *t = tv.tv_sec + tv.tv_usec / 1000000.0;
-    *y = (float)atof(strtok(NULL, ","));     
-    *z = (float)atof(strtok(NULL, ","));
-    *x = (float)atof(strtok(NULL, ","));
+    int8_t status = 0; // return 0 on success
+    cJSON *data = NULL, *position = NULL, *pos_x = NULL, *pos_y = NULL, *pos_z = NULL;
 
-    return 1;
+    // we add a timestamp based on reception; TODO: add timestamp on the client side 
+    *t = tv.tv_sec + tv.tv_usec / 1000000.0;    
+
+    // parse VIO message
+    // Example:
+    // {"object_id":"camera_jerry_jerry","action":"update","type":"object","data":{"position":{"x":0.788,"y":1.105,"z":-0.235},"rotation":{"x":0.024,"y":0.701,"z":0.712,"w":0.026}}}
+
+    cJSON *vio_json = cJSON_Parse(_lineBuf);
+    if (vio_json == NULL)
+    {
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL)
+        {
+            fprintf(stderr, "Error parsing VIO JSON before: %s\n", error_ptr);
+        }
+        status = -1;
+        goto end;
+    }    
+
+    data = cJSON_GetObjectItemCaseSensitive(vio_json, "data");
+    if (data == NULL) {
+        printf("Error parsing VIO JSON: Could not get data obj\n");
+        status = -1;
+        goto end;
+    }
+
+    position = cJSON_GetObjectItemCaseSensitive(data, "position");
+    if (position == NULL) {
+        printf("Error parsing VIO JSON: Could not get position obj\n");
+        status = -1;
+        goto end;
+    }
+
+    pos_x = cJSON_GetObjectItemCaseSensitive(position, "x");
+    pos_y = cJSON_GetObjectItemCaseSensitive(position, "y");
+    pos_z = cJSON_GetObjectItemCaseSensitive(position, "z");
+
+    if (!cJSON_IsNumber(pos_x) || !cJSON_IsNumber(pos_y) || !cJSON_IsNumber(pos_z)) {
+        printf("Error parsing VIO JSON: Could not get coordinates\n");
+        status = -1;
+        goto end;
+    }
+
+    // note the coordinate system transform
+    *y = (float)pos_x->valuedouble;
+    *z = (float)pos_y->valuedouble;
+    *x = (float)pos_z->valuedouble;
+
+end: 
+    cJSON_Delete(vio_json);
+    return status;    
 }
 
 static uint8_t _getUwb(char *_lineBuf, double* t, uint8_t* b, float* r)
@@ -159,7 +240,7 @@ static uint8_t _getUwb(char *_lineBuf, double* t, uint8_t* b, float* r)
     *t = tv.tv_sec + tv.tv_usec / 1000000.0;
     *b = atoi(strtok(_lineBuf, ","));
     // adding 0.3 to range to deal with bias observed on the UWB nodes
-    *r = (float)atof(strtok(NULL, ","))+0.3;
+    *r = (float)atof(strtok(NULL, ","));//+0.3;
 
     return 1;
 }
@@ -176,9 +257,11 @@ static void _getDeployment(FILE* deployFile, float deployment[NUM_BCNS][3])
             return;
         b = (uint8_t)atoi(strtok(_lineBuf, ","));
         assert(b < NUM_BCNS);
-        deployment[b][0] = (float)atof(strtok(NULL, ","));
+
+        // note the coordinate system transform
         deployment[b][1] = (float)atof(strtok(NULL, ","));
-        deployment[b][2] = (float)atof(strtok(NULL, ",\n"));
+        deployment[b][2] = (float)atof(strtok(NULL, ","));
+        deployment[b][0] = (float)atof(strtok(NULL, ",\n"));
     }
 }
 
@@ -193,13 +276,14 @@ static void _writeTagLoc(FILE* outFile, double t, float x, float y, float z, flo
     fprintf(outFile, "%lf,%f,%f,%f,%f\n", t, x, y, z, theta);
 }
 
-static void _publishLoc(MQTTClient client, char *topic, double t, float x, float y, float z, float theta)
+static void _publishLoc(MQTTClient client, char *topic, char *objid, double t, float x, float y, float z, float theta)
 {
     MQTTClient_deliveryToken token;
     MQTTClient_message pubmsg = MQTTClient_message_initializer;
-    char str_msg[100];
+    char str_msg[500];
 
-    snprintf(str_msg, 100, FRMT_TAG_LOC_MSG, y, z, x, 0.0f, sinf(theta/2), 0.0f, cosf(theta/2));
+    //FRMT_TAG_LOC_JSON "{\"object_id\" : \"%s\",  \"action\": \"update\", \"type\": \"rig\", \"data\": {\"position\": {\"x\": %f, \"y\": %f, \"z\": %f}, \"rotation\": {\"x\": %f, \"y\": %f, \"z\": %f, \"w\": %f}}}"
+    snprintf(str_msg, 500, FRMT_TAG_LOC_JSON, objid, y, z, x, 0.0f, sinf(theta/2), 0.0f, cosf(theta/2));
 
     pubmsg.payload = str_msg;
     pubmsg.payloadlen = strlen(str_msg);
