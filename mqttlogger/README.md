@@ -11,7 +11,7 @@ Edit ```topic_handlers``` to add the functions that will receive the messages on
 The function handler name for a topic is derived from the topic name by replacing '/' by '_'. E.g.:
   * topic ```/topic/vio/camera_pixel_pixel``` should have a handler named ```_topic_vio_camera_pixel_pixel()```
 
-Message topic handlers receive two arguments: the ```logger``` handle and the ```message``` received.
+Message topic handlers receive two arguments: the ```logger``` handle and the ```message``` received (see example handlers).
 
 ## Start the logger
 
