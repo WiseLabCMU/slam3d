@@ -25,9 +25,13 @@ To start the logger, make sure to give execute permissions to ```logger.py```.
 optional arguments:
   -h, --help     show this help message and exit
   -s MQTTSERVER  MQTT Server; default=oz.andrew.cmu.edu
-  -f LOGFILE     Log file; default=data.log
+  -f LOGFILE     Log file; default=vio.log
   -t TOPICS      Subscribe topics; multiple -t are allowed;
                  default=['/topic/vio/camera_pixel_pixel']
 ```
 
 Note: multiple topics can be given as argument. e.g.: ```-t topic1 -t topic2 -t topic3```
+
+### Startup script
+
+The script ```log_fixed_camera_solver.sh```
