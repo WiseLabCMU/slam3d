@@ -9,14 +9,29 @@ eval DEVUWB="topic/uwb_range_mud"
 eval DEVLOCATION="/topic/loc/${CAMERAID}"
 eval DEVVIZSCENE="realm/s/$SCENENAME/"
 
-rm -f vio.log uwb.log loc_result.log viz_result.log || true
+# copy previous logs
+mkdir previous_logs 2>/dev/null || true
+cp -f *log previous_logs || true
 
-# kill previous instances; ATTENTION: will kill other python 3.7 processes...
-pkill -KILL python3.7
+# delete previous logs
+rm -f *log || true
 
 #start a logger for each topic
-python3.7 logger.py -f 'vio.log' -t $DEVVIO &
-python3.7 logger.py -f 'uwb.log' -t $DEVUWB &
-python3.7 logger.py -f 'loc_result.log' -t $DEVLOCATION &
-python3.7 logger.py -f 'viz_result.log' -t $DEVVIZSCENE &
+echo -e "\nStarting logger instances... \n"
+
+python3.7 logger.py -f 'vio.log' -t $DEVVIO & echo $! > pids.txt
+python3.7 logger.py -f 'uwb.log' -t $DEVUWB & echo $! >> pids.txt
+python3.7 logger.py -f 'loc_result.log' -t $DEVLOCATION & echo $! >> pids.txt
+python3.7 logger.py -f 'viz_result.log' -t $DEVVIZSCENE & echo $! >> pids.txt
+
+sleep 1
+
+echo -e "\nLogger instances started.\n\n"
+read -p "** Press enter to finish logging **"
+
+# kill logger instances
+while read pid; do
+  #echo "Killing "$pid
+  kill -KILL $pid
+done <pids.txt
 

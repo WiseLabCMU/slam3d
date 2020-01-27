@@ -61,7 +61,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 fh = logging.FileHandler(args.logfile)
-logger.addHandler(ch)
+#logger.addHandler(ch) # uncomment to print log messages to console
 logger.addHandler(fh)
 
 formatter = MyFormatter(fmt='%(asctime)s %(message)s',datefmt='%Y-%m-%d,%H:%M:%S.%f')
