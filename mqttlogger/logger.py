@@ -42,7 +42,7 @@ def on_log(mqttc, obj, level, string):
 
 class MyFormatter(logging.Formatter):
     def formatTime(self, record, datefmt=None):
-        s = "%s" % str(time.time_ns()/1000)
+        s = "%s" % str(time.time_ns()/1000000000)
         return s
 
 # parse arguments
@@ -64,7 +64,7 @@ fh = logging.FileHandler(args.logfile)
 #logger.addHandler(ch) # uncomment to print log messages to console
 logger.addHandler(fh)
 
-formatter = MyFormatter(fmt='%(asctime)s %(message)s',datefmt='%Y-%m-%d,%H:%M:%S.%f')
+formatter = MyFormatter(fmt='%(asctime)s,%(message)s',datefmt='%Y-%m-%d,%H:%M:%S.%f')
 ch.setFormatter(formatter)
 fh.setFormatter(formatter)
 
