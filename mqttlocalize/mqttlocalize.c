@@ -33,7 +33,7 @@
 #define UWB_STD             (0.1f)
 #define UWB_BIAS            (0.2f)
 #define SKIP_TO_WAYPOINT    (1)
-#define UPDATE_INTERVAL_us  1000000
+#define UPDATE_INTERVAL_us  500000
 
 #define DEPLOY_FILE         TRACE_DIR "deploy.csv"
 #define LINE_LEN            (1024)
@@ -72,11 +72,10 @@ int main(int argc, char* argv[])
     MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
     int rc;
     int ch=0;
-    char *topicName_LocOut;
     char *topicName_RigOut;
     char *cameraObjId;    
 
-    if (argc <5) printf("Usage: %s <Subscribe_VIO_Topic> <Subscribe_UWB_Topic> <Publish_Loc_Topic> <Publish_Rig_Topic> <Rig_Obj_id>\n", argv[0]);
+    if (argc <5) printf("Usage: %s <Subscribe_VIO_Topic> <Subscribe_UWB_Topic> <Publish_Rig_Topic> <Rig_Obj_id>\n", argv[0]);
 
     snprintf(clientid, LINE_LEN, "%s%ld", CLIENTID, time(NULL) % 1000);
     printf("Client ID:%s\n", clientid);
@@ -95,9 +94,8 @@ int main(int argc, char* argv[])
 
     topicName_VIO = argv[1];
     topicName_UWB = argv[2];
-    topicName_LocOut = argv[3];
-    topicName_RigOut = argv[4];
-    cameraObjId = argv[5];
+    topicName_RigOut = argv[3];
+    cameraObjId = argv[4];
 
     printf("\nSubscribing to topic %s\nfor client %s using QoS%d\n\n", topicName_VIO, clientid, QOS);
     MQTTClient_subscribe(client, argv[1], QOS);
@@ -140,7 +138,6 @@ int main(int argc, char* argv[])
 
             // additional pi/2 added to theta for axis alignment - Adwait
             _publishLoc(client, topicName_RigOut, cameraObjId, outT, rigX, rigY, rigZ, outTheta);
-            _publishLoc(client, topicName_LocOut, cameraObjId, outT, outX, outY, outZ, outTheta);
         }
         usleep(UPDATE_INTERVAL_us);
     } while(1);

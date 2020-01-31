@@ -6,7 +6,6 @@ SCENENAME="earth"
 eval CAMERAID="camera_${DEVNAME}_${DEVNAME}"
 eval DEVVIO="/topic/vio/${CAMERAID}"
 eval DEVUWB="topic/uwb_range_mud"
-eval DEVLOCATION="/topic/loc/${CAMERAID}"
 eval DEVVIZSCENE="realm/s/$SCENENAME/"
 
 # copy previous logs
@@ -21,7 +20,6 @@ echo -e "\nStarting logger instances... \n"
 
 python3.7 logger.py -f 'vio.csv' -t $DEVVIO & echo $! > pids.txt
 python3.7 logger.py -f 'uwb.csv' -t $DEVUWB & echo $! >> pids.txt
-python3.7 logger.py -f 'loc_result.csv' -t $DEVLOCATION & echo $! >> pids.txt
 python3.7 logger.py -f 'viz_result.csv' -t $DEVVIZSCENE & echo $! >> pids.txt
 
 sleep 1
