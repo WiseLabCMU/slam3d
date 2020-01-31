@@ -72,6 +72,7 @@ extern "C" {
         float lastX;
         float lastY;
         float lastZ;
+        float lastProvidedDist;
         float lastDist;
         tagLoc_t tag;
 

@@ -13,6 +13,8 @@
 #include "pfMeasurement.h"
 #include "pfResample.h"
 
+#define VIO_SPEED_LIMIT     (15.0f) // Limit to remove vio loop closure (m/s)
+
 static void _commitVioLoc(particleFilterLoc_t* pf);
 static void _commitVioSlam(particleFilterSlam_t* pf);
 
@@ -27,6 +29,7 @@ void particleFilterLoc_init(particleFilterLoc_t* pf)
     pf->lastX = 0.0f;
     pf->lastY = 0.0f;
     pf->lastZ = 0.0f;
+    pf->lastProvidedDist = 0.0f;
     pf->lastDist = 0.0f;
     pf->tag.initialized = 0;
 }
@@ -54,7 +57,8 @@ void particleFilterSlam_addBcn(bcn_t* bcn)
 
 void particleFilterLoc_depositVio(particleFilterLoc_t* pf, double t, float x, float y, float z, float dist)
 {
-    float dx, dy, dz;
+    float dx, dy, dz, dpd, dd;
+    double dt;
     
     if (pf->firstT == 0.0)
     {
@@ -68,24 +72,30 @@ void particleFilterLoc_depositVio(particleFilterLoc_t* pf, double t, float x, fl
         pf->lastY = y;
         pf->lastZ = z;
         pf->lastDist = dist;
+        pf->lastProvidedDist = dist;
         return;
     }
+
+    dt = t - pf->lastT;
+    dx = x - pf->lastX;
+    dy = y - pf->lastY;
+    dz = z - pf->lastZ;
+    dpd = dist - pf->lastProvidedDist;
+    dd = sqrtf(dx * dx + dy * dy + dz * dz);
+    if (dd / dt > VIO_SPEED_LIMIT)
+    {
+        pf->firstX += dx;
+        pf->firstY += dy;
+        pf->firstZ += dz;
+        pf->firstDist += dd;
+    }
     
-    if (dist > pf->lastDist)
-    {
-        pf->lastDist = dist;
-    }
-    else
-    {
-        dx = x - pf->lastX;
-        dy = y - pf->lastY;
-        dz = z - pf->lastZ;
-        pf->lastDist += sqrtf(dx * dx + dy * dy + dz * dz);
-    }
     pf->lastT = t;
     pf->lastX = x;
     pf->lastY = y;
     pf->lastZ = z;
+    pf->lastProvidedDist = dist;
+    pf->lastDist += (dpd > dd) ? dpd : dd;
 }
 
 void particleFilterSlam_depositVio(particleFilterSlam_t* pf, double t, float x, float y, float z, float dist)
