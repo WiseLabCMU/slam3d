@@ -347,3 +347,4 @@ xcuserdata/
 /sampledata/cic/0/bcn.csv
 /sampledata/cic/0/tag.csv
 /ArSlam/app/.cxx/ndk_locator_record.json
+/mqttlogger/tag.csv
