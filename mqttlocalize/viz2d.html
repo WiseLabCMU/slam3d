@@ -39,7 +39,6 @@
 var canvas = $("#my_canvas");
 var ctx;
 
-// ARENA UWB anchors location
 var anchor_list={'anchors':[{ 'x': 2.111, 'y': -0.704, 'label': '0'}, { 'x': -2.122, 'y': -2.88, 'label': '1'}, { 'x': -3.666, 'y': 0.098, 'label': '2'}, {'x': -0.978, 'y': 3.319, 'label': '3'}]};
 
 var tag_x=0.0;
@@ -96,7 +95,8 @@ window.addEventListener('DOMContentLoaded', function(){
 		ctx.beginPath();
 		ctx.moveTo(x, y);
 		ctx.strokeStyle = "#FF0000";
-		ctx.lineTo(x+tag_oCos*0.3*zoom_fact, y+tag_oSin*0.3*zoom_fact);
+		ctx.lineWidth = 5;
+		ctx.lineTo(x+tag_oCos*0.3*zoom_fact, y-tag_oSin*0.3*zoom_fact);
 		ctx.stroke();
 	}
 
@@ -176,22 +176,22 @@ function onConnectionLost(responseObject) {
 
 // Called when a message arrives
 function onMessageArrived(message) {
-    //console.log(message.payloadString);
-	// example location update JSON: 
-	//    {"object_id" : "camera_pixel_pixel",  "action": "update", "type": "rig", "data": {"position": {"x": 1.397020, "y": 2.200331, "z": 2.624482}, "rotation": {"x": 0.000000, "y": 0.995859, "z": 0.000000, "w": 0.090907}}}
+    console.log(message.payloadString);
 	let locUpdt = JSON.parse(message.payloadString);
+	// {"object_id" : "camera_pixel_pixel",  "action": "update", "type": "rig", "data": {"position": {"x": 0.992325, "y": 1.236724, "z": 2.352735}, "rotation": {"x": 0.000000, "y": -0.987420, "z": 0.000000, "w": 0.158120}}}
 
 	tag_x = locUpdt.data.position.z;
 	tag_y = locUpdt.data.position.x;
-	tag_oSin = locUpdt.data.rotation.y;
-	tag_oCos = locUpdt.data.rotation.w;
+	tag_oSin = Math.sin(locUpdt.data.theta);
+	tag_oCos = Math.cos(locUpdt.data.theta);
 
 	console.log('tx:'+tag_x+' ty:'+tag_y);
+	console.log('cos:'+tag_oCos+' sin:'+tag_oSin);
 	draw();
 }
+
 
 </script> 
 
 </body>
 </html>
-
