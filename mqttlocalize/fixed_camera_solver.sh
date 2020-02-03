@@ -6,6 +6,7 @@ SCENENAME="earth"
 eval CAMERAID="camera_${DEVNAME}_${DEVNAME}"
 eval DEVVIO="/topic/vio/${CAMERAID}"
 eval DEVUWB="topic/uwb_range_mud"
+eval DEVLOCATION="/topic/loc/${CAMERAID}" # for 2d debug
 eval DEVVIZSCENE="realm/s/$SCENENAME/"
 
 # check if we requesting ranges from tags
@@ -14,4 +15,4 @@ if ! pidof -x "uwb_ctrl_publish.sh" >/dev/null; then
     ./uwb_ctrl_publish.sh >/dev/null & # script that periodically tells the tags to publish ranges
 fi
 
-./mqttlocalize ${DEVVIO} ${DEVUWB} ${DEVVIZSCENE} ${CAMERAID}
+./mqttlocalize ${DEVVIO} ${DEVUWB} ${DEVLOCATION} ${DEVVIZSCENE} ${CAMERAID}
