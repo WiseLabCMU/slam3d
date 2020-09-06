@@ -138,19 +138,23 @@ static void _resampleBcn(bcn_t* bcn, const particleFilterSlam_t* pf, float range
     int numSpawn, i, j, k;
     const tagParticle_t* tp;
     bcnParticle_t* bp;
-    float invN, w, s, ss, ess, m, rStart, rStep;
+    float invN, w, s, ss, csum, ssum, ess, htheta, m, rStart, rStep;
     float weightCdf[PF_N_BCN];
     
     for (k = 0; k < PF_N_TAG_SLAM; ++k)
     {
         s = 0.0f;
         ss = 0.0f;
+        csum = 0.0f;
+        ssum = 0.0f;
         for (i = 0; i < PF_N_BCN; ++i)
         {
             bp = &bcn->pBcn[k][i];
             w = bp->w;
             s += w;
             ss += w * w;
+            csum += w * cosf(bp->theta);
+            ssum += w * sinf(bp->theta);
             weightCdf[i] = s;
         }
         ess = s * s / ss;
@@ -162,12 +166,19 @@ static void _resampleBcn(bcn_t* bcn, const particleFilterSlam_t* pf, float range
         
         if (ess * invN < RESAMPLE_THRESH || numSpawn > 0 || force)
         {
+            csum /= s;
+            ssum /= s;
+            htheta = csum * csum + ssum * ssum;
+            htheta = htheta > 1e-10f ? htheta : 1e-10f;
+            htheta = htheta < 1 - 1e-10f ? htheta : 1 - 1e-10f;
+            htheta = sqrtf(-logf(htheta) / ess);
+
             rStep = invN * s;
             rStart = pfRandom_uniform() * rStep;
             
             for (i = 0, j = 0; i < PF_N_BCN; ++j)
                 for (; i < PF_N_BCN && (rStart + rStep * i) < weightCdf[j]; ++i)
-                    pfInit_spawnBcnParticleFromOther(&bcn->pBcnBuf[i], &bcn->pBcn[k][j], HXYZ);
+                    pfInit_spawnBcnParticleFromOther(&bcn->pBcnBuf[i], &bcn->pBcn[k][j], HXYZ, htheta);
             
             memcpy(bcn->pBcn[k], bcn->pBcnBuf, sizeof(bcn->pBcnBuf));
             

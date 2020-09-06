@@ -15,7 +15,8 @@ extern "C" {
 #endif
     
     void pfMeasurement_applyVioLoc(particleFilterLoc_t* pf, float dt, float dx, float dy, float dz, float ddist);
-    void pfMeasurement_applyVioSlam(particleFilterSlam_t* pf, float dt, float dx, float dy, float dz, float ddist);
+    void pfMeasurement_applyTagVioSlam(particleFilterSlam_t* pf, float dt, float dx, float dy, float dz, float ddist);
+    void pfMeasurement_applyBcnVioSlam(bcn_t* bcn, float dt, float dx, float dy, float dz, float ddist);
     void pfMeasurement_applyRangeLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange);
     void pfMeasurement_applyRangeSlam(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange);
     

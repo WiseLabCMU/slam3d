@@ -86,9 +86,10 @@ void pfInit_spawnBcnParticleFromRange(bcnParticle_t* bp, const tagParticle_t* tp
     bp->x = tp->x + dx;
     bp->y = tp->y + dy;
     bp->z = tp->z + dz;
+    bp->theta = pfRandom_uniform() * 2 * (float)M_PI;
 }
 
-void pfInit_spawnBcnParticleFromOther(bcnParticle_t* bp, const bcnParticle_t* other, float hXyz)
+void pfInit_spawnBcnParticleFromOther(bcnParticle_t* bp, const bcnParticle_t* other, float hXyz, float hTheta)
 {
     float dx, dy, dz, dtheta;
     
@@ -98,4 +99,5 @@ void pfInit_spawnBcnParticleFromOther(bcnParticle_t* bp, const bcnParticle_t* ot
     bp->x = other->x + dx * hXyz;
     bp->y = other->y + dy * hXyz;
     bp->z = other->z + dz * hXyz;
+    bp->theta = fmodf(other->theta + dtheta * hTheta, 2 * (float)M_PI);
 }

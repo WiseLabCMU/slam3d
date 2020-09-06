@@ -43,7 +43,7 @@ void pfMeasurement_applyVioLoc(particleFilterLoc_t* pf, float dt, float dx, floa
     }
 }
 
-void pfMeasurement_applyVioSlam(particleFilterSlam_t* pf, float dt, float dx, float dy, float dz, float ddist)
+void pfMeasurement_applyTagVioSlam(particleFilterSlam_t* pf, float dt, float dx, float dy, float dz, float ddist)
 {
     int i;
     tagParticle_t* tp;
@@ -67,6 +67,33 @@ void pfMeasurement_applyVioSlam(particleFilterSlam_t* pf, float dt, float dx, fl
         tp->y += pDy + stdXyz * ry;
         tp->z += dz + stdXyz * rz;
         tp->theta = fmodf(tp->theta + stdTheta * rtheta, 2 * (float)M_PI);
+    }
+}
+
+void pfMeasurement_applyBcnVioSlam(bcn_t* bcn, float dt, float dx, float dy, float dz, float ddist)
+{
+    int i;
+    tagParticle_t* bp;
+    float c, s, pDx, pDy, stdXyz, stdTheta;
+    float rx, ry, rz, rtheta;
+
+    stdXyz = sqrtf(ddist) * VIO_STD_XYZ;
+    stdTheta = sqrtf(dt) * VIO_STD_THETA;
+    for (i = 0; i < PF_N_TAG_SLAM; ++i)
+    {
+        bp = &bcn->pBcn[i];
+        c = cosf(bp->theta);
+        s = sinf(bp->theta);
+        pDx = dx * c - dy * s;
+        pDy = dx * s + dy * c;
+
+        pfRandom_normal2(&rx, &ry);
+        pfRandom_normal2(&rz, &rtheta);
+
+        bp->x += pDx + stdXyz * rx;
+        bp->y += pDy + stdXyz * ry;
+        bp->z += dz + stdXyz * rz;
+        bp->theta = fmodf(bp->theta + stdTheta * rtheta, 2 * (float)M_PI);
     }
 }
 
