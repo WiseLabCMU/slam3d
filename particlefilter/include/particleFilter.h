@@ -34,6 +34,7 @@ extern "C" {
         float x;
         float y;
         float z;
+        float theta;
 
     } bcnParticle_t;
     
@@ -78,6 +79,16 @@ extern "C" {
         bcnParticle_t pBcn[PF_N_TAG_SLAM][PF_N_BCN];
         bcnParticle_t pBcnBuf[PF_N_BCN];
         uint8_t initialized;
+        double firstT;
+        float firstX;
+        float firstY;
+        float firstZ;
+        float firstDist;
+        double lastT;
+        float lastX;
+        float lastY;
+        float lastZ;
+        float lastDist;
         
     } bcn_t;
 
@@ -85,7 +96,7 @@ extern "C" {
     void particleFilterSlam_init(particleFilterSlam_t* pf);
     void particleFilterSlam_addBcn(bcn_t* bcn);
     void particleFilterLoc_depositVio(particleFilterLoc_t* pf, double t, float x, float y, float z, float dist);
-    void particleFilterSlam_depositVio(particleFilterSlam_t* pf, double t, float x, float y, float z, float dist);
+    void particleFilterSlam_depositTagVio(particleFilterSlam_t* pf, double t, float x, float y, float z, float dist);
     void particleFilterLoc_depositRange(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange);
     void particleFilterSlam_depositRange(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns);
     void particleFilterLoc_depositRssi(particleFilterLoc_t* pf, float bx, float by, float bz, int rssi);

@@ -65,7 +65,7 @@ int main(int argc, char** argv)
     {
         if (haveVio && (!haveUwb || vioT < uwbT))
         {
-            particleFilterSlam_depositVio(&_particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
+            particleFilterSlam_depositTagVio(&_particleFilter, vioT, vioX, vioY, vioZ, 0.0f);
             if (particleFilterSlam_getTagLoc(&_particleFilter, &outT, &outX, &outY, &outZ, &outTheta))
                 _writeTagLoc(tagOutFile, outT, outX, outY, outZ, outTheta);
             haveVio = _getVio(vioFile, &vioT, &vioX, &vioY, &vioZ, 0);

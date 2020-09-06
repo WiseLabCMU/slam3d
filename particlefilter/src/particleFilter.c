@@ -88,7 +88,7 @@ void particleFilterLoc_depositVio(particleFilterLoc_t* pf, double t, float x, fl
     pf->lastZ = z;
 }
 
-void particleFilterSlam_depositVio(particleFilterSlam_t* pf, double t, float x, float y, float z, float dist)
+void particleFilterSlam_depositTagVio(particleFilterSlam_t* pf, double t, float x, float y, float z, float dist)
 {
     float dx, dy, dz;
 
