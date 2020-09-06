@@ -16,7 +16,7 @@
 #define VIO_STD_THETA       (1e-6f)
 #define MIN_WEIGHT(range)   ((range < 3.0f) ? 0.1f : 0.5f)
 
-void pfMeasurement_applyVioLoc(tagLoc_t* tag, float dt, float dx, float dy, float dz, float ddist)
+void pfMeasurement_applyVioLoc(particleFilterLoc_t* pf, float dt, float dx, float dy, float dz, float ddist)
 {
     int i;
     tagParticle_t* tp;
@@ -27,7 +27,7 @@ void pfMeasurement_applyVioLoc(tagLoc_t* tag, float dt, float dx, float dy, floa
     stdTheta = sqrtf(dt) * VIO_STD_THETA;
     for (i = 0; i < PF_N_TAG_LOC; ++i)
     {
-        tp = &tag->pTag[i];
+        tp = &pf->pTag[i];
         c = cosf(tp->theta);
         s = sinf(tp->theta);
         pDx = dx * c - dy * s;
@@ -43,7 +43,7 @@ void pfMeasurement_applyVioLoc(tagLoc_t* tag, float dt, float dx, float dy, floa
     }
 }
 
-void pfMeasurement_applyVioSlam(tagSlam_t* tag, float dt, float dx, float dy, float dz, float ddist)
+void pfMeasurement_applyVioSlam(particleFilterSlam_t* pf, float dt, float dx, float dy, float dz, float ddist)
 {
     int i;
     tagParticle_t* tp;
@@ -54,7 +54,7 @@ void pfMeasurement_applyVioSlam(tagSlam_t* tag, float dt, float dx, float dy, fl
     stdTheta = sqrtf(dt) * VIO_STD_THETA;
     for (i = 0; i < PF_N_TAG_SLAM; ++i)
     {
-        tp = &tag->pTag[i];
+        tp = &pf->pTag[i];
         c = cosf(tp->theta);
         s = sinf(tp->theta);
         pDx = dx * c - dy * s;
@@ -70,7 +70,7 @@ void pfMeasurement_applyVioSlam(tagSlam_t* tag, float dt, float dx, float dy, fl
     }
 }
 
-void pfMeasurement_applyRangeLoc(tagLoc_t* tag, float bx, float by, float bz, float range, float stdRange)
+void pfMeasurement_applyRangeLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange)
 {
     int i;
     tagParticle_t* tp;
@@ -79,7 +79,7 @@ void pfMeasurement_applyRangeLoc(tagLoc_t* tag, float bx, float by, float bz, fl
     minWeight = MIN_WEIGHT(range);
     for (i = 0; i < PF_N_TAG_LOC; ++i)
     {
-        tp = &tag->pTag[i];
+        tp = &pf->pTag[i];
         dx = tp->x - bx;
         dy = tp->y - by;
         dz = tp->z - bz;
@@ -89,7 +89,7 @@ void pfMeasurement_applyRangeLoc(tagLoc_t* tag, float bx, float by, float bz, fl
     }
 }
 
-void pfMeasurement_applyRangeSlam(tagSlam_t* tag, bcn_t* bcn, float range, float stdRange)
+void pfMeasurement_applyRangeSlam(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange)
 {
     int i, j;
     tagParticle_t* tp;
@@ -99,7 +99,7 @@ void pfMeasurement_applyRangeSlam(tagSlam_t* tag, bcn_t* bcn, float range, float
     minWeight = MIN_WEIGHT(range);
     for (i = 0; i < PF_N_TAG_SLAM; ++i)
     {
-        tp = &tag->pTag[i];
+        tp = &pf->pTag[i];
         bcnSum = 0.0f;
         for (j = 0; j < PF_N_BCN; ++j)
         {

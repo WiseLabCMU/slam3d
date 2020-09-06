@@ -14,8 +14,8 @@
 extern "C" {
 #endif
     
-    void pfResample_resampleLoc(tagLoc_t* tag, float bx, float by, float bz, float range, float stdRange);
-    void pfResample_resampleSlam(tagSlam_t* tag, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns);
+    void pfResample_resampleLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange);
+    void pfResample_resampleSlam(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns);
     
 #ifdef __cplusplus
 } // extern "C"

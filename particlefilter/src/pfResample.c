@@ -20,9 +20,9 @@
 #define PCT_SPAWN           (0.05f)
 #define HXYZ                (0.1f)
 
-static void _resampleBcn(bcn_t* bcn, const tagSlam_t* tag, float range, float stdRange, uint8_t force);
+static void _resampleBcn(bcn_t* bcn, const particleFilterSlam_t* pf, float range, float stdRange, uint8_t force);
 
-void pfResample_resampleLoc(tagLoc_t* tag, float bx, float by, float bz, float range, float stdRange)
+void pfResample_resampleLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange)
 {
     int numSpawn, i, j;
     tagParticle_t* tp;
@@ -35,7 +35,7 @@ void pfResample_resampleLoc(tagLoc_t* tag, float bx, float by, float bz, float r
     ssum = 0.0f;
     for (i = 0; i < PF_N_TAG_LOC; ++i)
     {
-        tp = &tag->pTag[i];
+        tp = &pf->pTag[i];
         w = tp->w;
         s += w;
         ss += w * w;
@@ -64,21 +64,21 @@ void pfResample_resampleLoc(tagLoc_t* tag, float bx, float by, float bz, float r
 
         for (i = 0, j = 0; i < PF_N_TAG_LOC; ++j)
             for (; i < PF_N_TAG_LOC && (rStart + rStep * i) < weightCdf[j]; ++i)
-                pfInit_spawnTagParticleFromOther(&tag->pTagBuf[i], &tag->pTag[j], HXYZ, htheta);
+                pfInit_spawnTagParticleFromOther(&pf->pTagBuf[i], &pf->pTag[j], HXYZ, htheta);
 
-        memcpy(tag->pTag, tag->pTagBuf, sizeof(tag->pTagBuf));
+        memcpy(pf->pTag, pf->pTagBuf, sizeof(pf->pTagBuf));
         for (i = 0; i < numSpawn; ++i)
-            pfInit_spawnTagParticleFromRange(&tag->pTag[i], bx, by, bz, range, stdRange);
+            pfInit_spawnTagParticleFromRange(&pf->pTag[i], bx, by, bz, range, stdRange);
     }
     else
     {
         m = PF_N_TAG_LOC / s;
         for (i = 0; i < PF_N_TAG_LOC; ++i)
-            tag->pTag[i].w *= m;
+            pf->pTag[i].w *= m;
     }
 }
 
-void pfResample_resampleSlam(tagSlam_t* tag, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
+void pfResample_resampleSlam(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
 {
     int i, j;
     tagParticle_t* tp;
@@ -91,7 +91,7 @@ void pfResample_resampleSlam(tagSlam_t* tag, bcn_t* bcn, float range, float stdR
     ssum = 0.0f;
     for (i = 0; i < PF_N_TAG_SLAM; ++i)
     {
-        tp = &tag->pTag[i];
+        tp = &pf->pTag[i];
         w = tp->w;
         s += w;
         ss += w * w;
@@ -116,24 +116,24 @@ void pfResample_resampleSlam(tagSlam_t* tag, bcn_t* bcn, float range, float stdR
         
         for (i = 0, j = 0; i < PF_N_TAG_SLAM; ++j)
             for (; i < PF_N_TAG_SLAM && (rStart + rStep * i) < weightCdf[j]; ++i)
-                pfInit_spawnTagParticleFromOther(&tag->pTagBuf[i], &tag->pTag[j], HXYZ, htheta);
+                pfInit_spawnTagParticleFromOther(&pf->pTagBuf[i], &pf->pTag[j], HXYZ, htheta);
         
-        memcpy(tag->pTag, tag->pTagBuf, sizeof(tag->pTagBuf));
+        memcpy(pf->pTag, pf->pTagBuf, sizeof(pf->pTagBuf));
         
         for (i = 0; i < numBcns; ++i)
             if (allBcns[i]->initialized)
-                _resampleBcn(allBcns[i], tag, range, stdRange, 1);
+                _resampleBcn(allBcns[i], pf, range, stdRange, 1);
     }
     else
     {
         m = PF_N_TAG_SLAM / s;
         for (i = 0; i < PF_N_TAG_SLAM; ++i)
-            tag->pTag[i].w *= m;
-        _resampleBcn(bcn, tag, range, stdRange, 0);
+            pf->pTag[i].w *= m;
+        _resampleBcn(bcn, pf, range, stdRange, 0);
     }
 }
 
-static void _resampleBcn(bcn_t* bcn, const tagSlam_t* tag, float range, float stdRange, uint8_t force)
+static void _resampleBcn(bcn_t* bcn, const particleFilterSlam_t* pf, float range, float stdRange, uint8_t force)
 {
     int numSpawn, i, j, k;
     const tagParticle_t* tp;
@@ -171,7 +171,7 @@ static void _resampleBcn(bcn_t* bcn, const tagSlam_t* tag, float range, float st
             
             memcpy(bcn->pBcn[k], bcn->pBcnBuf, sizeof(bcn->pBcnBuf));
             
-            tp = &tag->pTag[k];
+            tp = &pf->pTag[k];
             for (i = 0; i < numSpawn; ++i)
                 pfInit_spawnBcnParticleFromRange(&bcn->pBcn[k][i], tp, range, stdRange);
         }

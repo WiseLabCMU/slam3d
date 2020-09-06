@@ -14,10 +14,10 @@
 extern "C" {
 #endif
     
-    void pfMeasurement_applyVioLoc(tagLoc_t* tag, float dt, float dx, float dy, float dz, float ddist);
-    void pfMeasurement_applyVioSlam(tagSlam_t* tag, float dt, float dx, float dy, float dz, float ddist);
-    void pfMeasurement_applyRangeLoc(tagLoc_t* tag, float bx, float by, float bz, float range, float stdRange);
-    void pfMeasurement_applyRangeSlam(tagSlam_t* tag, bcn_t* bcn, float range, float stdRange);
+    void pfMeasurement_applyVioLoc(particleFilterLoc_t* pf, float dt, float dx, float dy, float dz, float ddist);
+    void pfMeasurement_applyVioSlam(particleFilterSlam_t* pf, float dt, float dx, float dy, float dz, float ddist);
+    void pfMeasurement_applyRangeLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange);
+    void pfMeasurement_applyRangeSlam(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange);
     
 #ifdef __cplusplus
 } // extern "C"

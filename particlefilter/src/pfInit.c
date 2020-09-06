@@ -12,32 +12,32 @@
 #include "pfInit.h"
 #include "pfRandom.h"
 
-void pfInit_initTagLoc(tagLoc_t* tag, float bx, float by, float bz, float range, float stdRange)
+void pfInit_initTagLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange)
 {
     int i;
 
     pfRandom_init();
     for (i = 0; i < PF_N_TAG_LOC; ++i)
-        pfInit_spawnTagParticleFromRange(&tag->pTag[i], bx, by, bz, range, stdRange);
+        pfInit_spawnTagParticleFromRange(&pf->pTag[i], bx, by, bz, range, stdRange);
 }
 
-void pfInit_initTagSlam(tagSlam_t* tag)
+void pfInit_initTagSlam(particleFilterSlam_t* pf)
 {
     int i;
 
     pfRandom_init();
     for (i = 0; i < PF_N_TAG_SLAM; ++i)
-        pfInit_spawnTagParticleZero(&tag->pTag[i]);
+        pfInit_spawnTagParticleZero(&pf->pTag[i]);
 }
 
-void pfInit_initBcnSlam(bcn_t* bcn, const tagSlam_t* tag, float range, float stdRange)
+void pfInit_initBcnSlam(bcn_t* bcn, const particleFilterSlam_t* pf, float range, float stdRange)
 {
     int i, j;
     const tagParticle_t* tp;
     
     for (i = 0; i < PF_N_TAG_SLAM; ++i)
     {
-        tp = &tag->pTag[i];
+        tp = &pf->pTag[i];
         for (j = 0; j < PF_N_BCN; ++j)
             pfInit_spawnBcnParticleFromRange(&bcn->pBcn[i][j], tp, range, stdRange);
     }

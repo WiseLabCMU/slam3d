@@ -42,16 +42,36 @@ extern "C" {
         tagParticle_t pTag[PF_N_TAG_LOC];
         tagParticle_t pTagBuf[PF_N_TAG_LOC];
         uint8_t initialized;
+        double firstT;
+        float firstX;
+        float firstY;
+        float firstZ;
+        float firstDist;
+        double lastT;
+        float lastX;
+        float lastY;
+        float lastZ;
+        float lastDist;
 
-    } tagLoc_t;
+    } particleFilterLoc_t;
 
     typedef struct
     {
         tagParticle_t pTag[PF_N_TAG_SLAM];
         tagParticle_t pTagBuf[PF_N_TAG_SLAM];
         uint8_t initialized;
+        double firstT;
+        float firstX;
+        float firstY;
+        float firstZ;
+        float firstDist;
+        double lastT;
+        float lastX;
+        float lastY;
+        float lastZ;
+        float lastDist;
         
-    } tagSlam_t;
+    } particleFilterSlam_t;
     
     typedef struct
     {
@@ -60,38 +80,6 @@ extern "C" {
         uint8_t initialized;
         
     } bcn_t;
-
-    typedef struct
-    {
-        double firstT;
-        float firstX;
-        float firstY;
-        float firstZ;
-        float firstDist;
-        double lastT;
-        float lastX;
-        float lastY;
-        float lastZ;
-        float lastDist;
-        tagLoc_t tag;
-
-    } particleFilterLoc_t;
-
-    typedef struct
-    {
-        double firstT;
-        float firstX;
-        float firstY;
-        float firstZ;
-        float firstDist;
-        double lastT;
-        float lastX;
-        float lastY;
-        float lastZ;
-        float lastDist;
-        tagSlam_t tag;
-
-    } particleFilterSlam_t;
 
     void particleFilterLoc_init(particleFilterLoc_t* pf);
     void particleFilterSlam_init(particleFilterSlam_t* pf);
