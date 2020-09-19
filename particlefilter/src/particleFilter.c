@@ -182,9 +182,8 @@ void particleFilterSlam_depositRange(particleFilterSlam_t* pf, bcn_t* bcn, float
 
     _commitTagVioSlam(pf);
     for (i = 0; i < numBcns; ++i)
-    {
         _commitBcnVioSlam(allBcns[i]);
-    }
+
     if (bcn->initialized)
     {
         pfMeasurement_applyRangeSlam(pf, bcn, range, stdRange);
@@ -218,9 +217,8 @@ void particleFilterSlam_depositRssi(particleFilterSlam_t* pf, bcn_t* bcn, int rs
 
     _commitTagVioSlam(pf);
     for (i = 0; i < numBcns; ++i)
-    {
         _commitBcnVioSlam(allBcns[i]);
-    }
+
     if (bcn->initialized)
     {
         pfMeasurement_applyRangeSlam(pf, bcn, 1.5f, 0.5f);
