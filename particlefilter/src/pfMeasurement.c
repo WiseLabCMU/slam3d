@@ -73,7 +73,7 @@ void pfMeasurement_applyTagVioSlam(particleFilterSlam_t* pf, float dt, float dx,
 void pfMeasurement_applyBcnVioSlam(bcn_t* bcn, float dt, float dx, float dy, float dz, float ddist)
 {
     int i;
-    tagParticle_t* bp;
+    bcnParticle_t* bp;
     float c, s, pDx, pDy, stdXyz, stdTheta;
     float rx, ry, rz, rtheta;
 
