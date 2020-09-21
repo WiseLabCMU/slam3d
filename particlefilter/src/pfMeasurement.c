@@ -72,7 +72,7 @@ void pfMeasurement_applyTagVioSlam(particleFilterSlam_t* pf, float dt, float dx,
 
 void pfMeasurement_applyBcnVioSlam(bcn_t* bcn, float dt, float dx, float dy, float dz, float ddist)
 {
-    int i;
+    int i, j;
     bcnParticle_t* bp;
     float c, s, pDx, pDy, stdXyz, stdTheta;
     float rx, ry, rz, rtheta;
@@ -81,19 +81,22 @@ void pfMeasurement_applyBcnVioSlam(bcn_t* bcn, float dt, float dx, float dy, flo
     stdTheta = sqrtf(dt) * VIO_STD_THETA;
     for (i = 0; i < PF_N_TAG_SLAM; ++i)
     {
-        bp = &bcn->pBcn[i];
-        c = cosf(bp->theta);
-        s = sinf(bp->theta);
-        pDx = dx * c - dy * s;
-        pDy = dx * s + dy * c;
+        for (j = 0; j < PF_N_BCN; ++j)
+        {
+            bp = &bcn->pBcn[i][j];
+            c = cosf(bp->theta);
+            s = sinf(bp->theta);
+            pDx = dx * c - dy * s;
+            pDy = dx * s + dy * c;
 
-        pfRandom_normal2(&rx, &ry);
-        pfRandom_normal2(&rz, &rtheta);
+            pfRandom_normal2(&rx, &ry);
+            pfRandom_normal2(&rz, &rtheta);
 
-        bp->x += pDx + stdXyz * rx;
-        bp->y += pDy + stdXyz * ry;
-        bp->z += dz + stdXyz * rz;
-        bp->theta = fmodf(bp->theta + stdTheta * rtheta, 2 * (float)M_PI);
+            bp->x += pDx + stdXyz * rx;
+            bp->y += pDy + stdXyz * ry;
+            bp->z += dz + stdXyz * rz;
+            bp->theta = fmodf(bp->theta + stdTheta * rtheta, 2 * (float)M_PI);
+        }
     }
 }
 
