@@ -97,8 +97,10 @@ public class BluetoothSystemManager {
     }
 
     public void pause() {
-        scanLeDevice(false);
-        scanForRssi(false);
+        if (leScanner != null) {
+            scanLeDevice(false);
+            scanForRssi(false);
+        }
     }
 
     public void destroy() {
@@ -106,13 +108,16 @@ public class BluetoothSystemManager {
             deviceGatt.close();
             deviceGatt = null;
         }
-        scanLeDevice(false);
-        scanForRssi(false);
+        if (leScanner != null) {
+            scanLeDevice(false);
+            scanForRssi(false);
+        }
     }
 
     public void showDeviceSelectDialog() {
         selectDeviceDialog.show();
-        scanLeDevice(true);
+        if (leScanner != null)
+            scanLeDevice(true);
     }
 
     private void scanLeDevice(boolean enable) {
