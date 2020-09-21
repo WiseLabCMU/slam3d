@@ -46,7 +46,7 @@ public class PoseManager {
     public void depositArCore(long elapsedRealtimeMillis, Pose arCorePose) {
         theirDeviceToTheirWorld = arCorePose;
         ourDeviceToOurVio = axisSwapThemToUs(theirDeviceToTheirWorld);
-        slam3d.depositVio(elapsedRealtimeMillis / 1000.0, ourDeviceToOurVio.tx(), ourDeviceToOurVio.ty(), ourDeviceToOurVio.tz());
+        slam3d.depositTagVio(elapsedRealtimeMillis / 1000.0, ourDeviceToOurVio.tx(), ourDeviceToOurVio.ty(), ourDeviceToOurVio.tz());
         updatePose();
         if (logger != null) {
             logger.logVio(elapsedRealtimeMillis, ourDeviceToOurVio);

@@ -100,12 +100,14 @@ public class Slam3dJni {
         public final float x;
         public final float y;
         public final float z;
+        public final float theta;
 
-        public BcnLocation(double t, float x, float y, float z) {
+        public BcnLocation(double t, float x, float y, float z, float theta) {
             this.t = t;
             this.x = x;
             this.y = y;
             this.z = z;
+            this.theta = theta;
         }
 
         public BcnLocation(BcnLocation other) {
@@ -113,11 +115,12 @@ public class Slam3dJni {
             this.x = other.x;
             this.y = other.y;
             this.z = other.z;
+            this.theta = other.theta;
         }
 
         @Override
         public String toString() {
-            return String.format(Locale.US, "%.3f", t) + "," + x + "," + y + "," + z;
+            return String.format(Locale.US, "%.3f", t) + "," + x + "," + y + "," + z + "," + theta;
         }
     }
 
@@ -131,7 +134,8 @@ public class Slam3dJni {
     private static native long particleFilterNewBcn();
     private static native void particleFilterFreePf(long pf);
     private static native void particleFilterFreeBcn(long bcn);
-    private static native void particleFilterDepositVio(long pf, double t, float x, float y, float z, float dist);
+    private static native void particleFilterDepositTagVio(long pf, double t, float x, float y, float z, float dist);
+    private static native void particleFilterDepositBcnVio(long bcn, double t, float x, float y, float z, float dist);
     private static native void particleFilterDepositRange(long pf, long bcn, float range, float stdRange, long[] bcnArray);
     private static native void particleFilterDepositRssi(long pf, long bcn, int rssi, long[] bcnArray);
     private static native TagLocation particleFilterGetTagLoc(long pf);
@@ -161,12 +165,23 @@ public class Slam3dJni {
         bcnLocations.clear();
     }
 
-    public void depositVio(double t, float x, float y, float z) {
+    public void depositTagVio(double t, float x, float y, float z) {
         if (pf == 0L) {
             throw new NullPointerException("Slam3d is not initialized");
         }
-        particleFilterDepositVio(pf, t, x, y, z, 0.0f);
+        particleFilterDepositTagVio(pf, t, x, y, z, 0.0f);
         tagLocation = particleFilterGetTagLoc(pf);
+    }
+
+    public void depositBcnVio(String bcnName, double t, float x, float y, float z) {
+        if (pf == 0L) {
+            throw new NullPointerException("Slam3d is not initialized");
+        }
+        if (!bcnMap.containsKey(bcnName)) {
+            bcnMap.put(bcnName, particleFilterNewBcn());
+        }
+        particleFilterDepositBcnVio(bcnMap.get(bcnName), t, x, y, z, 0.0f);
+        bcnLocations.put(bcnName, particleFilterGetBcnLoc(pf, bcnMap.get(bcnName)));
     }
 
     public void depositRange(String bcnName, float range, float stdRange) {

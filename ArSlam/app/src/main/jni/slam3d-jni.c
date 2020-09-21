@@ -36,9 +36,14 @@ JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilterFreeBcn(
     free((bcn_t*)bcn);
 }
 
-JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilterDepositVio(
+JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilterDepositTagVio(
         JNIEnv* env, jclass clazz, jlong pf, jdouble t, jfloat x, jfloat y, jfloat z, jfloat dist) {
-    particleFilterSlam_depositVio((particleFilterSlam_t*)pf, (double)t, (float)x, (float)y, (float)z, (float)dist);
+    particleFilterSlam_depositTagVio((particleFilterSlam_t*)pf, (double)t, (float)x, (float)y, (float)z, (float)dist);
+}
+
+JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilterDepositBcnVio(
+        JNIEnv *env, jclass clazz, jlong bcn, jdouble t, jfloat x, jfloat y, jfloat z, jfloat dist) {
+    particleFilterSlam_depositBcnVio((bcn_t*)bcn, (double)t, (float)x, (float)y, (float)z, (float)dist);
 }
 
 JNIEXPORT void JNICALL Java_com_example_arslam_Slam3dJni_particleFilterDepositRange(
@@ -70,9 +75,9 @@ JNIEXPORT jobject JNICALL Java_com_example_arslam_Slam3dJni_particleFilterGetTag
 JNIEXPORT jobject JNICALL Java_com_example_arslam_Slam3dJni_particleFilterGetBcnLoc(
         JNIEnv* env, jclass clazz, jlong pf, jlong bcn) {
     double t;
-    float x, y, z;
+    float x, y, z, theta;
     jclass class = (*env)->FindClass(env, "com/example/arslam/Slam3dJni$BcnLocation");
-    jmethodID cid = (*env)->GetMethodID(env, class, "<init>", "(DFFF)V");
-    particleFilterSlam_getBcnLoc((const particleFilterSlam_t*)pf, (const bcn_t*)bcn, &t, &x, &y, &z);
-    return (*env)->NewObject(env, class, cid, t, x, y, z);
+    jmethodID cid = (*env)->GetMethodID(env, class, "<init>", "(DFFFF)V");
+    particleFilterSlam_getBcnLoc((const particleFilterSlam_t*)pf, (const bcn_t*)bcn, &t, &x, &y, &z, &theta);
+    return (*env)->NewObject(env, class, cid, t, x, y, z, theta);
 }
