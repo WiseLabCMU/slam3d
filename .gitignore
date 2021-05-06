@@ -350,3 +350,4 @@ xcuserdata/
 /mqttlogger/tag.csv
 /gt-sync/.vscode/launch.json
 /gt-sync/.vscode/settings.json
+/gt-sync/users.json
