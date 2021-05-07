@@ -9,16 +9,19 @@ import json
 import numpy as np
 import os
 import pose
+from types import SimpleNamespace
 import sys
 
-BROKER = 'oz.andrew.cmu.edu'
+HOST = 'arenaxr.org'
+USERNAME = 'john'
 REALM = 'realm'
+SCENE = 'gt'
 TOPIC_DETECT = REALM + '/g/a/#'
 TOPIC_VIO = '/topic/vio/#'
 TOPIC_UWB = REALM + '/g/uwb/#'
 TIME_FMT = '%Y-%m-%dT%H:%M:%S.%fZ'
 TIME_FMT_UWB = '%Y-%m-%dT%H:%M:%S.%f'
-OUTFILE = os.path.join('localization', 'gt', datetime.now().strftime('%Y-%m-%d_%H_%M_%S') + '.json')
+OUTFILE = os.path.join('gt', datetime.now().strftime('%Y-%m-%d_%H_%M_%S') + '.json')
 
 STATE_WALK = 0
 STATE_FINDTAG = 1
@@ -101,6 +104,10 @@ def printhelp():
     print('   ex: python3 gt-sync.py -s myScene -u users.json')
 
 
+def dict_to_sns(d):
+    return SimpleNamespace(**d)
+
+
 def on_tag_detect(msg):
     global users
     global last_detection
@@ -177,64 +184,43 @@ def on_uwb(msg):
         outfile.write(',\n')
 
 
-def user_join_callback(scene, cam, msg):
-    global cam_states
+try:
+    opts, args = getopt.getopt(sys.argv[1:], 'hu:', ['userfile='])
+except getopt.GetoptError:
+    printhelp()
+    sys.exit(1)
+userfile = None
+for opt, arg in opts:
+    if opt == '-h':
+        printhelp()
+        sys.exit(1)
+    elif opt in ('-u', '--userfile'):
+        userfile = arg
+    else:
+        printhelp()
+        sys.exit(1)
+if userfile is None:
+    printhelp()
+    sys.exit(1)
+with open(userfile, 'r') as f:
+    config = json.load(f, object_hook=dict_to_sns)
+for user in config:
+    arenanames[user.uwbname] = user.arenaname
+    if user.static:
+        users[user.client_id] = StaticUser(user)
+    else:
+        users[user.client_id] = SyncUser(user)
+        print('Go to URL: ' + HOST + '/' + USERNAME + '/' + SCENE + "/?networkedTagSolver=true")
 
-    cam_state = CameraState(cam)
-    cam_states += [cam_state]
-
-
-scene = arena.Scene(host="arenaxr.org", realm="realm", scene="example")
-scene.user_join_callback = user_join_callback
-
-
+scene = arena.Scene(host=HOST, realm=REALM, scene=SCENE)
 @scene.run_forever(interval_ms=TIME_INTERVAL*1000)
 def prompt_users():
     global users
     for u in users:
         users[u].on_timer()
 
-
-def main():
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hs:u:', ['scene=', 'userfile='])
-    except getopt.GetoptError:
-        printhelp()
-        sys.exit(1)
-
-    scene = None
-    userfile = None
-    for opt, arg in opts:
-        if opt == '-h':
-            printhelp()
-            sys.exit(1)
-        elif opt in ('-s', '--scene'):
-            scene = arg
-        elif opt in ('-u', '--userfile'):
-            userfile = arg
-        else:
-            printhelp()
-            sys.exit(1)
-    if scene is None or userfile is None:
-        printhelp()
-        sys.exit(1)
-
-    with open(userfile, 'r') as f:
-        config = json.load(f, object_hook=dict_to_sns)
-
-    arena.init(BROKER, REALM, scene)
-    for user in config:
-        arenanames[user.uwbname] = user.arenaname
-        if user.static:
-            users[user.client_id] = StaticUser(user)
-        else:
-            users[user.client_id] = SyncUser(user)
-            print("Go to URL: https://xr.andrew.cmu.edu/?networkedTagSolver=true&scene=" + scene + "&fixedCamera=" + user.arenaname)
-
-    scene.add_topic(TOPIC_DETECT, on_tag_detect)
-    scene.add_topic(TOPIC_VIO, on_vio)
-    scene.add_topic(TOPIC_UWB, on_uwb)
-    arena.handle_events()
-
+scene.add_topic(TOPIC_DETECT, on_tag_detect)
+scene.add_topic(TOPIC_VIO, on_vio)
+scene.add_topic(TOPIC_UWB, on_uwb)
 
 scene.run_tasks() # will block
