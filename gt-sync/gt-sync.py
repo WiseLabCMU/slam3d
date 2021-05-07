@@ -37,7 +37,6 @@ TIME_INTERVAL = 5           # 5sec
 
 users = {}
 arenanames = {}
-last_detection = datetime.min
 
 
 class SyncUser:
@@ -100,8 +99,8 @@ class StaticUser(SyncUser):
 
 
 def printhelp():
-    print('gt-sync.py -s <scene> -u <userfile>')
-    print('   ex: python3 gt-sync.py -s myScene -u users.json')
+    print('gt-sync.py -u <userfile>')
+    print('   ex: python3 gt-sync.py -u users.json')
 
 
 def dict_to_sns(d):
@@ -110,7 +109,6 @@ def dict_to_sns(d):
 
 def on_tag_detect(msg):
     global users
-    global last_detection
     json_msg = json.loads(msg.payload.decode('utf-8'), object_hook=dict_to_sns)
     client_id = msg.topic.split('/')[-1]
     if client_id not in users:
@@ -144,7 +142,6 @@ def on_tag_detect(msg):
             with open(OUTFILE, 'a') as outfile:
                 outfile.write(json.dumps(data))
                 outfile.write(',\n')
-            last_detection = time
             for u in users:
                 users[u].reset()
 
