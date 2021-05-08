@@ -26,9 +26,9 @@ OUTFILE = os.path.join('gt', datetime.now().strftime('%Y-%m-%d_%H_%M_%S') + '.js
 STATE_WALK = 0
 STATE_FINDTAG = 1
 STATE_WAIT = 2
-COLOR_WALK = (0, 255, 0)
-COLOR_FINDTAG = (255, 0, 0)
-COLOR_WAIT = (0, 0, 255)
+COLOR_WALK = arena.Color((0, 255, 0))
+COLOR_FINDTAG = arena.Color((255, 0, 0))
+COLOR_WAIT = arena.Color((0, 0, 255))
 MOVE_THRESH = .05   # 5cm
 ROT_THRESH = .087   # 5deg
 TIME_THRESH = 3     # 3sec
@@ -46,15 +46,16 @@ class SyncUser:
                                 rotation=(0, 0, 0, 1),
                                 scale=(0.02, 0.02, 0.02)
                                 )
-        scene.add_object(self.hud)
+        self.scene = scene
+        self.scene.add_object(self.hud)
         self.arenaname = config.arenaname
-        self.reset()
+        self.reset(scene)
 
     def reset(self):
         self.pose = None
         self.last_time = datetime.min
         self.state = STATE_WALK
-        self.hud.update(color=COLOR_WALK)
+        self.scene.update_object(self.hud, color=COLOR_WALK)
 
     def on_tag_detect(self, cam_pose, vio, time, debug):
         self.pose = cam_pose
@@ -63,7 +64,7 @@ class SyncUser:
         self.debug = debug
         if self.state == STATE_FINDTAG:
             self.state = STATE_WAIT
-            self.hud.update(color=COLOR_WAIT)
+            self.scene.update_object(self.hud, color=COLOR_WAIT)
 
     def on_vio(self, vio, time):
         if self.state == STATE_WAIT:
@@ -71,16 +72,16 @@ class SyncUser:
             time_diff = (time - self.last_time).total_seconds()
             if pos_diff > MOVE_THRESH or rot_diff > ROT_THRESH or time_diff > TIME_THRESH:
                 self.state = STATE_FINDTAG
-                self.hud.update(color=COLOR_FINDTAG)
+                self.scene.update_object(self.hud, color=COLOR_FINDTAG)
 
     def on_timer(self):
         if self.state == STATE_WALK:
             self.state = STATE_FINDTAG
-            self.hud.update(color=COLOR_FINDTAG)
+            self.scene.update_object(self.hud, color=COLOR_FINDTAG)
 
 
 class StaticUser(SyncUser):
-    def __init__(self, config, scene):
+    def __init__(self, config):
         self.arenaname = config.arenaname
         self.pose = np.array(config.pose)
         self.state = STATE_WAIT
@@ -213,14 +214,14 @@ for user in config:
         users[user.client_id] = SyncUser(user, scene)
         print('Go to URL: ' + HOST + '/' + USERNAME + '/' + SCENE + "/?networkedTagSolver=true")
 
+scene.add_topic(TOPIC_DETECT, on_tag_detect)
+scene.add_topic(TOPIC_VIO, on_vio)
+scene.add_topic(TOPIC_UWB, on_uwb)
+
 @scene.run_forever(interval_ms=TIME_INTERVAL*1000)
 def prompt_users():
     global users
     for u in users:
         users[u].on_timer()
-
-scene.add_topic(TOPIC_DETECT, on_tag_detect)
-scene.add_topic(TOPIC_VIO, on_vio)
-scene.add_topic(TOPIC_UWB, on_uwb)
 
 scene.run_tasks() # will block
