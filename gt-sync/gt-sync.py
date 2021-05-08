@@ -40,12 +40,13 @@ arenanames = {}
 
 
 class SyncUser:
-    def __init__(self, config):
+    def __init__(self, config, scene):
         self.hud = arena.Circle(parent=config.client_id,
                                 position=(0, 0, -0.5),
                                 rotation=(0, 0, 0, 1),
                                 scale=(0.02, 0.02, 0.02)
                                 )
+        scene.add_object(self.hud)
         self.arenaname = config.arenaname
         self.reset()
 
@@ -79,7 +80,7 @@ class SyncUser:
 
 
 class StaticUser(SyncUser):
-    def __init__(self, config):
+    def __init__(self, config, scene):
         self.arenaname = config.arenaname
         self.pose = np.array(config.pose)
         self.state = STATE_WAIT
@@ -201,15 +202,17 @@ if userfile is None:
     sys.exit(1)
 with open(userfile, 'r') as f:
     config = json.load(f, object_hook=dict_to_sns)
+
+
+scene = arena.Scene(host=HOST, realm=REALM, scene=SCENE)
 for user in config:
     arenanames[user.uwbname] = user.arenaname
     if user.static:
-        users[user.client_id] = StaticUser(user)
+        users[user.client_id] = StaticUser(user, scene)
     else:
-        users[user.client_id] = SyncUser(user)
+        users[user.client_id] = SyncUser(user, scene)
         print('Go to URL: ' + HOST + '/' + USERNAME + '/' + SCENE + "/?networkedTagSolver=true")
 
-scene = arena.Scene(host=HOST, realm=REALM, scene=SCENE)
 @scene.run_forever(interval_ms=TIME_INTERVAL*1000)
 def prompt_users():
     global users
