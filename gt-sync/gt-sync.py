@@ -102,7 +102,7 @@ class StaticUser(SyncUser):
 
 def printhelp():
     print('gt-sync.py -u <userfile>')
-    print('   ex: python3 gt-sync.py -u users.json')
+    print('   ex: python gt-sync.py -u users.json')
 
 
 def dict_to_sns(d):
