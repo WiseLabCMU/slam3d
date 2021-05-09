@@ -100,11 +100,6 @@ class StaticUser(SyncUser):
         pass
 
 
-def printhelp():
-    print('gt-sync.py -u <userfile>')
-    print('   ex: python gt-sync.py -u users.json')
-
-
 def dict_to_sns(d):
     return SimpleNamespace(**d)
 
@@ -148,21 +143,19 @@ def on_tag_detect(client, userdata, msg):
                 users[u].reset()
 
 
-def on_vio(client, userdata, msg):
+def on_vio(msg):
     global users
-    print('vio')
-    json_msg = json.loads(msg.payload.decode('utf-8'), object_hook=dict_to_sns)
-    client_id = msg.topic.split('/')[-1]
+    client_id = msg.object_id
     if client_id not in users:
         return
-    if hasattr(json_msg, 'object_id') and json_msg.object_id.endswith('_local'):
-        vio_pose = pose.get_vio_pose(json_msg)
-        time = datetime.strptime(json_msg.timestamp, TIME_FMT)
-        users[client_id].on_vio(vio_pose, time)
-        data = {'timestamp': time.strftime(TIME_FMT_UWB), 'type': 'vio', 'user': users[client_id].arenaname, 'pose': vio_pose.tolist()}
-        with open(OUTFILE, 'a') as outfile:
-            outfile.write(json.dumps(data))
-            outfile.write(',\n')
+    print('vio ' + client_id)
+    vio_pose = pose.get_vio_pose(msg)
+    time = datetime.strptime(msg.timestamp, TIME_FMT)
+    users[client_id].on_vio(vio_pose, time)
+    data = {'timestamp': time.strftime(TIME_FMT_UWB), 'type': 'vio', 'user': users[client_id].arenaname, 'pose': vio_pose.tolist()}
+    with open(OUTFILE, 'a') as outfile:
+        outfile.write(json.dumps(data))
+        outfile.write(',\n')
 
 
 def on_uwb(client, userdata, msg):
@@ -195,7 +188,13 @@ def on_user_join(scene, cam, msg):
 
 
 def on_mqtt_msg(scene, obj, msg):
-    print(msg)
+    msg_struct = dict_to_sns(msg)
+    on_vio(msg_struct)
+
+
+def printhelp():
+    print('gt-sync.py -u <userfile>')
+    print('   ex: python gt-sync.py -u users.json')
 
 
 try:
