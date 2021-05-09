@@ -101,7 +101,7 @@ class StaticUser(SyncUser):
 
 
 def dict_to_sns(d):
-    return SimpleNamespace(**d)
+    return json.loads(json.dumps(d), object_hook=lambda item: SimpleNamespace(**item))
 
 
 def on_tag_detect(client, userdata, msg):
@@ -187,9 +187,9 @@ def on_user_join(scene, cam, msg):
         print(cam.object_id + ' not in userfile.')
 
 
-def on_mqtt_msg(scene, obj, msg):
-    msg_struct = dict_to_sns(msg)
-    on_vio(msg_struct)
+def on_mqtt_msg(scene, obj, msg_dict):
+    msg = dict_to_sns(msg_dict)
+    on_vio(msg)
 
 
 def printhelp():
