@@ -40,8 +40,8 @@ arenanames = {}
 
 
 class SyncUser:
-    def __init__(self, scene, cam_id, arenaname):
-        self.hud = arena.Circle(parent=cam_id,
+    def __init__(self, scene, arenaname):
+        self.hud = arena.Circle(parent=arenaname,
                                 position=(0, 0, -0.5),
                                 rotation=(0, 0, 0, 1),
                                 scale=(0.02, 0.02, 0.02)
@@ -186,9 +186,16 @@ def on_uwb(client, userdata, msg):
 
 def on_user_join(scene, cam, msg):
     global users
-    print(cam.object_id + ' joined.')
-    arenaname = cam.object_id.split('-')[-1]
-    users[arenaname] = SyncUser(scene, cam.object_id, arenaname)
+    global arenanames
+    if cam.object_id in arenanames.values():
+        print(cam.object_id + ' joined.')
+        users[cam.object_id] = SyncUser(scene, cam.object_id)
+    else:
+        print(cam.object_id + ' not in userfile.')
+
+
+def on_mqtt_msg(scene, obj, msg):
+    print(msg)
 
 
 try:
@@ -217,11 +224,14 @@ for user in config:
     arenanames[user.uwbname] = user.arenaname
     if user.static:
         users[user.client_id] = StaticUser(user.arenaname, user.pose)
+    else:
+        print('Go to URL: https://arenaxr.org/' + USERNAME + '/' + SCENE + '?fixedCamera=' + user.arenaname + '&networkedTagSolver=true')
 
-scene.message_callback_add(TOPIC_DETECT, on_tag_detect)
-scene.message_callback_add(TOPIC_VIO, on_vio)
-scene.message_callback_add(TOPIC_UWB, on_uwb)
+# scene.message_callback_add(TOPIC_DETECT, on_tag_detect)
+# scene.message_callback_add(TOPIC_VIO, on_vio)
+# scene.message_callback_add(TOPIC_UWB, on_uwb)
 scene.user_join_callback = on_user_join
+scene.on_msg_callback = on_mqtt_msg
 
 @scene.run_forever(interval_ms=TIME_INTERVAL*1000)
 def prompt_users():
