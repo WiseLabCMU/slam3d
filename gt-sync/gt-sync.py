@@ -150,6 +150,7 @@ def on_tag_detect(client, userdata, msg):
 
 def on_vio(client, userdata, msg):
     global users
+    print('vio')
     json_msg = json.loads(msg.payload.decode('utf-8'), object_hook=dict_to_sns)
     client_id = msg.topic.split('/')[-1]
     if client_id not in users:
