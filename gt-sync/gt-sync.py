@@ -26,9 +26,9 @@ OUTFILE = os.path.join('gt', datetime.now().strftime('%Y-%m-%d_%H_%M_%S') + '.js
 STATE_WALK = 0
 STATE_FINDTAG = 1
 STATE_WAIT = 2
-COLOR_WALK = arena.Color((0, 255, 0))
-COLOR_FINDTAG = arena.Color((255, 0, 0))
-COLOR_WAIT = arena.Color((0, 0, 255))
+COLOR_WALK = (0, 255, 0)
+COLOR_FINDTAG = (255, 0, 0)
+COLOR_WAIT = (0, 0, 255)
 MOVE_THRESH = .05   # 5cm
 ROT_THRESH = .087   # 5deg
 TIME_THRESH = 3     # 3sec
@@ -40,16 +40,16 @@ arenanames = {}
 
 
 class SyncUser:
-    def __init__(self, config, scene):
-        self.hud = arena.Circle(parent=config.client_id,
+    def __init__(self, scene, cam_id, arenaname):
+        self.hud = arena.Circle(parent=cam_id,
                                 position=(0, 0, -0.5),
                                 rotation=(0, 0, 0, 1),
                                 scale=(0.02, 0.02, 0.02)
                                 )
         self.scene = scene
         self.scene.add_object(self.hud)
-        self.arenaname = config.arenaname
-        self.reset(scene)
+        self.arenaname = arenaname
+        self.reset()
 
     def reset(self):
         self.pose = None
@@ -81,9 +81,9 @@ class SyncUser:
 
 
 class StaticUser(SyncUser):
-    def __init__(self, config):
-        self.arenaname = config.arenaname
-        self.pose = np.array(config.pose)
+    def __init__(self, arenaname, pose):
+        self.arenaname = arenaname
+        self.pose = np.array(pose)
         self.state = STATE_WAIT
         self.debug = 'static'
 
@@ -109,7 +109,7 @@ def dict_to_sns(d):
     return SimpleNamespace(**d)
 
 
-def on_tag_detect(msg):
+def on_tag_detect(client, userdata, msg):
     global users
     json_msg = json.loads(msg.payload.decode('utf-8'), object_hook=dict_to_sns)
     client_id = msg.topic.split('/')[-1]
@@ -148,7 +148,7 @@ def on_tag_detect(msg):
                 users[u].reset()
 
 
-def on_vio(msg):
+def on_vio(client, userdata, msg):
     global users
     json_msg = json.loads(msg.payload.decode('utf-8'), object_hook=dict_to_sns)
     client_id = msg.topic.split('/')[-1]
@@ -164,7 +164,7 @@ def on_vio(msg):
             outfile.write(',\n')
 
 
-def on_uwb(msg):
+def on_uwb(client, userdata, msg):
     json_msg = json.loads(msg.payload.decode('utf-8'), object_hook=dict_to_sns)
     time = datetime.strptime(json_msg.timestamp, TIME_FMT_UWB)
     if not json_msg.src in arenanames:
@@ -181,6 +181,13 @@ def on_uwb(msg):
     with open(OUTFILE, 'a') as outfile:
         outfile.write(json.dumps(data))
         outfile.write(',\n')
+
+
+def on_user_join(scene, cam, msg):
+    global users
+    print(cam.object_id + ' joined.')
+    arenaname = cam.object_id.split('-')[-1]
+    users[arenaname] = SyncUser(user, scene, cam.object_id, arenaname)
 
 
 try:
@@ -208,14 +215,12 @@ scene = arena.Scene(host=HOST, realm=REALM, scene=SCENE)
 for user in config:
     arenanames[user.uwbname] = user.arenaname
     if user.static:
-        users[user.client_id] = StaticUser(user, scene)
-    else:
-        users[user.client_id] = SyncUser(user, scene)
-        print('Go to URL: ' + HOST + '/' + USERNAME + '/' + SCENE + "/?networkedTagSolver=true")
+        users[user.client_id] = StaticUser(user.arenaname, user.pose)
 
-scene.add_topic(TOPIC_DETECT, on_tag_detect)
-scene.add_topic(TOPIC_VIO, on_vio)
-scene.add_topic(TOPIC_UWB, on_uwb)
+scene.message_callback_add(TOPIC_DETECT, on_tag_detect)
+scene.message_callback_add(TOPIC_VIO, on_vio)
+scene.message_callback_add(TOPIC_UWB, on_uwb)
+scene.user_join_callback = on_user_join
 
 @scene.run_forever(interval_ms=TIME_INTERVAL*1000)
 def prompt_users():
