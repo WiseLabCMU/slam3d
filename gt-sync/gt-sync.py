@@ -17,7 +17,7 @@ USERNAME = 'john'
 REALM = 'realm'
 SCENE = 'gt'
 TOPIC_DETECT = REALM + '/g/a/#'
-TOPIC_VIO = '/topic/vio/#'
+TOPIC_VIO = REALM + '/vio/' + USERNAME + '/' + SCENE + '/#'
 TOPIC_UWB = REALM + '/g/uwb/#'
 TIME_FMT = '%Y-%m-%dT%H:%M:%S.%fZ'
 TIME_FMT_UWB = '%Y-%m-%dT%H:%M:%S.%f'
@@ -203,7 +203,6 @@ if userfile is None:
     sys.exit(1)
 with open(userfile, 'r') as f:
     config = json.load(f, object_hook=dict_to_sns)
-
 
 scene = arena.Scene(host=HOST, realm=REALM, scene=SCENE)
 for user in config:
