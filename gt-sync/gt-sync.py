@@ -187,7 +187,7 @@ def on_user_join(scene, cam, msg):
     global users
     print(cam.object_id + ' joined.')
     arenaname = cam.object_id.split('-')[-1]
-    users[arenaname] = SyncUser(user, scene, cam.object_id, arenaname)
+    users[arenaname] = SyncUser(scene, cam.object_id, arenaname)
 
 
 try:
