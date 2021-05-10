@@ -110,8 +110,13 @@ def get_dtag_pose(msg):
     dtag_error1 = detected_tag.pose.e
     dtag_error2 = detected_tag.pose.asol.e
     reftag_pose = reftag_pose_to_matrix4(detected_tag.refTag.pose)
-    if detected_tag.pose.asol.uniquesol:
-        return resolve_pose_ambiguity(dtag_pose1, dtag_error1, dtag_pose2, dtag_error2, vio_pose, reftag_pose)
+    if hasattr(detected_tag.pose.asol, 'uniquesol'):
+        if detected_tag.pose.asol.uniquesol:
+            return resolve_pose_ambiguity(dtag_pose1, dtag_error1, dtag_pose2, dtag_error2, vio_pose, reftag_pose)
+        else:
+            print('uniquesol = false')
+    else:
+        print('uniquesol not present')
     return dtag_pose1, 99999999.9
 
 
