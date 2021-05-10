@@ -106,6 +106,7 @@ def dict_to_sns(d):
 
 def on_tag_detect(client, userdata, msg):
     global users
+    print('apriltag')
     json_msg = json.loads(msg.payload.decode('utf-8'), object_hook=dict_to_sns)
     client_id = msg.topic.split('/')[-1]
     if client_id not in users:
@@ -148,7 +149,6 @@ def on_vio(msg):
     client_id = msg.object_id
     if client_id not in users:
         return
-    print('vio ' + client_id)
     vio_pose = pose.get_vio_pose(msg)
     time = datetime.strptime(msg.timestamp, TIME_FMT)
     users[client_id].on_vio(vio_pose, time)
@@ -189,7 +189,8 @@ def on_user_join(scene, cam, msg):
 
 def on_mqtt_msg(scene, obj, msg_dict):
     msg = dict_to_sns(msg_dict)
-    on_vio(msg)
+    print(msg)
+    on_vio(msg) 
 
 
 def printhelp():
@@ -226,7 +227,7 @@ for user in config:
     else:
         print('Go to URL: https://arenaxr.org/' + USERNAME + '/' + SCENE + '?fixedCamera=' + user.arenaname + '&networkedTagSolver=true')
 
-# scene.message_callback_add(TOPIC_DETECT, on_tag_detect)
+scene.message_callback_add(TOPIC_DETECT, on_tag_detect)
 # scene.message_callback_add(TOPIC_VIO, on_vio)
 # scene.message_callback_add(TOPIC_UWB, on_uwb)
 scene.user_join_callback = on_user_join
