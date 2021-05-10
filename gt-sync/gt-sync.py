@@ -99,17 +99,21 @@ class StaticUser(SyncUser):
         pass
 
 
+def obj_to_sns(o):
+    return SimpleNamespace(**o)
+
+
 def dict_to_sns(d):
-    return json.loads(json.dumps(d), object_hook=lambda item: SimpleNamespace(**item))
+    return json.loads(json.dumps(d), object_hook=obj_to_sns)
 
 
 def on_tag_detect(client, userdata, msg):
     global users
-    print('apriltag')
-    json_msg = json.loads(msg.payload.decode('utf-8'), object_hook=dict_to_sns)
+    json_msg = json.loads(msg.payload.decode('utf-8'), object_hook=obj_to_sns)
     client_id = msg.topic.split('/')[-1]
     if client_id not in users:
         return
+    print('apriltag ' + client_id)
     if hasattr(json_msg, 'detections'):
         dtag = json_msg.detections[0]
         if not hasattr(dtag, 'refTag'):
@@ -145,7 +149,6 @@ def on_tag_detect(client, userdata, msg):
 
 def on_vio(msg):
     global users
-    print('vio')
     client_id = msg.object_id
     if client_id not in users:
         return
