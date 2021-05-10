@@ -114,7 +114,7 @@ def on_tag_detect(client, userdata, msg):
     if client_id not in users:
         return
     print('apriltag ' + client_id)
-    if hasattr(json_msg, 'detections'):
+    if hasattr(json_msg, 'detections') and len(json_msg.detections) > 0:
         dtag = json_msg.detections[0]
         if not hasattr(dtag, 'refTag'):
             print('tag not in atlas:', dtag.id)
