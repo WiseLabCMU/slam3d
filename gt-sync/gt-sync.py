@@ -17,7 +17,6 @@ USERNAME = 'john'
 REALM = 'realm'
 SCENE = 'gt'
 TOPIC_DETECT = REALM + '/g/a/#'
-TOPIC_VIO = REALM + '/vio/' + USERNAME + '/' + SCENE + '/#'
 TOPIC_UWB = REALM + '/g/uwb/#'
 TIME_FMT = '%Y-%m-%dT%H:%M:%S.%fZ'
 TIME_FMT_UWB = '%Y-%m-%dT%H:%M:%S.%f'
@@ -146,6 +145,7 @@ def on_tag_detect(client, userdata, msg):
 
 def on_vio(msg):
     global users
+    print('vio')
     client_id = msg.object_id
     if client_id not in users:
         return
@@ -187,9 +187,8 @@ def on_user_join(scene, cam, msg):
         print(cam.object_id + ' not in userfile.')
 
 
-def on_mqtt_msg(scene, obj, msg_dict):
+def on_cam_msg(scene, obj, msg_dict):
     msg = dict_to_sns(msg_dict)
-    print(msg)
     on_vio(msg) 
 
 
@@ -227,11 +226,11 @@ for user in config:
     else:
         print('Go to URL: https://arenaxr.org/' + USERNAME + '/' + SCENE + '?fixedCamera=' + user.arenaname + '&networkedTagSolver=true')
 
+scene.mqttc.subscribe(TOPIC_DETECT)
 scene.message_callback_add(TOPIC_DETECT, on_tag_detect)
-# scene.message_callback_add(TOPIC_VIO, on_vio)
 # scene.message_callback_add(TOPIC_UWB, on_uwb)
 scene.user_join_callback = on_user_join
-scene.on_msg_callback = on_mqtt_msg
+scene.on_msg_callback = on_cam_msg
 
 @scene.run_forever(interval_ms=TIME_INTERVAL*1000)
 def prompt_users():
