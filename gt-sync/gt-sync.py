@@ -15,7 +15,7 @@ import sys
 HOST = 'arenaxr.org'
 USERNAME = 'john'
 REALM = 'realm'
-SCENE = 'gt'
+SCENE = 'gts'
 TOPIC_DETECT = REALM + '/g/a/#'
 TOPIC_UWB = REALM + '/g/uwb/#'
 TIME_FMT = '%Y-%m-%dT%H:%M:%S.%fZ'
