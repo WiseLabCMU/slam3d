@@ -121,6 +121,9 @@ def on_tag_detect(client, userdata, msg):
             json_msg.detections[0].refTag = TAG_1_POSE
         elif json_msg.detections[0].id == 2:
             json_msg.detections[0].refTag = TAG_2_POSE
+        else:
+            print('Unknown tag: ' + json_msg.detections[0].id)
+            return
         cam_pose, dtag_error = pose.get_cam_pose(json_msg)
         if dtag_error > DTAG_ERROR_THRESH:
             return
