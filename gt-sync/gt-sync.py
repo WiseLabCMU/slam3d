@@ -17,7 +17,6 @@ USERNAME = 'john'
 REALM = 'realm'
 SCENE = 'gts'
 TOPIC_DETECT = REALM + '/g/a/#'
-TOPIC_UWB = REALM + '/g/uwb/#'
 TIME_FMT = '%Y-%m-%dT%H:%M:%S.%fZ'
 TIME_FMT_UWB = '%Y-%m-%dT%H:%M:%S.%f'
 OUTFILE = os.path.join('gt', datetime.now().strftime('%Y-%m-%d_%H_%M_%S') + '.json')
@@ -123,11 +122,13 @@ def on_tag_detect(client, userdata, msg):
         elif json_msg.detections[0].id == 2:
             json_msg.detections[0].refTag = TAG_2_POSE
         else:
-            print('Unknown tag: ' + json_msg.detections[0].id)
+            print('Unknown tag:', json_msg.detections[0].id)
             return
         cam_pose, dtag_error = pose.get_cam_pose(json_msg)
+        print('tag', json_msg.detections[0].id)
         if dtag_error > DTAG_ERROR_THRESH:
             return
+        print('error meets thresh')
         vio_pose = pose.get_vio_pose(json_msg)
         time = datetime.strptime(json_msg.timestamp, TIME_FMT)
         users[client_id].on_tag_detect(cam_pose, vio_pose, time, msg.payload.decode('utf-8'))
@@ -162,25 +163,6 @@ def on_vio(msg):
     time = datetime.strptime(msg.timestamp, TIME_FMT)
     users[client_id].on_vio(vio_pose, time)
     data = {'timestamp': time.strftime(TIME_FMT_UWB), 'type': 'vio', 'user': users[client_id].arenaname, 'pose': vio_pose.tolist()}
-    with open(OUTFILE, 'a') as outfile:
-        outfile.write(json.dumps(data))
-        outfile.write(',\n')
-
-
-def on_uwb(client, userdata, msg):
-    json_msg = json.loads(msg.payload.decode('utf-8'), object_hook=dict_to_sns)
-    time = datetime.strptime(json_msg.timestamp, TIME_FMT_UWB)
-    if not json_msg.src in arenanames:
-        print('User not tracked:', json_msg.src)
-        return
-    if not json_msg.dst in arenanames:
-        print('User not tracked:', json_msg.dst)
-        return
-    src = arenanames[json_msg.src]
-    dst = arenanames[json_msg.dst]
-    rng = float(json_msg.distance)
-    rssi = int(json_msg.ble_rssi)
-    data = {'timestamp': time.strftime(TIME_FMT_UWB), 'type': 'uwb', 'src': src, 'dst': dst, 'range': rng, 'ble_rssi': rssi}
     with open(OUTFILE, 'a') as outfile:
         outfile.write(json.dumps(data))
         outfile.write(',\n')
@@ -237,7 +219,6 @@ for user in config:
 
 scene.mqttc.subscribe(TOPIC_DETECT)
 scene.message_callback_add(TOPIC_DETECT, on_tag_detect)
-# scene.message_callback_add(TOPIC_UWB, on_uwb)
 scene.user_join_callback = on_user_join
 scene.on_msg_callback = on_cam_msg
 
