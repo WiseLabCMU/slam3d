@@ -34,6 +34,9 @@ TIME_THRESH = 3     # 3sec
 DTAG_ERROR_THRESH = 5e-6    # tag detection error units?
 TIME_INTERVAL = 5           # 5sec
 
+TAG_1_POSE = None
+TAG_2_POSE = None
+
 users = {}
 arenanames = {}
 
@@ -114,10 +117,10 @@ def on_tag_detect(client, userdata, msg):
     if client_id not in users:
         return
     if hasattr(json_msg, 'detections') and len(json_msg.detections) > 0:
-        dtag = json_msg.detections[0]
-        if not hasattr(dtag, 'refTag'):
-            print('tag not in atlas:', dtag.id)
-            return
+        if json_msg.detections[0].id == 1:
+            json_msg.detections[0].refTag = TAG_1_POSE
+        elif json_msg.detections[0].id == 2:
+            json_msg.detections[0].refTag = TAG_2_POSE
         cam_pose, dtag_error = pose.get_cam_pose(json_msg)
         if dtag_error > DTAG_ERROR_THRESH:
             return
