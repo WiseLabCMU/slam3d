@@ -34,11 +34,20 @@ TIME_THRESH = 3     # 3sec
 DTAG_ERROR_THRESH = 5e-6    # tag detection error units?
 TIME_INTERVAL = 5           # 5sec
 
-TAG_1_POSE = None
-TAG_2_POSE = None
-
 users = {}
 arenanames = {}
+
+
+def obj_to_sns(o):
+    return SimpleNamespace(**o)
+
+
+def dict_to_sns(d):
+    return json.loads(json.dumps(d), object_hook=obj_to_sns)
+
+
+TAG_1_POSE = dict_to_sns({'pose': {'elements': [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]}})
+TAG_2_POSE = dict_to_sns({'pose': {'elements': [-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1]}})
 
 
 class SyncUser:
@@ -100,14 +109,6 @@ class StaticUser(SyncUser):
 
     def on_timer(self):
         pass
-
-
-def obj_to_sns(o):
-    return SimpleNamespace(**o)
-
-
-def dict_to_sns(d):
-    return json.loads(json.dumps(d), object_hook=obj_to_sns)
 
 
 def on_tag_detect(client, userdata, msg):
