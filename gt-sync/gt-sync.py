@@ -125,10 +125,8 @@ def on_tag_detect(client, userdata, msg):
             print('Unknown tag:', json_msg.detections[0].id)
             return
         cam_pose, dtag_error = pose.get_cam_pose(json_msg)
-        print('tag', json_msg.detections[0].id)
         if dtag_error > DTAG_ERROR_THRESH:
             return
-        print('error meets thresh')
         vio_pose = pose.get_vio_pose(json_msg)
         time = datetime.strptime(json_msg.timestamp, TIME_FMT)
         users[client_id].on_tag_detect(cam_pose, vio_pose, time, msg.payload.decode('utf-8'))
