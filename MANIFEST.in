@@ -1,0 +1,13 @@
+# Files to include in Python library
+
+include pyproject.toml
+
+# Include the README
+include *.md
+
+# Include setup.py
+include setup.py
+
+graft particlefilter/cython
+graft particlefilter/src
+graft particlefilter/include

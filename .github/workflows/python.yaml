@@ -1,0 +1,189 @@
+name: Build & Publish
+on: push
+
+jobs:
+  build-c-shared-lib:
+    name: Build C Shared Library
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch:
+          - web-wasm
+          - linux-x64
+          - linux-x86
+          - linux-arm64      # aarch64
+          - linux-arm64-musl # aarch64
+          - linux-armv5
+          - linux-armv5-musl
+          - linux-armv6
+          - linux-armv6-musl
+          - linux-armv7
+          - linux-armv7a
+          - linux-armv7l-musl
+          - linux-s390x
+          - linux-ppc64le
+          - windows-static-x64
+          - windows-static-x64-posix
+          - windows-static-x86
+          - windows-shared-x64
+          - windows-shared-x64-posix
+          - windows-shared-x86
+    container:
+      image: dockcross/${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build shared library
+        shell: bash
+        run: |
+          if [[ "${{ matrix.arch }}" = *"wasm"* ]]; then export SHARED_EXT="wasm";
+          elif [[ "${{ matrix.arch }}" = *"windows"* ]]; then export SHARED_EXT="dll";
+          elif [[ "${{ matrix.arch }}" = *"linux"* ]]; then export SHARED_EXT="so";
+          else export SHARED_EXT="unknown_ext"; fi
+          mkdir build
+          gcc -fPIC -shared -o build/particlefilter-${{ matrix.arch }}.$SHARED_EXT -lm -Iparticlefilter/include particlefilter/src/*.c
+      - name: SHA512 files
+        run: |
+          find . -type f -exec sha512sum {} \;
+        working-directory: build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: c-shared-lib
+          path: ./build/*
+  build-python-sdist:
+    name: Build Python 🐍 sdist
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: 3.9
+      - name: Install Python build tool
+        run: |
+          python -m pip install build
+      - name: Build sdist
+        run: python -m build --sdist --outdir dist/
+      - name: Display structure of dist files
+        run: ls -R
+        working-directory: dist
+      - name: SHA512 files
+        run: |
+          find . -type f -exec sha512sum {} \;
+        working-directory: dist
+      - uses: actions/upload-artifact@v2
+        with:
+          name: python-dist
+          path: dist/*.tar.gz
+  build-python-wheel:
+    name: Build Python 🐍 wheels
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            arch: x86_64
+          - os: ubuntu-20.04
+            arch: i686
+          - os: ubuntu-20.04
+            arch: aarch64
+          - os: ubuntu-20.04
+            arch: ppc64le
+          - os: ubuntu-20.04
+            arch: s390x
+          - os: windows-2019
+            arch: AMD64
+          - os: windows-2019
+            arch: x86
+          - os: macos-10.15
+            arch: x86_64
+          - os: macos-10.15
+            arch: arm64
+          - os: macos-10.15
+            arch: universal2
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v1.11.1
+        env:
+          CIBW_SKIP: cp27-*
+          CIBW_ARCHS: ${{ matrix.arch }}
+      - name: Display structure of wheelhouse files
+        run: ls -R
+        working-directory: wheelhouse
+      - name: SHA512 files
+        shell: bash
+        run: |
+          find . -type f -name "*.whl" -exec sha512sum {} \;
+        working-directory: wheelhouse
+      - uses: actions/upload-artifact@v2
+        with:
+          name: python-dist
+          path: ./wheelhouse/*.whl
+  publish-python:
+    name: Publish Python 🐍 distributions 📦 to PyPI
+    needs: [build-python-sdist, build-python-wheel]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    env:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Download python-dist artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: python-dist
+        path: dist/
+    - name: Display structure of dist files
+      run: ls -R
+      working-directory: dist
+    - name: Publish distribution 📦 to PyPI
+      if: env.PYPI_API_TOKEN != null
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
+  publish-release-artifacts:
+    name: Publish Release Artifacts to GitHub
+    needs: [build-c-shared-lib, build-python-sdist, build-python-wheel]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    steps:
+    - uses: actions/checkout@v2
+    - name: Download C Shared Library artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: c-shared-lib
+        path: c-shared-lib/
+    - name: Display structure of c-shared-lib files
+      run: ls -R
+      working-directory: c-shared-lib
+    - name: Download Python artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: python-dist
+        path: python-dist/
+    - name: Display structure of python-dist files
+      run: ls -R
+      working-directory: python-dist
+    - name: Archive c-shared-lib
+      run: tar -czvf c-shared-lib-all.tar.gz -C c-shared-lib .
+    - name: Archive python-dist
+      run:  |
+        tar -czvf python-dist-all.tar.gz -C python-dist .
+        cd python-dist; for f in *.tar.gz; do cp "$f" "../python-sdist-$f"; done; cd ../
+    - name: SHA512 files
+      run: |
+        find . -type f -name "*.tar.gz" -exec sha512sum {} \;
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: |
+          c-shared-lib/*
+          *.tar.gz
+
