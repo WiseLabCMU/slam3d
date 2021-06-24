@@ -1,0 +1,79 @@
+name: C Shared Library
+on: [push, pull_request]
+
+jobs:
+  build-c-shared-lib:
+    name: Build C Shared Library (${{ matrix.arch }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch:
+          - web-wasm
+          - linux-x64
+          - linux-x86
+          - linux-arm64      # aarch64
+          - linux-arm64-musl # aarch64
+          - linux-armv5
+          - linux-armv5-musl
+          - linux-armv6
+          - linux-armv6-musl
+          - linux-armv7
+          - linux-armv7a
+          - linux-armv7l-musl
+          - linux-s390x
+          - linux-ppc64le
+          - windows-static-x64
+          - windows-static-x64-posix
+          - windows-static-x86
+          - windows-shared-x64
+          - windows-shared-x64-posix
+          - windows-shared-x86
+    container:
+      image: dockcross/${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build shared library
+        shell: bash
+        run: |
+          if [[ "${{ matrix.arch }}" = *"wasm"* ]]; then export SHARED_EXT="wasm";
+          elif [[ "${{ matrix.arch }}" = *"windows"* ]]; then export SHARED_EXT="dll";
+          elif [[ "${{ matrix.arch }}" = *"linux"* ]]; then export SHARED_EXT="so";
+          else export SHARED_EXT="unknown_ext"; fi
+          mkdir build
+          gcc -fPIC -shared -o build/particlefilter-${{ matrix.arch }}.$SHARED_EXT -lm -Iparticlefilter/include particlefilter/src/*.c
+      - name: SHA256 files
+        run: |
+          find . -type f -exec sha256sum {} \;
+        working-directory: build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: c-shared-lib
+          path: ./build/*
+  publish-release-artifacts:
+    name: Publish Release Artifacts to GitHub
+    needs: [build-c-shared-lib]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    steps:
+    - uses: actions/checkout@v2
+    - name: Download C Shared Library artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: c-shared-lib
+        path: c-shared-lib/
+    - name: Display structure of c-shared-lib files
+      run: ls -R
+      working-directory: c-shared-lib
+    - name: Archive c-shared-lib
+      run: tar -czvf c-shared-lib-all.tar.gz -C c-shared-lib .
+    - name: SHA256 files
+      run: |
+        find . -type f -name "*.tar.gz" -exec sha256sum {} \;
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: |
+          c-shared-lib/*
+          *.tar.gz
