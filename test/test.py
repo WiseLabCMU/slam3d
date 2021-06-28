@@ -16,7 +16,7 @@ from filecmp import cmp
 import numpy as np
 import sys
 import time
-from particleFilter import ParticleFilterLoc, setSeed
+from particlefilter import ParticleFilterLoc, setSeed
 
 # Only one test for now, so keep it simple
 

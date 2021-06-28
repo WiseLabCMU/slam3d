@@ -10,7 +10,7 @@ Source found in `./particlefilter/cython`. Currently implements `particleFilterL
 
 ```python3
 import numpy as np
-from particleFilter import ParticleFilterLoc, setSeed
+from particlefilter import ParticleFilterLoc, setSeed
 
 # If deterministic tests are needed, call this before anything else
 setSeed(123456789) # Argument is np.uint32

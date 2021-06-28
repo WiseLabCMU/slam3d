@@ -22,8 +22,8 @@ here = pathlib.Path(__file__).parent.resolve()
 long_description = (here / 'README.md').read_text(encoding='utf-8')
 
 extensions = [
-    Extension("particleFilter",
-              ["./particlefilter/cython/particleFilter_wrapper.pyx"] + glob("./particlefilter/src/*.c"),
+    Extension("particlefilter",
+              ["./particlefilter/cython/particlefilter_wrapper.pyx"] + glob("./particlefilter/src/*.c"),
               include_dirs=["./particlefilter/include", numpy.get_include()]
     )
 ]

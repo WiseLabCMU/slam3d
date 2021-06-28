@@ -1,5 +1,5 @@
 #
-# particleFilter_wrapper.pyx
+# particlefilter_wrapper.pyx
 # Created by Perry Naseck on 6/20/21.
 #
 # Copyright (c) 2021, Wireless Sensing and Embedded Systems Lab, Carnegie
