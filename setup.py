@@ -40,7 +40,6 @@ setup(
     ext_modules=cythonize(extensions),
     zip_safe=False,
     python_requires='>=3.6, <4',
-    download_url="https://github.com/WiseLabCMU/slam3d",
     platforms=["any"],
     url="https://github.com/WiseLabCMU/slam3d",
     project_urls={
