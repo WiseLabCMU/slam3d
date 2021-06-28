@@ -11,7 +11,7 @@
 #
 
 [build-system]
-requires = ["setuptools>=57", "wheel>=0,<1", "setuptools_scm[toml]>=5.0", "Cython>=0,<1", "numpy>=1,<2"]
+requires = ["setuptools>=57", "wheel>=0,<1", "setuptools_scm[toml]>=6.0", "Cython>=0,<1", "numpy>=1,<2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
