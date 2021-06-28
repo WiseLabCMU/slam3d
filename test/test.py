@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-#
-# test.py
-# Created by Perry Naseck on 6/25/21.
-#
-# Copyright (c) 2021, Wireless Sensing and Embedded Systems Lab, Carnegie
-# Mellon University
-# All rights reserved.
-#
-# This source code is licensed under the BSD-3-Clause license found in the
-# LICENSE file in the root directory of this source tree.
-#
+"""
+test.py
+Created by Perry Naseck on 6/25/21.
+
+Copyright (c) 2021, Wireless Sensing and Embedded Systems Lab, Carnegie
+Mellon University
+All rights reserved.
+
+This source code is licensed under the BSD-3-Clause license found in the
+LICENSE file in the root directory of this source tree.
+"""
 
 import csv
 from filecmp import cmp

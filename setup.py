@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-#
-# setup.py
-# Created by Perry Naseck on 6/20/21.
-#
-# Copyright (c) 2021, Wireless Sensing and Embedded Systems Lab, Carnegie
-# Mellon University
-# All rights reserved.
-#
-# This source code is licensed under the BSD-3-Clause license found in the
-# LICENSE file in the root directory of this source tree.
-#
+"""
+setup.py
+Created by Perry Naseck on 6/20/21.
+
+Copyright (c) 2021, Wireless Sensing and Embedded Systems Lab, Carnegie
+Mellon University
+All rights reserved.
+
+This source code is licensed under the BSD-3-Clause license found in the
+LICENSE file in the root directory of this source tree.
+"""
 
 from glob import glob
 from Cython.Build import cythonize
