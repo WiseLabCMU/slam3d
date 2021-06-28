@@ -30,7 +30,6 @@ extensions = [
 
 setup(
     name="slam3d",
-    version="1.0.0",
     description="Simultaneous localization and mapping (SLAM) tools in 3D",
     long_description=long_description,
     long_description_content_type='text/markdown',
