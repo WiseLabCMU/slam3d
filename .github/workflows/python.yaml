@@ -172,8 +172,6 @@ jobs:
     needs: [build-python-sdist, build-test-python-wheel]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
-    env:
-      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     steps:
     - uses: actions/checkout@v2
     - name: Download python-dist artifact
@@ -185,9 +183,11 @@ jobs:
       run: ls -R
       working-directory: dist
     - name: Publish distribution to PyPI
-      if: env.PYPI_API_TOKEN != null
+      env:
+        PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
+        user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
   publish-release-artifacts:
     name: Publish Release Artifacts to GitHub
@@ -215,6 +215,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
+        prerelease: ${{ contains(github.event.ref, '-pre') || contains(github.event.ref, '-alpha') || contains(github.event.ref, '-beta') || contains(github.event.ref, '-rc') }}
         files: |
           *.tar.gz
 
