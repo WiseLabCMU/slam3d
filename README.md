@@ -2,8 +2,6 @@ slam3d
 ======
 Simultaneous localization and mapping (SLAM) tools in 3D
 
-Jump to: [Python Wrapper](#python-wrapper), [C](#c), [Tests](#tests), [License](#license)
-
 ## Python Wrapper
 
 Currently implements `particleFilterLoc`. Supports Python 3.6+.
