@@ -185,6 +185,7 @@ jobs:
     - name: Publish distribution to PyPI
       env:
         PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      if: env.PYPI_API_TOKEN != null
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
@@ -215,7 +216,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        prerelease: ${{ contains(github.event.ref, '-pre') || contains(github.event.ref, '-alpha') || contains(github.event.ref, '-beta') || contains(github.event.ref, '-rc') }}
+        prerelease: ${{ contains(github.event.ref, '-pre') || contains(github.event.ref, '-alpha') || contains(github.event.ref, '-beta') || contains(github.event.ref, '-rc') || contains(github.event.ref, '-dev') }}
         files: |
           *.tar.gz
 
