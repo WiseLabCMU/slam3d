@@ -2,11 +2,27 @@ slam3d
 ======
 Simultaneous localization and mapping (SLAM) tools in 3D
 
-Jump to: [C](#c), [Python Wrapper](#python-wrapper), [Tests](#tests), [License](#license)
+Jump to: [Python Wrapper](#python-wrapper), [C](#c), [Tests](#tests), [License](#license)
 
 ## Python Wrapper
 
-Source found in `./particlefilter/cython`. Currently implements `particleFilterLoc`. Clone and run `python3 -m pip3 install .` to build and install, or use the source distribution or wheels in the [latest release](https://github.com/WiseLabCMU/slam3d/releases/latest). Supports Python 3.6+.
+Currently implements `particleFilterLoc`. Supports Python 3.6+.
+
+### Installation
+
+Install the [slam3d package from PyPi](https://pypi.org/project/slam3d/):
+
+```
+python3 -m pip install slam3d
+```
+Or use the source distribution or wheels in the [latest release](https://github.com/WiseLabCMU/slam3d/releases/latest).
+
+To install the latest unreleased code, download or clone [this source repository](https://github.com/WiseLabCMU/slam3d) and run the following to build and install:
+```
+python3 -m pip install .
+```
+
+### Example
 
 ```python3
 import numpy as np
@@ -25,7 +41,11 @@ pf.getTagLoc() # returns tuple: (status: np.int32, t: np.float64, x: np.float32,
 ```
 ### Development
 
-To install pinned versions: `pip install -r requirements.txt`.
+To install for development, download or clone and run:
+```
+python3 -m pip install -e .
+```
+Source found in `./particlefilter/cython`.
 
 ## C
 
