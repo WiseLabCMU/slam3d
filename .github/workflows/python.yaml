@@ -153,7 +153,7 @@ jobs:
         with:
           platforms: all
       - name: Build${{ matrix.title }} Wheel
-        uses: pypa/cibuildwheel@v2.0.0b2
+        uses: pypa/cibuildwheel@v2.0.0
         env:
           CIBW_BUILD_VERBOSITY: 1
           CIBW_BUILD: ${{ matrix.python-version }}-${{ matrix.arch }}
