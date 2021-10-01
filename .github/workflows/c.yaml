@@ -1,0 +1,167 @@
+#
+# c.yaml
+# Created by Perry Naseck on 6/25/21.
+#
+# Copyright (c) 2021, Wireless Sensing and Embedded Systems Lab, Carnegie
+# Mellon University
+# All rights reserved.
+#
+# This source code is licensed under the BSD-3-Clause license found in the
+# LICENSE file in the root directory of this source tree.
+#
+
+name: C
+on: [push, pull_request]
+
+jobs:
+  test-c:
+    name: 'Test (${{ matrix.id }}: ${{ matrix.os }})'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            compiler: 'gcc'
+            id: 'linux-gcc'
+          - os: windows-2019
+            compiler: 'gcc'
+            id: 'windows-gcc'
+          - os: windows-2019
+            compiler: 'cl'
+            id: 'windows-cl'
+          - os: macos-10.15
+            compiler: 'gcc'
+            id: 'macos-gcc'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Add VS build tools
+        if: runner.os == 'Windows' && matrix.compiler == 'cl'
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Build tests
+        shell: bash
+        run: >
+          (if [[ "${{ matrix.os }}" = *"windows"* ]]; then export SHARED_EXT=".exe";
+          else export SHARED_EXT=""; fi) &&
+          mkdir build &&
+          ${{ matrix.compiler }} -o build/test-${{ matrix.id }}$SHARED_EXT -Iparticlefilter/include particlefilter/src/*.c test/test.c -lm
+      - name: SHA256 files
+        shell: bash
+        run: find . -type f -exec sha256sum {} \;
+        working-directory: build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: c-test
+          path: ./build/*
+      - name: Run test
+        shell: bash
+        run: >
+          (if [[ "${{ matrix.os }}" = *"windows"* ]]; then export SHARED_EXT=".exe";
+          else export SHARED_EXT=""; fi) &&
+          time ./build/test-${{ matrix.id }}$SHARED_EXT ./test/data/ ./test/out/test1_ParticleFilterLoc_test_out_c_${{ matrix.id }}.csv ./test/data/test1_ParticleFilterLoc_expected_out_${{ matrix.id }}.csv
+      - uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: c-test-out
+          path: ./test/out/*.csv
+  build-c-shared-lib-dockcross:
+    name: 'Build Linux Cross Shared Library (${{ matrix.note }}${{ matrix.arch }})'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: web-wasm,                 ext: wasm, note: ""        }
+          - { arch: linux-x64,                ext: so,   note: ""        }
+          - { arch: linux-x86,                ext: so,   note: ""        }
+          - { arch: linux-arm64,              ext: so,   note: ""        } # aarch64
+          - { arch: linux-arm64-musl,         ext: so,   note: ""        } # aarch64
+          - { arch: linux-armv5,              ext: so,   note: ""        }
+          - { arch: linux-armv5-musl,         ext: so,   note: ""        }
+          - { arch: linux-armv6,              ext: so,   note: ""        }
+          - { arch: linux-armv6-musl,         ext: so,   note: ""        }
+          - { arch: linux-armv7,              ext: so,   note: ""        }
+          - { arch: linux-armv7a,             ext: so,   note: ""        }
+          - { arch: linux-armv7l-musl,        ext: so,   note: ""        }
+          - { arch: linux-s390x,              ext: so,   note: ""        }
+          - { arch: linux-ppc64le,            ext: so,   note: ""        }
+          - { arch: windows-static-x64,       ext: dll,  note: "mingw-"  }
+          - { arch: windows-static-x64-posix, ext: dll,  note: "mingw-"  }
+          - { arch: windows-static-x86,       ext: dll,  note: "mingw-"  }
+          - { arch: windows-shared-x64,       ext: dll,  note: "mingw-"  }
+          - { arch: windows-shared-x64-posix, ext: dll,  note: "mingw-"  }
+          - { arch: windows-shared-x86,       ext: dll,  note: "mingw-"  }
+    container:
+      image: dockcross/${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build shared library
+        shell: bash
+        run: >
+          mkdir build &&
+          gcc -fPIC -shared -o build/particlefilter-gcc-${{ matrix.note }}${{ matrix.arch }}.${{ matrix.ext }} -Iparticlefilter/include particlefilter/src/*.c -lm
+      - name: SHA256 files
+        shell: bash
+        run: find . -type f -exec sha256sum {} \;
+        working-directory: build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: c-shared-lib
+          path: ./build/*
+  build-c-shared-lib-windows:
+    name: 'Build Windows Shared Libraries (${{ matrix.arch }})'
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: amd64,       args: '/MT', name: "static-x64"   }
+          - { arch: amd64_x86,   args: '/MT', name: "static-x86"   }
+          - { arch: amd64_arm,   args: '/MT', name: "static-arm"   }
+          - { arch: amd64_arm64, args: '/MT', name: "static-arm64" }
+    steps:
+      - uses: actions/checkout@v2
+      - name: Add VS build tools
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+      - name: Build shared library
+        run: >
+          mkdir build &&
+          cl particlefilter/src/*.c /Iparticlefilter/include ${{ matrix.args }} /link /DLL /OUT:build/particlefilter-cl-windows-${{ matrix.name }}.dll
+      - name: SHA256 files
+        shell: bash
+        run: find . -type f -exec sha256sum {} \;
+        working-directory: build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: c-shared-lib
+          path: ./build/*
+  publish-release-artifacts:
+    name: Publish Release Artifacts to GitHub
+    needs: [build-c-shared-lib-dockcross, build-c-shared-lib-windows]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    steps:
+    - uses: actions/checkout@v2
+    - name: Download C Shared Library artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: c-shared-lib
+        path: c-shared-lib/
+    - name: Display structure of c-shared-lib files
+      run: ls -R
+      working-directory: c-shared-lib
+    - name: Archive c-shared-lib
+      run: 'tar -czvf particlefilter-${GITHUB_REF##*/}-c-shared-lib-all.tar.gz -C c-shared-lib .'
+    - name: SHA256 files
+      run: find . -type f -name "*.tar.gz" -exec sha256sum {} \;
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        prerelease: ${{ contains(github.event.ref, '-pre') || contains(github.event.ref, '-alpha') || contains(github.event.ref, '-beta') || contains(github.event.ref, '-rc') || contains(github.event.ref, '-dev') }}
+        files: |
+          *.tar.gz

@@ -1,9 +1,14 @@
-//
-//  particleFilter.h
-//
-//  Created by John Miller on 11/1/18.
-//  Copyright © 2018 CMU. All rights reserved.
-//
+/* 
+ * particleFilter.h
+ * Created by John Miller on 11/1/18.
+ *
+ * Copyright (c) 2018, Wireless Sensing and Embedded Systems Lab, Carnegie
+ * Mellon University
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-3-Clause license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 #ifndef _PARTICLEFILTER_H
 #define _PARTICLEFILTER_H
@@ -17,6 +22,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+    void particleFilterSeed_set(unsigned int seed);
 
     typedef struct
     {

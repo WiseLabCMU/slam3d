@@ -1,9 +1,14 @@
-//
-//  particleFilter.c
-//
-//  Created by John Miller on 11/1/18.
-//  Copyright © 2018 CMU. All rights reserved.
-//
+/*
+ * particleFilter.c
+ * Created by John Miller on 11/1/18.
+ *
+ * Copyright (c) 2018, Wireless Sensing and Embedded Systems Lab, Carnegie
+ * Mellon University
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-3-Clause license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 #include <math.h>
 #include <stdint.h>
@@ -11,11 +16,18 @@
 #include "particleFilter.h"
 #include "pfInit.h"
 #include "pfMeasurement.h"
+#include "pfRandom.h"
 #include "pfResample.h"
 
 static void _commitVioLoc(particleFilterLoc_t* pf);
 static void _commitTagVioSlam(particleFilterSlam_t* pf);
 static void _commitBcnVioSlam(bcn_t* bcn);
+
+void particleFilterSeed_set(unsigned int seed)
+{
+  PF_SEED = seed;
+  PF_SEED_SET = 1;
+}
 
 void particleFilterLoc_init(particleFilterLoc_t* pf)
 {
@@ -29,6 +41,7 @@ void particleFilterLoc_init(particleFilterLoc_t* pf)
     pf->lastY = 0.0f;
     pf->lastZ = 0.0f;
     pf->lastDist = 0.0f;
+    pfRandom_init();
     pf->initialized = 0;
 }
 
@@ -44,6 +57,7 @@ void particleFilterSlam_init(particleFilterSlam_t* pf)
     pf->lastY = 0.0f;
     pf->lastZ = 0.0f;
     pf->lastDist = 0.0f;
+    pfRandom_init();
     pfInit_initTagSlam(pf);
     pf->initialized = 1;
 }

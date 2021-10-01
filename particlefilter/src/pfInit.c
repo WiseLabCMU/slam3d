@@ -1,9 +1,14 @@
-//
-//  pfInit.c
-//
-//  Created by John Miller on 1/11/19.
-//  Copyright © 2019 CMU. All rights reserved.
-//
+/*
+ * pfInit.c
+ * Created by John Miller on 11/1/19.
+ *
+ * Copyright (c) 2019, Wireless Sensing and Embedded Systems Lab, Carnegie
+ * Mellon University
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-3-Clause license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -15,8 +20,6 @@
 void pfInit_initTagLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange)
 {
     int i;
-
-    pfRandom_init();
     for (i = 0; i < PF_N_TAG_LOC; ++i)
         pfInit_spawnTagParticleFromRange(&pf->pTag[i], bx, by, bz, range, stdRange);
 }
@@ -24,8 +27,6 @@ void pfInit_initTagLoc(particleFilterLoc_t* pf, float bx, float by, float bz, fl
 void pfInit_initTagSlam(particleFilterSlam_t* pf)
 {
     int i;
-
-    pfRandom_init();
     for (i = 0; i < PF_N_TAG_SLAM; ++i)
         pfInit_spawnTagParticleZero(&pf->pTag[i]);
 }
