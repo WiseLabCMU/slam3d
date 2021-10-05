@@ -1,9 +1,14 @@
-//
-//  pfMeasurement.c
-//
-//  Created by John Miller on 1/11/19.
-//  Copyright © 2019 CMU. All rights reserved.
-//
+/*
+ * pfMeasurement.c
+ * Created by John Miller on 11/1/19.
+ *
+ * Copyright (c) 2019, Wireless Sensing and Embedded Systems Lab, Carnegie
+ * Mellon University
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-3-Clause license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 #define _USE_MATH_DEFINES
 #include <math.h>

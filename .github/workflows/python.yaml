@@ -1,0 +1,241 @@
+#
+# python.yaml
+# Created by Perry Naseck on 6/20/21.
+#
+# Copyright (c) 2021, Wireless Sensing and Embedded Systems Lab, Carnegie
+# Mellon University
+# All rights reserved.
+#
+# This source code is licensed under the BSD-3-Clause license found in the
+# LICENSE file in the root directory of this source tree.
+#
+
+name: Python
+on: [push, pull_request]
+
+jobs:
+  build-python-sdist:
+    name: Build Source Distribution
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: 3.9
+      - name: Install Python build tool
+        run: python -m pip install build
+      - name: Build sdist
+        run: python -m build --sdist --outdir dist/
+      - name: Display structure of dist files
+        run: ls -R
+        working-directory: dist
+      - name: SHA256 files
+        run: find . -type f -exec sha256sum {} \;
+        working-directory: dist
+      - uses: actions/upload-artifact@v2
+        with:
+          name: python-dist
+          path: dist/*.tar.gz
+  test-python-sdist:
+    name: 'Test Source Distribution (${{ matrix.python-version }}-${{ matrix.id }}: ${{ matrix.os }})'
+    needs: [build-python-sdist]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { id: linux-gcc,   os: ubuntu-20.04, python-version: 3.9,      compiler: gcc }
+          - { id: windows-gcc, os: windows-2019, python-version: 3.9,      compiler: gcc }
+          - { id: windows-cl,  os: windows-2019, python-version: 3.9,      compiler: cl  }
+          - { id: macos-gcc,   os: macos-10.15,  python-version: 3.9,      compiler: gcc }
+          - { id: linux-gcc,   os: ubuntu-20.04, python-version: pypy-3.7, compiler: gcc }
+          - { id: windows-gcc, os: windows-2019, python-version: pypy-3.7, compiler: gcc }
+          - { id: windows-cl,  os: windows-2019, python-version: pypy-3.7, compiler: cl  }
+          # - { id: macos-gcc,   os: macos-10.15,  python-version: pypy-3.7, compiler: gcc }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Add VS build tools
+        if: runner.os == 'Windows' && matrix.compiler == 'cl'
+        uses: ilammy/msvc-dev-cmd@v1
+      # - name: Install OpenBLAS # Allows PyPy to build NumPy
+      #   if: runner.os == 'macOS'
+      #   shell: bash
+      #   run: >
+      #     brew install openblas &&
+      #     echo "OPENBLAS='$(brew --prefix openblas)'" >> $GITHUB_ENV
+      - name: Download python-dist artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: python-dist
+          path: dist/
+      - name: SHA256 files
+        shell: bash
+        run: find . -type f -exec sha256sum {} \;
+        working-directory: dist
+      - uses: actions/setup-python@v2
+        name: Install Python ${{ matrix.python-version }}
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install sdist
+        shell: bash
+        run: python -m pip install dist/*.tar.gz
+      - uses: actions/checkout@v2
+      - name: Before Test
+        shell: bash
+        run: >
+          (if [[ "${{ matrix.os }}" = *"windows"* ]]; then export SHARED_EXT=".exe";
+          else export SHARED_EXT=""; fi) &&
+          mkdir build &&
+          ${{ matrix.compiler }} -o build/test-${{ matrix.python-version }}-${{ matrix.id }}$SHARED_EXT -Iparticlefilter/include particlefilter/src/*.c test/test.c -lm &&
+          ./build/test-${{ matrix.python-version }}-${{ matrix.id }}$SHARED_EXT --nofail ./test/data/ ./test/out/test1_ParticleFilterLoc_test_out_c_${{ matrix.python-version }}-${{ matrix.id }}.csv
+      - name: Test
+        shell: bash
+        run: >
+          time python test/test.py ./test/data/ ./test/out/test1_ParticleFilterLoc_test_out_py_${{ matrix.python-version }}-${{ matrix.id }}.csv ./test/out/test1_ParticleFilterLoc_test_out_c_${{ matrix.python-version }}-${{ matrix.id }}.csv
+      - uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: python-test-out
+          path: ./test/out/*.csv
+  build-test-python-wheel:
+    name: Build${{ matrix.title }} Wheel ${{ matrix.python-version }}-${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp36, title: " & Test"          }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp37, title: " & Test"          }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp38, title: " & Test"          }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp39, title: " & Test"          }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: pp37, title: " & Test"          }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp36, title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp37, title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp38, title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp39, title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: pp37, title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp36, title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp37, title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp38, title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp39, title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: pp37, title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp36, title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp37, title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp38, title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp39, title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp36, title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp37, title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp38, title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp39, title: ""                 }
+          - { os: windows-2019, arch: win_amd64,         python-version: cp36, title: " & Test"         }
+          - { os: windows-2019, arch: win_amd64,         python-version: cp37, title: " & Test"         }
+          - { os: windows-2019, arch: win_amd64,         python-version: cp38, title: " & Test"         }
+          - { os: windows-2019, arch: win_amd64,         python-version: cp39, title: " & Test"         }
+          - { os: windows-2019, arch: win_amd64,         python-version: pp37, title: " & Test"         }
+          - { os: windows-2019, arch: win32,             python-version: cp36, title: " & Test"         }
+          - { os: windows-2019, arch: win32,             python-version: cp37, title: " & Test"         }
+          - { os: windows-2019, arch: win32,             python-version: cp38, title: " & Test"         }
+          - { os: windows-2019, arch: win32,             python-version: cp39, title: " & Test"         }
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp36, title: " & Test"         }
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp37, title: " & Test"         }
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp38, title: " & Test"         }
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp39, title: " & Test"         }
+          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: pp37, title: " & Test"         }
+          - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp38, title: ""                }
+          - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp39, title: ""                }
+          - { os: macos-10.15,  arch: macosx_universal2, python-version: cp38, title: " & Mostly Test"  }
+          - { os: macos-10.15,  arch: macosx_universal2, python-version: cp39, title: " & Mostly Test"  }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up QEMU
+        if: runner.os == 'Linux' && matrix.arch != 'manylinux_x86_64'
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+      - name: Build${{ matrix.title }} Wheel
+        uses: pypa/cibuildwheel@v2.0.0
+        env:
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_BUILD: ${{ matrix.python-version }}-${{ matrix.arch }}
+          CIBW_ARCHS: 'all'
+          CIBW_BEFORE_TEST: >
+            cd {package} &&
+            bash -c "
+            (if [[ \"${{ matrix.os }}\" = *\"windows\"* ]]; then export SHARED_EXT=\".exe\";
+            else export SHARED_EXT=\"\"; fi) &&
+            mkdir build &&
+            gcc -o build/test-${{ matrix.id }}$SHARED_EXT -Iparticlefilter/include particlefilter/src/*.c test/test.c -lm &&
+            ./build/test-${{ matrix.id }}$SHARED_EXT --nofail ./test/data/ ./test/out/test1_ParticleFilterLoc_test_out_c.csv
+            "
+          CIBW_TEST_COMMAND: >
+            python {project}/test/test.py {project}/test/data/ {project}/test/out/test1_ParticleFilterLoc_test_out_py.csv {project}/test/out/test1_ParticleFilterLoc_test_out_c.csv
+          CIBW_TEST_SKIP: '*-macosx_arm64 *-macosx_universal2:arm64 *-manylinux_{aarch64,i686,ppc64le,s390x}' # Cannot yet test on Mac non x86_64, some QEMU+Cython float precision issue
+          # CIBW_BEFORE_BUILD_MACOS: "brew install openblas" # Allows PyPy to build NumPy
+          # CIBW_ENVIRONMENT_MACOS: "OPENBLAS='$(brew --prefix openblas)'"
+      - name: Display structure of wheelhouse files
+        run: ls -R
+        working-directory: wheelhouse
+      - name: SHA256 files
+        shell: bash
+        run: find . -type f -name "*.whl" -exec sha256sum {} \;
+        working-directory: wheelhouse
+      - uses: actions/upload-artifact@v2
+        # Some QEMU+Cython float precision issue, so do not upload/bundle artifact for now
+        # Just want to be sure builds and runs without error
+        if: matrix.arch != 'manylinux_i686' && matrix.arch != 'manylinux_aarch64'
+        with:
+          name: python-dist
+          path: ./wheelhouse/*.whl
+  publish-python:
+    name: Publish distributions to PyPI
+    needs: [build-python-sdist, build-test-python-wheel]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    steps:
+    - uses: actions/checkout@v2
+    - name: Download python-dist artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: python-dist
+        path: dist/
+    - name: Display structure of dist files
+      run: ls -R
+      working-directory: dist
+    - name: Publish distribution to PyPI
+      env:
+        PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      if: env.PYPI_API_TOKEN != null
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
+  publish-release-artifacts:
+    name: Publish Release Artifacts to GitHub
+    needs: [build-python-sdist, build-test-python-wheel]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    steps:
+    - uses: actions/checkout@v2
+    - name: Download Python artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: python-dist
+        path: python-dist/
+    - name: Display structure of python-dist files
+      run: ls -R
+      working-directory: python-dist
+    - name: Archive python-dist
+      run:  >
+        tar -czvf python-dist-slam3d-${GITHUB_REF##*/}-all.tar.gz -C python-dist . &&
+        (cd python-dist; for f in *.tar.gz; do cp "$f" "../python-sdist-$f"; done; cd ../)
+    - name: SHA256 files
+      run: find . -type f -name "*.tar.gz" -exec sha256sum {} \;
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        prerelease: ${{ contains(github.event.ref, '-pre') || contains(github.event.ref, '-alpha') || contains(github.event.ref, '-beta') || contains(github.event.ref, '-rc') || contains(github.event.ref, '-dev') }}
+        files: |
+          *.tar.gz
+

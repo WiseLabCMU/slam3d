@@ -1,0 +1,17 @@
+#
+# pyproject.toml
+# Created by Perry Naseck on 6/20/21.
+#
+# Copyright (c) 2021, Wireless Sensing and Embedded Systems Lab, Carnegie
+# Mellon University
+# All rights reserved.
+#
+# This source code is licensed under the BSD-3-Clause license found in the
+# LICENSE file in the root directory of this source tree.
+#
+
+[build-system]
+requires = ["setuptools>=57", "wheel>=0,<1", "setuptools_scm[toml]>=6.0", "Cython>=0,<1", "numpy>=1,<2"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
