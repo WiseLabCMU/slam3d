@@ -24,7 +24,7 @@
 #endif
 
 #if defined(PF_FORCE_MUSL_RANDR)
-#pragma message "Using included MUSL rand_r() implementation (_WIN32 or PF_FORCE_MUSL_RANDR)"
+#pragma message("Using included MUSL rand_r() implementation (_WIN32 or PF_FORCE_MUSL_RANDR)")
 // MUSL rand_r implementation
 // https://git.musl-libc.org/cgit/musl/tree/src/prng/rand_r.c?id=20d01d83b5a13c77805976e7c520f566244ba3ff
 static unsigned temper(unsigned x)
