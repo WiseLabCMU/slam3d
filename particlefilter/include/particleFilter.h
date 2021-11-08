@@ -109,6 +109,7 @@ extern "C" {
     void particleFilterSlam_depositRange(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns);
     void particleFilterLoc_depositRssi(particleFilterLoc_t* pf, float bx, float by, float bz, int rssi);
     void particleFilterSlam_depositRssi(particleFilterSlam_t* pf, bcn_t* bcn, int rssi, bcn_t** allBcns, int numBcns);
+    void particleFilterLoc_depositPose(particleFilterLoc_t* pf, float x, float y, float z, float theta, float stdXyz, float stdTheta);
     uint8_t particleFilterLoc_getTagLoc(const particleFilterLoc_t* pf, double* t, float* x, float* y, float* z, float* theta);
     uint8_t particleFilterSlam_getTagLoc(const particleFilterSlam_t* pf, double* t, float* x, float* y, float* z, float* theta);
     uint8_t particleFilterSlam_getBcnLoc(const particleFilterSlam_t* pf, const bcn_t* bcn, double* t, float* x, float* y, float* z, float* theta);

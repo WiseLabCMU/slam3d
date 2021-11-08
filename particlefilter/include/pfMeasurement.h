@@ -24,6 +24,7 @@ extern "C" {
     void pfMeasurement_applyBcnVioSlam(bcn_t* bcn, float dt, float dx, float dy, float dz, float ddist);
     void pfMeasurement_applyRangeLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange);
     void pfMeasurement_applyRangeSlam(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange);
+    void pfMeasurement_applyPoseLoc(particleFilterLoc_t* pf, float x, float y, float z, float theta, float stdXyz, float stdTheta);
     
 #ifdef __cplusplus
 } // extern "C"
