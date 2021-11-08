@@ -19,7 +19,8 @@
 extern "C" {
 #endif
 
-    void pfInit_initTagLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange);
+    void pfInit_initTagLocRange(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange);
+    void pfInit_initTagLocPose(particleFilterLoc_t* pf, float x, float y, float z, float theta, float stdXyz, float stdTheta);
     void pfInit_initTagSlam(particleFilterSlam_t* pf);
     void pfInit_initBcnSlam(bcn_t* bcn, const particleFilterSlam_t* pf, float range, float stdRange);
     void pfInit_spawnTagParticleZero(tagParticle_t* tp);

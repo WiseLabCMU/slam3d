@@ -185,7 +185,7 @@ void particleFilterLoc_depositRange(particleFilterLoc_t* pf, float bx, float by,
     }
     else
     {
-        pfInit_initTagLoc(pf, bx, by, bz, range, stdRange);
+        pfInit_initTagLocRange(pf, bx, by, bz, range, stdRange);
         pf->initialized = 1;
     }
 }
@@ -220,7 +220,7 @@ void particleFilterLoc_depositRssi(particleFilterLoc_t* pf, float bx, float by, 
     }
     else
     {
-        pfInit_initTagLoc(pf, bx, by, bz, 1.5f, 0.5f);
+        pfInit_initTagLocRange(pf, bx, by, bz, 1.5f, 0.5f);
         pf->initialized = 1;
     }
 }

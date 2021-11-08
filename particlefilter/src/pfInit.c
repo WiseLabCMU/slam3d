@@ -17,11 +17,18 @@
 #include "pfInit.h"
 #include "pfRandom.h"
 
-void pfInit_initTagLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange)
+void pfInit_initTagLocRange(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange)
 {
     int i;
     for (i = 0; i < PF_N_TAG_LOC; ++i)
         pfInit_spawnTagParticleFromRange(&pf->pTag[i], bx, by, bz, range, stdRange);
+}
+
+void pfInit_initTagLocPose(particleFilterLoc_t* pf, float x, float y, float z, float theta, float stdXyz, float stdTheta)
+{
+    int i;
+    for (i = 0; i < PF_N_TAG_LOC; ++i)
+        pfInit_spawnTagParticleFromPose(&pf->pTag[i], x, y, z, theta, stdXyz, stdTheta);
 }
 
 void pfInit_initTagSlam(particleFilterSlam_t* pf)
