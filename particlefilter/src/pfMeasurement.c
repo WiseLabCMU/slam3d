@@ -17,9 +17,9 @@
 #include "pfMeasurement.h"
 #include "pfRandom.h"
 
-#define VIO_STD_XYZ             (1e-3f)
-#define VIO_STD_THETA           (1e-6f)
-#define MIN_WEIGHT_RNG(range)   ((range < 3.0f) ? 0.1f : 0.5f)
+#define VIO_STD_XYZ         (1e-3f)
+#define VIO_STD_THETA       (1e-6f)
+#define MIN_WEIGHT(range)   ((range < 3.0f) ? 0.1f : 0.5f)
 
 void pfMeasurement_applyVioLoc(particleFilterLoc_t* pf, float dt, float dx, float dy, float dz, float ddist)
 {

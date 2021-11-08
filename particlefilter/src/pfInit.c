@@ -65,6 +65,19 @@ void pfInit_spawnTagParticleFromRange(tagParticle_t* tp, float bx, float by, flo
     tp->theta = pfRandom_uniform() * 2 * (float)M_PI;
 }
 
+void pfInit_spawnTagParticleFromPose(tagParticle_t* tp, float x, float y, float z, float theta, float stdXyz, float stdTheta)
+{
+    float dx, dy, dz, dtheta;
+
+    pfRandom_normal2(&dx, &dy);
+    pfRandom_normal2(&dz, &dtheta);
+    tp->w = 1.0f;
+    tp->x = x + dx * stdXyz;
+    tp->y = y + dy * stdXyz;
+    tp->z = z + dz * stdXyz;
+    tp->theta = fmodf(theta + dtheta * stdTheta, 2 * (float)M_PI);
+}
+
 void pfInit_spawnTagParticleFromOther(tagParticle_t* tp, const tagParticle_t* other, float hXyz, float hTheta)
 {
     float dx, dy, dz, dtheta;

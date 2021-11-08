@@ -24,6 +24,7 @@ extern "C" {
     void pfInit_initBcnSlam(bcn_t* bcn, const particleFilterSlam_t* pf, float range, float stdRange);
     void pfInit_spawnTagParticleZero(tagParticle_t* tp);
     void pfInit_spawnTagParticleFromRange(tagParticle_t* tp, float bx, float by, float bz, float range, float stdRange);
+    void pfInit_spawnTagParticleFromPose(tagParticle_t* tp, float x, float y, float z, float theta, float stdXyz, float stdTheta);
     void pfInit_spawnTagParticleFromOther(tagParticle_t* tp, const tagParticle_t* other, float hXyz, float hTheta);
     void pfInit_spawnBcnParticleFromRange(bcnParticle_t* bp, const tagParticle_t* tp, float range, float stdRange);
     void pfInit_spawnBcnParticleFromOther(bcnParticle_t* bp, const bcnParticle_t* other, float hXyz, float hTheta);
