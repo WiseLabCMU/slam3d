@@ -164,7 +164,7 @@ void pfResample_resampleLocFromPose(particleFilterLoc_t * pf, float x, float y, 
     invN = 1.0f / PF_N_TAG_LOC;
     numSpawn = 0;
     if (s * invN < WEIGHT_SPAWN_THRESH)
-        numSpawn = (int)lroundf()
+        numSpawn = (int)lroundf(PF_N_TAG_LOC * PCT_SPAWN);
 }
 
 static void _resampleBcn(bcn_t* bcn, const particleFilterSlam_t* pf, float range, float stdRange, uint8_t force)
