@@ -19,8 +19,9 @@
 extern "C" {
 #endif
     
-    void pfResample_resampleLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange);
-    void pfResample_resampleSlam(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns);
+    void pfResample_resampleLocFromRange(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange);
+    void pfResample_resampleSlamFromRange(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns);
+    void pfResample_resampleLocFromPose(particleFilterLoc_t* pf, float x, float y, float z, float theta, float stdXyz, float stdTheta);
     
 #ifdef __cplusplus
 } // extern "C"

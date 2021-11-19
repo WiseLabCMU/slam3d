@@ -181,7 +181,7 @@ void particleFilterLoc_depositRange(particleFilterLoc_t* pf, float bx, float by,
     if (pf->initialized)
     {
         pfMeasurement_applyRangeLoc(pf, bx, by, bz, range, stdRange);
-        pfResample_resampleLoc(pf, bx, by, bz, range, stdRange);
+        pfResample_resampleLocFromRange(pf, bx, by, bz, range, stdRange);
     }
     else
     {
@@ -201,7 +201,7 @@ void particleFilterSlam_depositRange(particleFilterSlam_t* pf, bcn_t* bcn, float
     if (bcn->initialized)
     {
         pfMeasurement_applyRangeSlam(pf, bcn, range, stdRange);
-        pfResample_resampleSlam(pf, bcn, range, stdRange, allBcns, numBcns);
+        pfResample_resampleSlamFromRange(pf, bcn, range, stdRange, allBcns, numBcns);
     }
     else
     {
@@ -216,7 +216,7 @@ void particleFilterLoc_depositRssi(particleFilterLoc_t* pf, float bx, float by, 
     if (pf->initialized)
     {
         pfMeasurement_applyRangeLoc(pf, bx, by, bz, 1.5f, 0.5f);
-        pfResample_resampleLoc(pf, bx, by, bz, 1.5f, 0.5f);
+        pfResample_resampleLocFromRange(pf, bx, by, bz, 1.5f, 0.5f);
     }
     else
     {
@@ -236,12 +236,27 @@ void particleFilterSlam_depositRssi(particleFilterSlam_t* pf, bcn_t* bcn, int rs
     if (bcn->initialized)
     {
         pfMeasurement_applyRangeSlam(pf, bcn, 1.5f, 0.5f);
-        pfResample_resampleSlam(pf, bcn, 1.5f, 0.5f, allBcns, numBcns);
+        pfResample_resampleSlamFromRange(pf, bcn, 1.5f, 0.5f, allBcns, numBcns);
     }
     else
     {
         pfInit_initBcnSlam(bcn, pf, 1.5f, 0.5f);
         bcn->initialized = 1;
+    }
+}
+
+void particleFilterLoc_depositPose(particleFilterLoc_t* pf, float x, float y, float z, float theta, float stdXyz, float stdTheta)
+{
+    _commitVioLoc(pf);
+    if (pf->initialized)
+    {
+        pfMeasurement_applyPoseLoc(pf, x, y, z, theta, stdXyz, stdTheta);
+        pfResample_resampleLocFromPose(pf, x, y, z, theta, stdXyz, stdTheta);
+    }
+    else
+    {
+        pfInit_initTagLocPose(pf, x, y, z, theta, stdXyz, stdTheta);
+        pf->initialized = 1;
     }
 }
 
