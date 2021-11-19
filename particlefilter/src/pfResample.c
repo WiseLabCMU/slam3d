@@ -53,7 +53,7 @@ void pfResample_resampleLocFromRange(particleFilterLoc_t* pf, float bx, float by
     invN = 1.0f / PF_N_TAG_LOC;
     numSpawn = 0;
     if (s * invN < WEIGHT_SPAWN_THRESH && range < RADIUS_SPAWN_THRESH)
-        numSpawn = (int)lroundf(PF_N_BCN * PCT_SPAWN);
+        numSpawn = (int)lroundf(PF_N_TAG_LOC * PCT_SPAWN);
 
     if (ess * invN < RESAMPLE_THRESH || numSpawn > 0)
     {
