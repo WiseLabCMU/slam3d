@@ -164,7 +164,8 @@ void pfMeasurement_applyPoseLoc(particleFilterLoc_t* pf, float x, float y, float
         dx = tp->x - x;
         dy = tp->y - y;
         dz = tp->z - z;
-        dtheta = tp->theta - theta; MOD!!!
+        dtheta = fabsf(tp->theta - theta);
+        dtheta = (dtheta < (float)M_PI) ? dtheta : 2 * (float)M_PI - dtheta;
         pDist = sqrtf(dx * dx + dy * dy + dz * dz);
         if (pDist > 3 * stdXyz || dtheta > 3 * stdTheta)
             tp->w *= MIN_WEIGHT_POSE;
