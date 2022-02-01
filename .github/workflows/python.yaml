@@ -122,8 +122,8 @@ jobs:
           - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp38,  title: ""                 }
           - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp39,  title: ""                 }
           - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp310, title: ""                 }
-          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: pp37,  title: ""                 }
-          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: pp38,  title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: pp37,  title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: pp38,  title: ""                 }
           # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp36,  title: ""                 }
           # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp37,  title: ""                 }
           # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp38,  title: ""                 }
@@ -153,7 +153,7 @@ jobs:
           - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp38,  title: " & Test"          }
           - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp39,  title: " & Test"          }
           - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp310, title: " & Test"          }
-          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: pp37,  title: " & Test"          }
+          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: pp37,  title: " & Test"          }
           - { os: macos-10.15,  arch: macosx_x86_64,     python-version: pp38,  title: " & Test"          }
           - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp38,  title: ""                 }
           - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp39,  title: ""                 }
