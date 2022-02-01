@@ -44,14 +44,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { id: linux-gcc,   os: ubuntu-20.04, python-version: 3.9,      compiler: gcc }
-          - { id: windows-gcc, os: windows-2019, python-version: 3.9,      compiler: gcc }
-          - { id: windows-cl,  os: windows-2019, python-version: 3.9,      compiler: cl  }
-          - { id: macos-gcc,   os: macos-10.15,  python-version: 3.9,      compiler: gcc }
-          - { id: linux-gcc,   os: ubuntu-20.04, python-version: pypy-3.7, compiler: gcc }
-          - { id: windows-gcc, os: windows-2019, python-version: pypy-3.7, compiler: gcc }
-          - { id: windows-cl,  os: windows-2019, python-version: pypy-3.7, compiler: cl  }
-          # - { id: macos-gcc,   os: macos-10.15,  python-version: pypy-3.7, compiler: gcc }
+          - { id: linux-gcc,   os: ubuntu-20.04, python-version: "3.9",      compiler: gcc }
+          - { id: windows-gcc, os: windows-2019, python-version: "3.9",      compiler: gcc }
+          - { id: windows-cl,  os: windows-2019, python-version: "3.9",      compiler: cl  }
+          - { id: macos-gcc,   os: macos-10.15,  python-version: "3.9",      compiler: gcc }
+          - { id: linux-gcc,   os: ubuntu-20.04, python-version: "pypy-3.8", compiler: gcc }
+          - { id: windows-gcc, os: windows-2019, python-version: "pypy-3.8", compiler: gcc }
+          - { id: windows-cl,  os: windows-2019, python-version: "pypy-3.8", compiler: cl  }
+          - { id: macos-gcc,   os: macos-10.15,  python-version: "pypy-3.8", compiler: gcc }
     runs-on: ${{ matrix.os }}
     steps:
       - name: Add VS build tools
@@ -103,47 +103,64 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp36, title: " & Test"          }
-          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp37, title: " & Test"          }
-          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp38, title: " & Test"          }
-          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp39, title: " & Test"          }
-          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: pp37, title: " & Test"          }
-          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp36, title: ""                 }
-          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp37, title: ""                 }
-          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp38, title: ""                 }
-          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp39, title: ""                 }
-          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: pp37, title: ""                 }
-          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp36, title: ""                 }
-          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp37, title: ""                 }
-          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp38, title: ""                 }
-          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp39, title: ""                 }
-          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: pp37, title: ""                 }
-          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp36, title: ""                 }
-          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp37, title: ""                 }
-          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp38, title: ""                 }
-          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp39, title: ""                 }
-          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp36, title: ""                 }
-          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp37, title: ""                 }
-          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp38, title: ""                 }
-          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp39, title: ""                 }
-          - { os: windows-2019, arch: win_amd64,         python-version: cp36, title: " & Test"         }
-          - { os: windows-2019, arch: win_amd64,         python-version: cp37, title: " & Test"         }
-          - { os: windows-2019, arch: win_amd64,         python-version: cp38, title: " & Test"         }
-          - { os: windows-2019, arch: win_amd64,         python-version: cp39, title: " & Test"         }
-          - { os: windows-2019, arch: win_amd64,         python-version: pp37, title: " & Test"         }
-          - { os: windows-2019, arch: win32,             python-version: cp36, title: " & Test"         }
-          - { os: windows-2019, arch: win32,             python-version: cp37, title: " & Test"         }
-          - { os: windows-2019, arch: win32,             python-version: cp38, title: " & Test"         }
-          - { os: windows-2019, arch: win32,             python-version: cp39, title: " & Test"         }
-          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp36, title: " & Test"         }
-          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp37, title: " & Test"         }
-          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp38, title: " & Test"         }
-          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp39, title: " & Test"         }
-          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: pp37, title: " & Test"         }
-          - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp38, title: ""                }
-          - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp39, title: ""                }
-          - { os: macos-10.15,  arch: macosx_universal2, python-version: cp38, title: " & Mostly Test"  }
-          - { os: macos-10.15,  arch: macosx_universal2, python-version: cp39, title: " & Mostly Test"  }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp36,  title: " & Test"          }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp37,  title: " & Test"          }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp38,  title: " & Test"          }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp39,  title: " & Test"          }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp310, title: " & Test"          }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: pp37,  title: " & Test"          }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: pp38,  title: " & Test"          }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp36,  title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp37,  title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp38,  title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp39,  title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp310, title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: pp37,  title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: pp38,  title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp36,  title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp37,  title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp38,  title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp39,  title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp310, title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: pp37,  title: ""                 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: pp38,  title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp36,  title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp37,  title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp38,  title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp39,  title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp310, title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp36,  title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp37,  title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp38,  title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp39,  title: ""                 }
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp310, title: ""                 }
+          - { os: windows-2019, arch: win_amd64,         python-version: cp36,  title: " & Test"          }
+          - { os: windows-2019, arch: win_amd64,         python-version: cp37,  title: " & Test"          }
+          - { os: windows-2019, arch: win_amd64,         python-version: cp38,  title: " & Test"          }
+          - { os: windows-2019, arch: win_amd64,         python-version: cp39,  title: " & Test"          }
+          - { os: windows-2019, arch: win_amd64,         python-version: cp310, title: " & Test"          }
+          - { os: windows-2019, arch: win_amd64,         python-version: pp37,  title: " & Test"          }
+          - { os: windows-2019, arch: win_amd64,         python-version: pp38,  title: " & Test"          }
+          - { os: windows-2019, arch: win_arm64,         python-version: cp39,  title: " & Test"          }
+          - { os: windows-2019, arch: win_arm64,         python-version: cp310, title: " & Test"          }
+          - { os: windows-2019, arch: win32,             python-version: cp36,  title: " & Test"          }
+          - { os: windows-2019, arch: win32,             python-version: cp37,  title: " & Test"          }
+          - { os: windows-2019, arch: win32,             python-version: cp38,  title: " & Test"          }
+          - { os: windows-2019, arch: win32,             python-version: cp39,  title: " & Test"          }
+          - { os: windows-2019, arch: win32,             python-version: cp310, title: " & Test"          }
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp36,  title: " & Test"          }
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp37,  title: " & Test"          }
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp38,  title: " & Test"          }
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp39,  title: " & Test"          }
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp310, title: " & Test"          }
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: pp37,  title: " & Test"          }
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: pp38,  title: " & Test"          }
+          - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp38,  title: ""                 }
+          - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp39,  title: ""                 }
+          - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp310, title: ""                 }
+          - { os: macos-10.15,  arch: macosx_universal2, python-version: cp38,  title: " & Mostly Test"   }
+          - { os: macos-10.15,  arch: macosx_universal2, python-version: cp39,  title: " & Mostly Test"   }
+          - { os: macos-10.15,  arch: macosx_universal2, python-version: cp310, title: " & Mostly Test"   }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -153,7 +170,7 @@ jobs:
         with:
           platforms: all
       - name: Build${{ matrix.title }} Wheel
-        uses: pypa/cibuildwheel@v2.0.0
+        uses: pypa/cibuildwheel@v2.3.1
         env:
           CIBW_BUILD_VERBOSITY: 1
           CIBW_BUILD: ${{ matrix.python-version }}-${{ matrix.arch }}
