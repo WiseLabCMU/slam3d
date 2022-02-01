@@ -85,9 +85,9 @@ jobs:
         run: >
           (if [[ "${{ matrix.os }}" = *"windows"* ]]; then export SHARED_EXT=".exe";
           else export SHARED_EXT=""; fi) &&
-          mkdir build &&
-          ${{ matrix.compiler }} -o build/test-${{ matrix.python-version }}-${{ matrix.id }}$SHARED_EXT -Iparticlefilter/include particlefilter/src/*.c test/test.c -lm &&
-          ./build/test-${{ matrix.python-version }}-${{ matrix.id }}$SHARED_EXT --nofail ./test/data/ ./test/out/test1_ParticleFilterLoc_test_out_c_${{ matrix.python-version }}-${{ matrix.id }}.csv
+          mkdir build_test &&
+          ${{ matrix.compiler }} -o build_test/test-${{ matrix.python-version }}-${{ matrix.id }}$SHARED_EXT -Iparticlefilter/include particlefilter/src/*.c test/test.c -lm &&
+          ./build_test/test-${{ matrix.python-version }}-${{ matrix.id }}$SHARED_EXT --nofail ./test/data/ ./test/out/test1_ParticleFilterLoc_test_out_c_${{ matrix.python-version }}-${{ matrix.id }}.csv
       - name: Test
         shell: bash
         run: >
@@ -141,8 +141,8 @@ jobs:
           - { os: windows-2019, arch: win_amd64,         python-version: cp310, title: " & Test"          }
           - { os: windows-2019, arch: win_amd64,         python-version: pp37,  title: " & Test"          }
           - { os: windows-2019, arch: win_amd64,         python-version: pp38,  title: " & Test"          }
-          - { os: windows-2019, arch: win_arm64,         python-version: cp39,  title: " & Test"          }
-          - { os: windows-2019, arch: win_arm64,         python-version: cp310, title: " & Test"          }
+          # - { os: windows-2019, arch: win_arm64,         python-version: cp39,  title: " & Test"          }
+          # - { os: windows-2019, arch: win_arm64,         python-version: cp310, title: " & Test"          }
           - { os: windows-2019, arch: win32,             python-version: cp36,  title: " & Test"          }
           - { os: windows-2019, arch: win32,             python-version: cp37,  title: " & Test"          }
           - { os: windows-2019, arch: win32,             python-version: cp38,  title: " & Test"          }
@@ -180,9 +180,9 @@ jobs:
             bash -c "
             (if [[ \"${{ matrix.os }}\" = *\"windows\"* ]]; then export SHARED_EXT=\".exe\";
             else export SHARED_EXT=\"\"; fi) &&
-            mkdir build &&
-            gcc -o build/test-${{ matrix.id }}$SHARED_EXT -Iparticlefilter/include particlefilter/src/*.c test/test.c -lm &&
-            ./build/test-${{ matrix.id }}$SHARED_EXT --nofail ./test/data/ ./test/out/test1_ParticleFilterLoc_test_out_c.csv
+            mkdir -p build_test &&
+            gcc -o build_test/test-${{ matrix.id }}$SHARED_EXT -Iparticlefilter/include particlefilter/src/*.c test/test.c -lm &&
+            ./build_test/test-${{ matrix.id }}$SHARED_EXT --nofail ./test/data/ ./test/out/test1_ParticleFilterLoc_test_out_c.csv
             "
           CIBW_TEST_COMMAND: >
             python {project}/test/test.py {project}/test/data/ {project}/test/out/test1_ParticleFilterLoc_test_out_py.csv {project}/test/out/test1_ParticleFilterLoc_test_out_c.csv
