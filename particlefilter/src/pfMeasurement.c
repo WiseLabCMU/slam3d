@@ -17,9 +17,10 @@
 #include "pfMeasurement.h"
 #include "pfRandom.h"
 
-#define VIO_STD_XYZ         (1e-3f)
-#define VIO_STD_THETA       (1e-6f)
-#define MIN_WEIGHT(range)   ((range < 3.0f) ? 0.1f : 0.5f)
+#define VIO_STD_XYZ             (1e-3f)
+#define VIO_STD_THETA           (1e-6f)
+#define MIN_WEIGHT_RANGE(range) ((range < 3.0f) ? 0.1f : 0.5f)
+#define MIN_WEIGHT_POSE         (1e-6f)
 
 void pfMeasurement_applyVioLoc(particleFilterLoc_t* pf, float dt, float dx, float dy, float dz, float ddist)
 {
@@ -111,7 +112,7 @@ void pfMeasurement_applyRangeLoc(particleFilterLoc_t* pf, float bx, float by, fl
     tagParticle_t* tp;
     float minWeight, dx, dy, dz, pRange;
 
-    minWeight = MIN_WEIGHT(range);
+    minWeight = MIN_WEIGHT_RANGE(range);
     for (i = 0; i < PF_N_TAG_LOC; ++i)
     {
         tp = &pf->pTag[i];
@@ -131,7 +132,7 @@ void pfMeasurement_applyRangeSlam(particleFilterSlam_t* pf, bcn_t* bcn, float ra
     bcnParticle_t* bp;
     float minWeight, dx, dy, dz, pRange, bcnSum;
     
-    minWeight = MIN_WEIGHT(range);
+    minWeight = MIN_WEIGHT_RANGE(range);
     for (i = 0; i < PF_N_TAG_SLAM; ++i)
     {
         tp = &pf->pTag[i];
@@ -163,11 +164,9 @@ void pfMeasurement_applyPoseLoc(particleFilterLoc_t* pf, float x, float y, float
         dx = tp->x - x;
         dy = tp->y - y;
         dz = tp->z - z;
-        dtheta = tp->theta - theta;
+        dtheta = fmodf(tp->theta - theta, 2 * (float)M_PI);
         pDist = sqrtf(dx * dx + dy * dy + dz * dz);
-        if (pDist > 3 * stdXyz)
-            tp->w = 0.0f;
-        if (dtheta > 3 * stdTheta)
-            tp->w = 0.0f;
+        if (pDist > 3 * stdXyz || dtheta > 3 * stdTheta)
+            tp->w *= MIN_WEIGHT_POSE;
     }
 }
