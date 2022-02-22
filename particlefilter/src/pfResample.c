@@ -27,7 +27,7 @@
 
 static void _resampleBcn(bcn_t* bcn, const particleFilterSlam_t* pf, float range, float stdRange, uint8_t force);
 
-void pfResample_resampleLoc(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange)
+void pfResample_resampleLocFromRange(particleFilterLoc_t* pf, float bx, float by, float bz, float range, float stdRange)
 {
     int numSpawn, i, j;
     tagParticle_t* tp;
@@ -53,7 +53,7 @@ void pfResample_resampleLoc(particleFilterLoc_t* pf, float bx, float by, float b
     invN = 1.0f / PF_N_TAG_LOC;
     numSpawn = 0;
     if (s * invN < WEIGHT_SPAWN_THRESH && range < RADIUS_SPAWN_THRESH)
-        numSpawn = (int)lroundf(PF_N_BCN * PCT_SPAWN);
+        numSpawn = (int)lroundf(PF_N_TAG_LOC * PCT_SPAWN);
 
     if (ess * invN < RESAMPLE_THRESH || numSpawn > 0)
     {
@@ -83,7 +83,7 @@ void pfResample_resampleLoc(particleFilterLoc_t* pf, float bx, float by, float b
     }
 }
 
-void pfResample_resampleSlam(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
+void pfResample_resampleSlamFromRange(particleFilterSlam_t* pf, bcn_t* bcn, float range, float stdRange, bcn_t** allBcns, int numBcns)
 {
     int i, j;
     tagParticle_t* tp;
@@ -135,6 +135,62 @@ void pfResample_resampleSlam(particleFilterSlam_t* pf, bcn_t* bcn, float range, 
         for (i = 0; i < PF_N_TAG_SLAM; ++i)
             pf->pTag[i].w *= m;
         _resampleBcn(bcn, pf, range, stdRange, 0);
+    }
+}
+
+void pfResample_resampleLocFromPose(particleFilterLoc_t * pf, float x, float y, float z, float theta, float stdXyz, float stdTheta)
+{
+    int numSpawn, i, j;
+    tagParticle_t* tp;
+    float invN, w, s, ss, csum, ssum, ess, htheta, m, rStart, rStep;
+    float weightCdf[PF_N_TAG_LOC];
+
+    s = 0.0f;
+    ss = 0.0f;
+    csum = 0.0f;
+    ssum = 0.0f;
+    for (i = 0; i < PF_N_TAG_LOC; ++i)
+    {
+        tp = &pf->pTag[i];
+        w = tp->w;
+        s += w;
+        ss += w * w;
+        csum += w * cosf(tp->theta);
+        ssum += w * sinf(tp->theta);
+        weightCdf[i] = s;
+    }
+    ess = s * s / ss;
+
+    invN = 1.0f / PF_N_TAG_LOC;
+    numSpawn = 0;
+    if (s * invN < WEIGHT_SPAWN_THRESH)
+        numSpawn = (int)lroundf(PF_N_TAG_LOC * PCT_SPAWN);
+
+    if (ess * invN < RESAMPLE_THRESH || numSpawn > 0)
+    {
+        csum /= s;
+        ssum /= s;
+        htheta = csum * csum + ssum * ssum;
+        htheta = htheta > 1e-10f ? htheta : 1e-10f;
+        htheta = htheta < 1 - 1e-10f ? htheta : 1 - 1e-10f;
+        htheta = sqrtf(-logf(htheta) / ess);
+
+        rStep = invN * s;
+        rStart = pfRandom_uniform() * rStep;
+
+        for (i = 0, j = 0; i < PF_N_TAG_LOC; ++j)
+            for (; i < PF_N_TAG_LOC && (rStart + rStep * i) < weightCdf[j]; ++i)
+                pfInit_spawnTagParticleFromOther(&pf->pTagBuf[i], &pf->pTag[j], HXYZ, htheta);
+
+        memcpy(pf->pTag, pf->pTagBuf, sizeof(pf->pTagBuf));
+        for (i = 0; i < numSpawn; ++i)
+            pfInit_spawnTagParticleFromPose(&pf->pTag[i], x, y, z, theta, stdXyz, stdTheta);
+    }
+    else
+    {
+        m = PF_N_TAG_LOC / s;
+        for (i = 0; i < PF_N_TAG_LOC; ++i)
+            pf->pTag[i].w *= m;
     }
 }
 

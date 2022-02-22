@@ -29,16 +29,16 @@
 // https://git.musl-libc.org/cgit/musl/tree/src/prng/rand_r.c?id=20d01d83b5a13c77805976e7c520f566244ba3ff
 static unsigned temper(unsigned x)
 {
-	x ^= x>>11;
-	x ^= x<<7 & 0x9D2C5680;
-	x ^= x<<15 & 0xEFC60000;
-	x ^= x>>18;
-	return x;
+    x ^= x>>11;
+    x ^= x<<7 & 0x9D2C5680;
+    x ^= x<<15 & 0xEFC60000;
+    x ^= x>>18;
+    return x;
 }
 
 int rand_r_func(unsigned *seed)
 {
-	return temper(*seed = *seed * 1103515245 + 12345)/2;
+    return temper(*seed = *seed * 1103515245 + 12345)/2;
 }
 
 // https://git.musl-libc.org/cgit/musl/tree/include/stdlib.h?id=821083ac7b54eaa040d5a8ddc67c6206a175e0ca
